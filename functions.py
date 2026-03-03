@@ -3,6 +3,7 @@
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio import BiopythonWarning
+import csv
 import esm
 import gzip
 from itertools import combinations, product
@@ -1502,8 +1503,6 @@ class NGS:
 
 
     def saveSubstrateCSV(self, seqs, initialRF, finalRF, minCounts=100):
-        import csv
-
         # Get data paths
         t = 'Counts'
         subLen = len(next(iter(seqs)))
@@ -1517,13 +1516,6 @@ class NGS:
             os.path.join(pathCSV, tag.replace(f'_{t}', '_ZCounts')),
             os.path.join(pathCSV, tag.replace(f'_{t}','_ZPred'))
         ]
-        evalData = False
-        for savePath in paths:
-            if not os.path.exists(savePath):
-                evalData = True
-                break
-        if not evalData:
-            return
 
         print('==============================  Save Substrate CSV '
               '==============================')
@@ -1536,7 +1528,6 @@ class NGS:
 
         # Seq len
         subLen = len(next(iter(seqs)))
-
 
         # Limit substrates by counts
         subsCounts = {}
@@ -1610,12 +1601,15 @@ class NGS:
                       f'Z Score Counts: {red}{zCountStr:>{widthZCount}}{resetColor}'
                 )
         print()
-        print(f'Saving {red}{N:,}{resetColor} substrates in a CSV file\nSave path:')
-
+        savedData = False
 
         # CSV: Scores
         savePath = paths[0]
         if not os.path.exists(savePath):
+            if not savedData:
+                savedData = True
+                print(f'Saving {red}{N:,}{resetColor} substrates in a CSV file\n'
+                      f'Save path:')
             print( f'    {greenDark}{savePath}{resetColor}')
             with open(savePath, 'w', newline='') as c:
                 writer = csv.writer(c)
@@ -1626,6 +1620,10 @@ class NGS:
         # CSV: Z Scores
         savePath = paths[1]
         if not os.path.exists(savePath):
+            if not savedData:
+                savedData = True
+                print(f'Saving {red}{N:,}{resetColor} substrates in a CSV file\n'
+                      f'Save path:')
             print(f'    {greenDark}{savePath}{resetColor}')
             with open(savePath, 'w', newline='') as c:
                 writer = csv.writer(c)
@@ -1636,12 +1634,20 @@ class NGS:
         # CSV: Z-Pred
         savePath = paths[2]
         if seqZPred and not os.path.exists(savePath):
+            if not savedData:
+                savedData = True
+                print(f'Saving {red}{N:,}{resetColor} substrates in a CSV file\n'
+                      f'Save path:')
             print(f'    {greenDark}{savePath}{resetColor}')
             with open(savePath, 'w', newline='') as c:
                 writer = csv.writer(c)
                 writer.writerow(['sequence', self.enzyme])
                 for seq, score in seqZPred.items():
                     writer.writerow([seq, f'{score:.2f}'])
+        if not savedData:
+            print(f'Print no data was saved. Files already saved at:')
+            for path in paths:
+                print(f'    {greenDark}{path}{resetColor}')
         print('\n')
 
 
@@ -6437,7 +6443,7 @@ class NGS:
 
         def evalSubs(values, tag):
             # Calculate: Activity
-            activityPred = {} ##
+            activityPred = {}
             subLen = len(next(iter(activityExp)))
             for substrate in activityExp.keys():
                 score = 0
