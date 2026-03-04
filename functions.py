@@ -1603,6 +1603,7 @@ class NGS:
                 )
         print()
         savedData = False
+        plotData = [False, False, False]
 
         # CSV: Scores
         savePath = paths[0]
@@ -1612,6 +1613,7 @@ class NGS:
                 print(f'Saving {red}{N:,}{resetColor} substrates in a CSV file\n'
                       f'Save path:')
             print( f'    {greenDark}{savePath}{resetColor}')
+            plotData[0] = True
             with open(savePath, 'w', newline='') as c:
                 writer = csv.writer(c)
                 writer.writerow(['sequence', self.enzyme])
@@ -1626,6 +1628,7 @@ class NGS:
                 print(f'Saving {red}{N:,}{resetColor} substrates in a CSV file\n'
                       f'Save path:')
             print(f'    {greenDark}{savePath}{resetColor}')
+            plotData[1] = True
             with open(savePath, 'w', newline='') as c:
                 writer = csv.writer(c)
                 writer.writerow(['sequence', self.enzyme])
@@ -1640,6 +1643,7 @@ class NGS:
                 print(f'Saving {red}{N:,}{resetColor} substrates in a CSV file\n'
                       f'Save path:')
             print(f'    {greenDark}{savePath}{resetColor}')
+            plotData[2] = True
             with open(savePath, 'w', newline='') as c:
                 writer = csv.writer(c)
                 writer.writerow(['sequence', self.enzyme])
@@ -1653,24 +1657,29 @@ class NGS:
 
 
         # Plot bar graphs
-        # self.plotBarGraphCSV(
-        #     substrates=subsCounts, dataType='Counts',
-        #     combinedMotifs=combinedMotifs, minCounts=minCounts,
-        #     saveDir=pathCSV)
-        # self.plotBarGraphCSV(
-        #     substrates=subsZCounts, dataType='Z Counts',
-        #     combinedMotifs=combinedMotifs, minCounts=minCounts,
-        #     saveDir=pathCSV)
-        if subs:
-            # self.plotBarGraphCSV(
-            #     substrates=subs, dataType='Pred',
-            #     combinedMotifs=combinedMotifs, minCounts=minCounts,
-            #     saveDir=pathCSV)
-
+        if plotData[0]:
+            self.plotBarGraphCSV(
+                substrates=subsCounts, dataType='Counts',
+                combinedMotifs=combinedMotifs, minCounts=minCounts,
+                saveDir=pathCSV
+            )
+        if plotData[1]:
+            self.plotBarGraphCSV(
+                substrates=subsZCounts, dataType='Z Counts',
+                combinedMotifs=combinedMotifs, minCounts=minCounts,
+                saveDir=pathCSV
+            )
+        if plotData[2]:
+            self.plotBarGraphCSV(
+                substrates=subs, dataType='Pred',
+                combinedMotifs=combinedMotifs, minCounts=minCounts,
+                saveDir=pathCSV
+            )
             self.plotBarGraphCSV(
                 substrates=seqZPred, dataType='Z Pred',
                 combinedMotifs=combinedMotifs, minCounts=minCounts,
-                saveDir=pathCSV)
+                saveDir=pathCSV
+            )
 
 
 
@@ -1685,31 +1694,29 @@ class NGS:
         # Evaluate data
         NSubs = len(substrates.keys())
         iteration = 0
-        if 'counts' in dataType.lower():
+        if 'counts' in dataType.lower() and 'z ' not in dataType.lower():
             for substrate, count in substrates.items():
                 print(f'     {blue}{substrate}{resetColor}, '
                       f'Counts: {red}{count:,}{resetColor}')
                 iteration += 1
                 if iteration >= self.printNumber:
-                    print()
                     break
             countTotal = 0
             for count in substrates.values():
                 countTotal += count
             print(f'Total Counts: {red}{countTotal:,}{resetColor}')
         else:
-            for substrate, value in substrates.items():
+            for substrate, score in substrates.items():
                 print(f'     {blue}{substrate}{resetColor}, '
-                      f'Value: {red}{np.round(value, self.roundVal):,}{resetColor}')
+                      f'Score: {red}{np.round(score, self.roundVal):,}{resetColor}')
                 iteration += 1
                 if iteration >= self.printNumber:
-                    print()
                     break
-            valTotal = 0
-            for value in substrates.values():
-                valTotal += value
-            valTotal = np.round(valTotal, self.roundVal)
-            print(f'Total Values: {red}{valTotal:,}{resetColor}')
+            scoreTotal = 0
+            for score in substrates.values():
+                scoreTotal += score
+            scoreTotal = np.round(scoreTotal, self.roundVal)
+            print(f'Total Values: {red}{scoreTotal:,}{resetColor}')
         print(f'Number of plotted sequences: {red}{NSubs:,}{resetColor}\n')
 
         # Collect substrates
@@ -1723,34 +1730,44 @@ class NGS:
         # Evaluate: Y axis
         maxValue = math.ceil(max(y))
         minValue = math.floor(min(y))
-        print(f'Max Value: {blue}{maxValue:,}{resetColor}\n')
         if maxValue == 1:
             step = 0.1
             yMax = math.ceil(max(y)) + step
             yMin = math.floor(min(y))
             yTicks = np.arange(yMin, yMax+(step/2), 0.2)
-            print(f'Max Value: {blue}{maxValue:,}{resetColor}\n'
-                  f'Y Max: {blue}{yMax:,}{resetColor}\n'
-                  f'Y Min: {blue}{yMin:,}{resetColor}\n'
-                  f'Y Ticks: {pink}{yTicks}{resetColor}\n')
+            # print(f'Max Value: {blue}{maxValue:,}{resetColor}\n'
+            #       f'Y Max: {blue}{yMax:,}{resetColor}\n'
+            #       f'Y Min: {blue}{yMin:,}{resetColor}\n'
+            #       f'Y Ticks: {pink}{yTicks}{resetColor}\n')
         else:
             if minValue < 0:
-                magnitude = math.floor(math.log10(maxValue))
-                maxValueAdj = maxValue * 10
-                yMax = math.ceil(maxValueAdj) / 10
-                yMin = math.floor(min(y))
+                diff = (maxValue - minValue)
+                step = diff / 10
+                ymax, ymin = max(y), min(y)
+                if ymax + step / 2 > maxValue:
+                    ymax = maxValue
+                if ymin - step / 2 < minValue:
+                    ymin = minValue
 
-                print(f'Max Value: {blue}{maxValue:,}{resetColor}\n'
-                      f'Magnitude: {blue}{magnitude:,}{resetColor}\n'
-                      f'Max Value Adj: {blue}{maxValueAdj:,}{resetColor}\n'
-                      f'Y Max: {blue}{yMax:,}{resetColor}\n'
-                      f'Y Min: {blue}{yMin:,}{resetColor}\n')
-                sys.exit()
+                yMax, yMin = 0, 0
+                while yMax <= ymax:
+                    yMax += step
+                    # print(ymax, yMax)
+                while yMin >= ymin:
+                    yMin -= step
+                yTicks = np.arange(yMin, yMax + step, step)
+                # print(f'\nDiff: {blue}{diff:,}{resetColor}\n'
+                #       f'Max Value: {blue}{maxValue:,}{resetColor}\n'
+                #       f'Min Value: {blue}{minValue:,}{resetColor}\n'
+                #       f'Step: {blue}{step:,}{resetColor}\n'
+                #       f'Y Max: {blue}{yMax:,}{resetColor}\n'
+                #       f'Y Min: {blue}{yMin:,}{resetColor}\n'
+                #       f'Y Ticks: {pink}{yTicks}{resetColor}\n')
             else:
                 magnitude = math.floor(math.log10(maxValue))
                 step = 10 ** (magnitude) / 5
                 yMax = 0
-                while yMax < maxValue:
+                while yMax <= maxValue:
                     yMax += step
                     yTicks = np.arange(0, yMax + 1, step, dtype=int)
                 yMin = 0
@@ -1768,11 +1785,11 @@ class NGS:
         while xMax < NSubs:
             xMax += step
         xTicks = np.arange(0, xMax+1, step, dtype=int)
-        print(f'N Subs: {blue}{NSubs:,}{resetColor}\n'
-              f'Magnitude: {blue}{magnitude:,}{resetColor}\n'
-              f'Step: {blue}{step:,}{resetColor}\n'
-              f'X Max: {blue}{xMax:,}{resetColor}\n'
-              f'X Labels: {pink}{", ".join([str(x) for x in xTicks])}{resetColor}\n')
+        # print(f'N Subs: {blue}{NSubs:,}{resetColor}\n'
+        #       f'Magnitude: {blue}{magnitude:,}{resetColor}\n'
+        #       f'Step: {blue}{step:,}{resetColor}\n'
+        #       f'X Max: {blue}{xMax:,}{resetColor}\n'
+        #       f'X Labels: {pink}{", ".join([str(x) for x in xTicks])}{resetColor}\n')
 
         # Define: Figure title
         if combinedMotifs and len(self.motifIndexExtracted) > 1:
@@ -1788,10 +1805,10 @@ class NGS:
         # Plot the data
         fig, ax = plt.subplots(figsize=self.figSize)
         bars = plt.bar(x, y, color=barColor, width=barWidth)
-        plt.ylabel('Substrates', fontsize=self.labelSizeAxis)
+        plt.xlabel('Substrates', fontsize=self.labelSizeAxis)
         plt.ylabel(dataType, fontsize=self.labelSizeAxis)
         plt.title(title, fontsize=self.labelSizeTitle, fontweight='bold')
-        # plt.axhline(y=0, color='black', linewidth=self.lineThickness)
+        plt.axhline(y=0, color='black', linewidth=self.lineThickness)
 
         # Set: x ticks
         ax.set_xticks(xTicks)
@@ -4145,7 +4162,6 @@ class NGS:
                       f'Counts: {red}{count:,}{resetColor}')
                 iteration += 1
                 if iteration >= self.printNumber:
-                    print()
                     break
             for count in substrates.values():
                 valTotal += count
@@ -4156,7 +4172,6 @@ class NGS:
                       f'Value: {red}{value:,}{resetColor}')
                 iteration += 1
                 if iteration >= self.printNumber:
-                    print()
                     break
             valTotal = 0
             for value in substrates.values():
