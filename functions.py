@@ -1653,21 +1653,203 @@ class NGS:
 
 
         # Plot bar graphs
-        self.plotBarGraph(
-            substrates=subsCounts, dataType='Counts',
-            combinedMotifs=combinedMotifs, plotAllSubs=True, saveDir=pathCSV)
-        self.plotBarGraph(
-            substrates=subsZCounts, dataType='Z Counts',
-            combinedMotifs=combinedMotifs, plotAllSubs=True, saveDir=pathCSV)
+        # self.plotBarGraphCSV(
+        #     substrates=subsCounts, dataType='Counts',
+        #     combinedMotifs=combinedMotifs, minCounts=minCounts,
+        #     saveDir=pathCSV)
+        # self.plotBarGraphCSV(
+        #     substrates=subsZCounts, dataType='Z Counts',
+        #     combinedMotifs=combinedMotifs, minCounts=minCounts,
+        #     saveDir=pathCSV)
         if subs:
-            self.plotBarGraph(
-                substrates=subs, dataType='Pred',
-                combinedMotifs=combinedMotifs, plotAllSubs=True, saveDir=pathCSV)
+            # self.plotBarGraphCSV(
+            #     substrates=subs, dataType='Pred',
+            #     combinedMotifs=combinedMotifs, minCounts=minCounts,
+            #     saveDir=pathCSV)
 
-            self.plotBarGraph(
+            self.plotBarGraphCSV(
                 substrates=seqZPred, dataType='Z Pred',
-                combinedMotifs=combinedMotifs, plotAllSubs=True, saveDir=pathCSV)
+                combinedMotifs=combinedMotifs, minCounts=minCounts,
+                saveDir=pathCSV)
 
+
+
+    def plotBarGraphCSV(self, substrates, dataType, barColor='#BF5700', barWidth=2,
+                     combinedMotifs=False, minCounts=False, saveDir=False):
+        print('================================ Plot: Bar Graph '
+              '================================')
+        if minCounts:
+            print(f'Minimum substrate count: {red}{minCounts:,}{resetColor}')
+        print(f'Substrates:')
+
+        # Evaluate data
+        NSubs = len(substrates.keys())
+        iteration = 0
+        if 'counts' in dataType.lower():
+            for substrate, count in substrates.items():
+                print(f'     {blue}{substrate}{resetColor}, '
+                      f'Counts: {red}{count:,}{resetColor}')
+                iteration += 1
+                if iteration >= self.printNumber:
+                    print()
+                    break
+            countTotal = 0
+            for count in substrates.values():
+                countTotal += count
+            print(f'Total Counts: {red}{countTotal:,}{resetColor}')
+        else:
+            for substrate, value in substrates.items():
+                print(f'     {blue}{substrate}{resetColor}, '
+                      f'Value: {red}{np.round(value, self.roundVal):,}{resetColor}')
+                iteration += 1
+                if iteration >= self.printNumber:
+                    print()
+                    break
+            valTotal = 0
+            for value in substrates.values():
+                valTotal += value
+            valTotal = np.round(valTotal, self.roundVal)
+            print(f'Total Values: {red}{valTotal:,}{resetColor}')
+        print(f'Number of plotted sequences: {red}{NSubs:,}{resetColor}\n')
+
+        # Collect substrates
+        x = []
+        y = []
+        for substrate, count in substrates.items():
+            x.append(str(substrate))
+            y.append(count)
+            iteration += 1
+
+        # Evaluate: Y axis
+        maxValue = math.ceil(max(y))
+        minValue = math.floor(min(y))
+        print(f'Max Value: {blue}{maxValue:,}{resetColor}\n')
+        if maxValue == 1:
+            step = 0.1
+            yMax = math.ceil(max(y)) + step
+            yMin = math.floor(min(y))
+            yTicks = np.arange(yMin, yMax+(step/2), 0.2)
+            print(f'Max Value: {blue}{maxValue:,}{resetColor}\n'
+                  f'Y Max: {blue}{yMax:,}{resetColor}\n'
+                  f'Y Min: {blue}{yMin:,}{resetColor}\n'
+                  f'Y Ticks: {pink}{yTicks}{resetColor}\n')
+        else:
+            if minValue < 0:
+                magnitude = math.floor(math.log10(maxValue))
+                maxValueAdj = maxValue * 10
+                yMax = math.ceil(maxValueAdj) / 10
+                yMin = math.floor(min(y))
+
+                print(f'Max Value: {blue}{maxValue:,}{resetColor}\n'
+                      f'Magnitude: {blue}{magnitude:,}{resetColor}\n'
+                      f'Max Value Adj: {blue}{maxValueAdj:,}{resetColor}\n'
+                      f'Y Max: {blue}{yMax:,}{resetColor}\n'
+                      f'Y Min: {blue}{yMin:,}{resetColor}\n')
+                sys.exit()
+            else:
+                magnitude = math.floor(math.log10(maxValue))
+                step = 10 ** (magnitude) / 5
+                yMax = 0
+                while yMax < maxValue:
+                    yMax += step
+                    yTicks = np.arange(0, yMax + 1, step, dtype=int)
+                yMin = 0
+            # print(f'Max Value: {blue}{maxValue:,}{resetColor}\n'
+            #       f'Magnitude: {blue}{magnitude:,}{resetColor}\n'
+            #       f'Step: {blue}{step:,}{resetColor}\n'
+            #       f'Y Max: {blue}{yMax:,}{resetColor}\n'
+            #       f'Y Min: {blue}{yMin:,}{resetColor}\n')
+
+
+        # Evaluate: X axis
+        magnitude = math.floor(math.log10(NSubs))
+        step = 10 ** (magnitude) / 2
+        xMax = 0
+        while xMax < NSubs:
+            xMax += step
+        xTicks = np.arange(0, xMax+1, step, dtype=int)
+        print(f'N Subs: {blue}{NSubs:,}{resetColor}\n'
+              f'Magnitude: {blue}{magnitude:,}{resetColor}\n'
+              f'Step: {blue}{step:,}{resetColor}\n'
+              f'X Max: {blue}{xMax:,}{resetColor}\n'
+              f'X Labels: {pink}{", ".join([str(x) for x in xTicks])}{resetColor}\n')
+
+        # Define: Figure title
+        if combinedMotifs and len(self.motifIndexExtracted) > 1:
+            title = f'{self.enzymeName}\n Combined {self.datasetTag}'
+        else:
+            title = f'{self.enzymeName}\n{self.datasetTag}'
+        if minCounts:
+            title += f'\nMinimum Substrate Count: {minCounts:,}'
+        else:
+            title += f'\nTop {NSubs:,} Substrates'
+
+
+        # Plot the data
+        fig, ax = plt.subplots(figsize=self.figSize)
+        bars = plt.bar(x, y, color=barColor, width=barWidth)
+        plt.ylabel('Substrates', fontsize=self.labelSizeAxis)
+        plt.ylabel(dataType, fontsize=self.labelSizeAxis)
+        plt.title(title, fontsize=self.labelSizeTitle, fontweight='bold')
+        # plt.axhline(y=0, color='black', linewidth=self.lineThickness)
+
+        # Set: x ticks
+        ax.set_xticks(xTicks)
+        ax.set_xticklabels(xTicks, ha='center')
+        ax.set_xlim(-step/10, xTicks[-1])
+
+        # Set: y ticks
+        plt.ylim(yMin, yMax)
+        plt.yticks(yTicks)
+
+
+        # Set tick parameters
+        ax.tick_params(axis='both', which='major', length=self.tickLength,
+                       labelsize=self.labelSizeTicks, width=self.lineThickness)
+
+        # Set the thickness of the figure border
+        for _, spine in ax.spines.items():
+            spine.set_visible(True)
+            spine.set_linewidth(self.lineThickness)
+
+        fig.canvas.mpl_connect('key_press_event', pressKey)
+        fig.tight_layout()
+        plt.show()
+
+        # Save the figure
+        if self.saveFigures:
+            if self.motifLen == None:
+                seqLength = len(self.xAxisLabels)
+            else:
+                seqLength = self.motifLen
+
+            # Define: Save location
+            figLabel = (f'{self.enzymeName} - Bars - {dataType} - '
+                        f'{seqLength} AA - N {NSubs} - {self.datasetTag}.png')
+            if combinedMotifs:
+                figLabel = figLabel.replace(self.datasetTag,
+                                            f'Combined {self.datasetTag}.png')
+
+            if minCounts:
+                figLabel.replace('.png', f' - MinCounts {minCounts}.png')
+            if 'relative frequency' in dataType.lower():
+                figLabel = figLabel.replace(dataType, 'RF')
+            if saveDir:
+                saveLocation = os.path.join(saveDir, figLabel) # Save in unique directory
+            else:
+                saveLocation = os.path.join(self.pathSaveFigs, figLabel)
+
+            # Save figure
+            if os.path.exists(saveLocation):
+                print(f'{yellow}The figure was not saved\n\n'
+                      f'File was already found at path:\n'
+                      f'     {saveLocation}{resetColor}\n\n')
+            else:
+                print(f'Saving figure at path:\n'
+                      f'     {greenDark}{saveLocation}{resetColor}\n\n')
+                fig.savefig(saveLocation, dpi=self.figureResolution)
+        else:
+            print()
 
 
 
@@ -3941,33 +4123,51 @@ class NGS:
 
 
 
-    def plotBarGraph(self, substrates, dataType, barColor='#BF5700', barWidth=0.75,
-                     combinedMotifs=False, plotAllSubs=False, saveDir=False):
+    def plotBarGraph(self, substrates, dataType, barColor='#BF5700',
+                     barWidth=0.75, combinedMotifs=False, plotAllSubs=False):
         print('================================ Plot: Bar Graph '
               '================================')
+        print(f'Plot all: {plotAllSubs}')
         if plotAllSubs:
             limitNSubs = len(substrates.keys())
+            print(f'Plotting {red}{limitNSubs:,}{resetColor} substrates\n')
         else:
             limitNSubs = self.NSubBars
-        print(f'Collecting the top {red}{self.NSubBars}{resetColor} substrates\n')
-        print(f'Substrates:')
+            print(f'Collecting the top {red}{limitNSubs:,}{resetColor} substrates\n')
+
+        # Evaluate data
         iteration = 0
-        for substrate, count in substrates.items():
-            print(f'     {blue}{substrate}{resetColor}, '
-                  f'Counts: {red}{count:,}{resetColor}')
-            iteration += 1
-            if iteration >= self.printNumber:
-                print()
-                break
+        valTotal = 0
+        print(f'Substrates:')
+        if 'counts' in dataType.lower():
+            for substrate, count in substrates.items():
+                print(f'     {blue}{substrate}{resetColor}, '
+                      f'Counts: {red}{count:,}{resetColor}')
+                iteration += 1
+                if iteration >= self.printNumber:
+                    print()
+                    break
+            for count in substrates.values():
+                valTotal += count
+            print(f'Total Counts: {red}{valTotal:,}{resetColor}')
+        else:
+            for substrate, value in substrates.items():
+                print(f'     {blue}{substrate}{resetColor}, '
+                      f'Value: {red}{value:,}{resetColor}')
+                iteration += 1
+                if iteration >= self.printNumber:
+                    print()
+                    break
+            valTotal = 0
+            for value in substrates.values():
+                valTotal += value
+            print(f'Total Values: {red}{valTotal:,}{resetColor}')
+
 
         # Collect substrates
         x = []
         y = []
         iteration = 0
-        countsTotal = 0
-        for count in substrates.values():
-            countsTotal += count
-        print(f'Total Substrates: {red}{countsTotal:,}{resetColor}')
         if 'counts' in dataType.lower():
             # Evaluate: Substrates
             for substrate, count in substrates.items():
@@ -3998,9 +4198,9 @@ class NGS:
 
         elif 'relative frequency' in dataType.lower():
             # Evaluate: Substrates
-            for substrate, count in substrates.items():
+            for substrate, value in substrates.items():
                 x.append(str(substrate))
-                y.append(count / countsTotal)
+                y.append(value / valTotal)
                 iteration += 1
                 if iteration == limitNSubs:
                     break
@@ -4033,11 +4233,10 @@ class NGS:
 
         # Define: Figure title
         if combinedMotifs and len(self.motifIndexExtracted) > 1:
-            title = (f'{self.enzymeName}\n Combined {self.datasetTag}\n'
-                     f'Top {NSubs} Substrates')
+            title = f'{self.enzymeName}\n Combined {self.datasetTag}'
         else:
-            title = (f'{self.enzymeName}\n{self.datasetTag}\n'
-                     f'Top {NSubs} Substrates')
+            title = f'{self.enzymeName}\n{self.datasetTag}'
+        title += f'\nTop {NSubs:,} Substrates'
 
 
         # Plot the data
@@ -4118,10 +4317,7 @@ class NGS:
                             f'MinCounts {self.minSubCount}.png')
             if 'relative frequency' in dataType.lower():
                 figLabel = figLabel.replace(dataType, 'RF')
-            if saveDir:
-                saveLocation = os.path.join(saveDir, figLabel) # Save in unique directory
-            else:
-                saveLocation = os.path.join(self.pathSaveFigs, figLabel)
+            saveLocation = os.path.join(self.pathSaveFigs, figLabel)
 
             # Save figure
             if os.path.exists(saveLocation):
