@@ -34,7 +34,7 @@ inCodonSequence = 'NNS' # Baseline probs of degenerate codons (can be N, S, or K
 inUseCodonProb = False # Use AA prob from inCodonSequence to calculate enrichment
 inAvgInitialProb = True
 inSaveCSV = True # Save substrates in a csv file
-inMinSubsCSV = 100 # Minimum counts for saved substrates
+inMinSubsCSV = 500 # Minimum counts for saved substrates
 
 # Input 4: Figures
 # inPlotPCA = False # PCA plot of an individual fixed frame
@@ -924,13 +924,15 @@ if inSaveCSV:
     # Save full length substrates
     ngs.saveSubstrateCSV(
         seqs=substratesFiltered, initialRF=rfInitial,
-        finalRF=rfCombinedReleasedMotif, minCounts=inMinSubsCSV
+        finalRF=rfCombinedReleasedMotif, minCounts=inMinSubsCSV,
+        combinedMotifs=combinedMotifs
     )
 
     # Save motif sequences
     ngs.saveSubstrateCSV(
         seqs=motifs, initialRF=rfInitial,
-        finalRF=rfCombinedReleasedMotif, minCounts=inMinSubsCSV
+        finalRF=rfCombinedReleasedMotif, minCounts=inMinSubsCSV,
+        combinedMotifs=combinedMotifs
     )
 
 # Find sequences

@@ -1502,7 +1502,8 @@ class NGS:
         return score
 
 
-    def saveSubstrateCSV(self, seqs, initialRF, finalRF, minCounts=100):
+    def saveSubstrateCSV(self, seqs, initialRF, finalRF,
+                         minCounts=100, combinedMotifs=False):
         # Get data paths
         t = 'Counts'
         subLen = len(next(iter(seqs)))
@@ -1649,6 +1650,24 @@ class NGS:
             for path in paths:
                 print(f'    {greenDark}{path}{resetColor}')
         print('\n')
+
+
+        # Plot bar graphs
+        self.plotBarGraph(
+            substrates=subsCounts, dataType='Counts',
+            combinedMotifs=combinedMotifs, plotAllSubs=True, saveDir=pathCSV)
+        self.plotBarGraph(
+            substrates=subsZCounts, dataType='Z Counts',
+            combinedMotifs=combinedMotifs, plotAllSubs=True, saveDir=pathCSV)
+        if subs:
+            self.plotBarGraph(
+                substrates=subs, dataType='Pred',
+                combinedMotifs=combinedMotifs, plotAllSubs=True, saveDir=pathCSV)
+
+            self.plotBarGraph(
+                substrates=seqZPred, dataType='Z Pred',
+                combinedMotifs=combinedMotifs, plotAllSubs=True, saveDir=pathCSV)
+
 
 
 
@@ -3923,7 +3942,7 @@ class NGS:
 
 
     def plotBarGraph(self, substrates, dataType, barColor='#BF5700', barWidth=0.75,
-                     combinedMotifs=False, subsInit=False, plotAllSubs=False):
+                     combinedMotifs=False, plotAllSubs=False, saveDir=False):
         print('================================ Plot: Bar Graph '
               '================================')
         if plotAllSubs:
@@ -4099,7 +4118,10 @@ class NGS:
                             f'MinCounts {self.minSubCount}.png')
             if 'relative frequency' in dataType.lower():
                 figLabel = figLabel.replace(dataType, 'RF')
-            saveLocation = os.path.join(self.pathSaveFigs, figLabel)
+            if saveDir:
+                saveLocation = os.path.join(saveDir, figLabel) # Save in unique directory
+            else:
+                saveLocation = os.path.join(self.pathSaveFigs, figLabel)
 
             # Save figure
             if os.path.exists(saveLocation):
