@@ -2025,7 +2025,7 @@ class NGS:
         # Set figure titles
         self.titleReleased = (f'{self.enzymeName}\n'
                               f'Combined {self.datasetTagMotif}\n'
-                              f'Released Counts')
+                              f'Substrate Profile')
         if self.showSampleSize:
             self.title = (f'{self.enzymeName}\n'
                           f'N Unsorted = {self.nSubsInitial:,}\n'
@@ -2055,8 +2055,10 @@ class NGS:
         if len(self.motifIndexExtracted) <= 1:
             self.titleReleased = self.titleReleased.replace('Combined ', '')
             self.titleCombined = self.titleCombined.replace('Combined ', '')
-            self.titleWeblogoCombined =  self.titleWeblogoCombined.replace('Combined ', '')
-            self.titleWordsCombined = self.titleWordsCombined.replace('Combined ', '')
+            self.titleWeblogoCombined =  self.titleWeblogoCombined.replace(
+                'Combined ', '')
+            self.titleWordsCombined = self.titleWordsCombined.replace(
+                'Combined ', '')
 
 
     def calculateRFCombinedMotif(self, countsCombinedMotifs):
@@ -2375,10 +2377,10 @@ class NGS:
                 # print('tags', ','.join(tags))
                 if isinstance(self.fixedAA[0], list):
                     self.datasetTag = \
-                        f'Frame [{",".join(self.fixedAA[0])}]@R{self.fixedPos[0]}'
+                        f'Register [{",".join(self.fixedAA[0])}]@R{self.fixedPos[0]}'
                 else:
                     self.datasetTag = \
-                        f'Frame {self.fixedAA[0]}@R{self.fixedPos[0]}'
+                        f'Register {self.fixedAA[0]}@R{self.fixedPos[0]}'
             else:
                 fixedPos = sorted(self.fixedPos)
                 # print(f'Fixed Pos: {fixedPos}')
@@ -2441,16 +2443,16 @@ class NGS:
                 if continuous:
                     if multiCombinedFrames:
                         # print(1)
-                        self.datasetTag = (f'Frames '
+                        self.datasetTag = (f'Register '
                                            f'{fixedAA1}@R{fixedPos1}-'
                                            f'{fixedAA2}@R{fixedPos2}')
                     else:
                         # print(2)
-                        self.datasetTag = (f'Frames {fixedAA1}@R'
+                        self.datasetTag = (f'Register {fixedAA1}@R'
                                            f'{fixedPos1}-R{fixedPos2}')
                 else:
                     # print(3)
-                    self.datasetTag = f'Frames {fixedAA1}@'
+                    self.datasetTag = f'Register {fixedAA1}@'
                     tags = []
                     for idx, pos in enumerate(fixedPos):
                         tags.append(f'R{pos}')
@@ -2465,7 +2467,7 @@ class NGS:
                         f'{self.excludePosition[index]}'.replace(' ', ''))
                 excludeTag = f'Exclude {' '.join(fixResidueList)}'
                 self.datasetTag = self.datasetTag.replace(
-                    'Frames', f'Frames {excludeTag} Fixed')
+                    'Register', f'Register {excludeTag} Fixed')
         else:
             if self.filterSubs:
                 fixResidueList = []
@@ -2866,9 +2868,9 @@ class NGS:
 
 
 
-    def calculateEnrichment(self, rfInitial, rfFinal,
-                            releasedCounts=False, combinedMotifs=False,
-                            posFilter=False, relFilter=False, relIteration=False):
+    def calculateEnrichment(self, rfInitial, rfFinal, releasedCounts=False,
+                            combinedMotifs=False, posFilter=False, relFilter=False,
+                            relIteration=False):
         print('========================== Calculate: Enrichment Score '
               '==========================')
         print(f'Enrichment Scores:\n'
@@ -3033,7 +3035,7 @@ class NGS:
         # if ' - ' in title:
         #     title = title.replace(' - ', '\n')
         if len(self.datasetTag.replace('[', '').replace(']', '').replace('-', '')) > 40:
-            title = title.replace('Frames ', 'Frames\n')
+            title = title.replace('Register ', 'Register\n')
 
         print(f'Dataset: {purple}{self.datasetTag}{resetColor}\n'
               f'Unique Substrates: {red}{self.nSubsFinalUniqueSeqs:,}{resetColor}')
@@ -3165,7 +3167,7 @@ class NGS:
         else:
             title = self.title
         if len(self.datasetTag.replace('[', '').replace(']', '').replace('-', '')) > 40:
-            title = title.replace('Frames ', 'Frames\n')
+            title = title.replace('Register ', 'Register\n')
 
         # Print: data
         print(f'Dataset: {purple}{self.datasetTag}{resetColor}\n'
@@ -5806,7 +5808,7 @@ class NGS:
                 title = f'\n{self.enzymeName}\nCombined {self.datasetTag}\n{dataType}'
                 if len(self.datasetTag.replace('[', '').replace(
                         ']', '').replace('-', '')) > 40:
-                    title = title.replace('Frames ', 'Frames\n')
+                    title = title.replace('Register ', 'Register\n')
             else:
                 title = f'\n{self.enzymeName}\n{self.datasetTag}\n{dataType}'
 

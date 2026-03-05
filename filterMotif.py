@@ -11,18 +11,17 @@ import sys
 
 # ===================================== User Inputs ======================================
 # Input 1: Select Dataset
-inEnzymeName = 'Mpro2'
+inEnzymeName = 'MMP7'
 inPathFolder = os.path.join('Enzymes', inEnzymeName)
 inSaveData = False
-inSaveFigures = False
-inSaveCSV = True # Save substrates in a csv file
+inSaveFigures = True
 inSetFigureTimer = True
 
 # Input 2: Computational Parameters
-inMinDeltaS = 0.6
+inMinDeltaS = 0.7
 inRefixMotif = True
-inFixedResidue = ['Q']
-inFixedPosition = [4]
+inFixedResidue = ['L', 'L']
+inFixedPosition = [5,7]
 inExcludeResidues = False
 inExcludedResidue = ['Q']
 inExcludedPosition = [8]
@@ -696,9 +695,6 @@ def fixFrame(substrates, fixRes, fixPos, sortType, datasetTag):
 
     # Extract motif (reprint)
     motifs = ngs.getMotif(substrates=substratesFinalFixed)
-
-    if inSaveCSV:
-        ngs.saveSubstrateCSV(seqs=motifs)
 
 
 
