@@ -1504,30 +1504,6 @@ class NGS:
 
     def saveSubstrateCSV(self, seqs, initialRF, finalRF,
                          minCounts=100, combinedMotifs=False):
-        # Get data paths
-        t = 'Counts'
-        subLen = len(next(iter(seqs)))
-        tag = (f'{self.enzyme}_{t}_{subLen}AA_'
-               f'{self.datasetTag}_MinCounts{minCounts}.csv').replace(' ', '-')
-        pathCSV = os.path.join(self.pathFolder, 'CSV')
-        if not os.path.exists(pathCSV):
-            os.makedirs(pathCSV, exist_ok=True)
-        paths = [
-            os.path.join(pathCSV, tag),
-            os.path.join(pathCSV, tag.replace(f'_{t}', '_ZCounts')),
-            os.path.join(pathCSV, tag.replace(f'_{t}','_ZPred'))
-        ]
-
-        print('==============================  Save Substrate CSV '
-              '==============================')
-        print(f'Minimum substrate count: {red}{minCounts:,}{resetColor}') ##
-
-        # Get prediction matrix
-        matrix = self.normalizeProbRatios(
-            finalRF=finalRF, initialRF=initialRF, pData=False
-        )
-
-        # Seq len
         subLen = len(next(iter(seqs)))
 
         # Limit substrates by counts
@@ -1540,6 +1516,55 @@ class NGS:
                 break
         N = len(subsCounts)
 
+        # Get data paths
+        t = 'Counts'
+        tag = (f'{self.enzyme}_{t}_{subLen}AA_'
+               f'{self.datasetTag}_MinCounts{minCounts}.csv').replace(' ', '-')
+        pathCSV = os.path.join(self.pathFolder, 'CSV')
+        if not os.path.exists(pathCSV):
+            os.makedirs(pathCSV, exist_ok=True)
+        pathCSVFig = os.path.join(pathCSV, 'Figures')
+        if not os.path.exists(pathCSVFig):
+            os.makedirs(pathCSVFig, exist_ok=True)
+        paths = [
+            os.path.join(pathCSV, tag),
+            os.path.join(pathCSV, tag.replace(f'_{t}', '_ZCounts')),
+            os.path.join(pathCSV, tag.replace(f'_{t}','_ZPred'))
+        ]
+
+        # Define: Save location
+        figLabel = (f'{self.enzyme} - Bars - Counts - '
+                    f'{subLen} AA - N {N} - {self.datasetTag} - '
+                    f'Min Counts {minCounts}.png')
+        if combinedMotifs:
+            figLabel = figLabel.replace(self.datasetTag,
+                                        f'Combined {self.datasetTag}.png')
+
+        if minCounts:
+            figLabel.replace('.png', f' - MinCounts {minCounts}.png')
+        pathFigs = [
+            os.path.join(pathCSVFig, figLabel),
+            os.path.join(pathCSVFig, figLabel.replace(
+                '- Counts -', '- Z Counts -')
+                         ),
+            os.path.join(pathCSVFig, figLabel.replace(
+                '- Counts -', '- Pred -')
+                         ),
+            os.path.join(pathCSVFig, figLabel.replace(
+                '- Counts -', '- Z Pred -')
+                         )
+        ]
+
+
+        print('==============================  Save Substrate CSV '
+              '==============================')
+        print(f'Minimum substrate count: {red}{minCounts:,}{resetColor}') ##
+
+        # Get prediction matrix
+        matrix = self.normalizeProbRatios(
+            finalRF=finalRF, initialRF=initialRF, pData=False
+        )
+
         # Calculate: Z-scores Counts
         subsZCounts = {}
         mu = np.average(list(subsCounts.values()))
@@ -1549,23 +1574,23 @@ class NGS:
 
 
         # Predict substrate activity
-        subs = {}
-        seqZPred = {}
+        subsZ = {}
+        subsZPred = {}
         if subLen <= len(matrix.columns):
             print(f'Scoring Matrix: {purple}{self.datasetTag}{resetColor}\n{matrix}\n')
             for seq, count in subsCounts.items():
-                subs[seq] = self.scoreSubstrate(seq, matrix)
+                subsZ[seq] = self.scoreSubstrate(seq, matrix)
 
             # Normalize pred scores
-            maxVal = max(subs.values())
-            for seq, score in subs.items():
-                subs[seq] = score / maxVal
+            maxVal = max(subsZ.values())
+            for seq, score in subsZ.items():
+                subsZ[seq] = score / maxVal
 
             # Calculate: Z-scores Predicted
-            mu = np.average(list(subs.values()))
-            sigma = np.std(list(subs.values()))
-            for seq, score in subs.items():
-                seqZPred[seq] = (score - mu) / sigma
+            mu = np.average(list(subsZ.values()))
+            sigma = np.std(list(subsZ.values()))
+            for seq, score in subsZ.items():
+                subsZPred[seq] = (score - mu) / sigma
 
 
         # Pre-format values
@@ -1579,9 +1604,9 @@ class NGS:
 
         # Print data
         print('Substrate Scores:')
-        if seqZPred:
-            formattedProducts = [f'{subs[seq]:.3f}' for seq in pSeqs]
-            formattedZ = [f'{seqZPred[seq]:,.3f}' for seq in pSeqs]
+        if subsZPred:
+            formattedProducts = [f'{subsZ[seq]:.3f}' for seq in pSeqs]
+            formattedZ = [f'{subsZPred[seq]:,.3f}' for seq in pSeqs]
             widthProd = max(len(val) for val in formattedProducts)
             widthZ = max(len(val) for val in formattedZ)
 
@@ -1637,7 +1662,7 @@ class NGS:
 
         # CSV: Z-Pred
         savePath = paths[2]
-        if seqZPred and not os.path.exists(savePath):
+        if subsZPred and not os.path.exists(savePath):
             if not savedData:
                 savedData = True
                 print(f'Saving {red}{N:,}{resetColor} substrates in a CSV file\n'
@@ -1647,7 +1672,7 @@ class NGS:
             with open(savePath, 'w', newline='') as c:
                 writer = csv.writer(c)
                 writer.writerow(['sequence', self.enzyme])
-                for seq, score in seqZPred.items():
+                for seq, score in subsZPred.items():
                     writer.writerow([seq, f'{score:.2f}'])
         if not savedData:
             print(f'Print no data was saved. Files already saved at:')
@@ -1657,34 +1682,35 @@ class NGS:
 
 
         # Plot bar graphs
-        if plotData[0]:
+        if not os.path.exists(pathFigs[0]):
             self.plotBarGraphCSV(
                 substrates=subsCounts, dataType='Counts',
                 combinedMotifs=combinedMotifs, minCounts=minCounts,
-                saveDir=pathCSV
+                saveLocation=pathFigs[0]
             )
-        if plotData[1]:
+        if not os.path.exists(pathFigs[1]):
             self.plotBarGraphCSV(
                 substrates=subsZCounts, dataType='Z Counts',
                 combinedMotifs=combinedMotifs, minCounts=minCounts,
-                saveDir=pathCSV
+                saveLocation=pathFigs[1]
             )
-        if plotData[2]:
+        if subsZ and not os.path.exists(pathFigs[2]):
             self.plotBarGraphCSV(
-                substrates=subs, dataType='Pred',
+                substrates=subsZ, dataType='Pred',
                 combinedMotifs=combinedMotifs, minCounts=minCounts,
-                saveDir=pathCSV
+                saveLocation=pathFigs[2]
             )
+        if subsZPred and not os.path.exists(pathFigs[3]):
             self.plotBarGraphCSV(
-                substrates=seqZPred, dataType='Z Pred',
+                substrates=subsZPred, dataType='Z Pred',
                 combinedMotifs=combinedMotifs, minCounts=minCounts,
-                saveDir=pathCSV
+                saveLocation=pathFigs[3]
             )
 
 
 
-    def plotBarGraphCSV(self, substrates, dataType, barColor='#BF5700', barWidth=2,
-                     combinedMotifs=False, minCounts=False, saveDir=False):
+    def plotBarGraphCSV(self, substrates, dataType, barColor='#BF5700', barWidth=3,
+                     combinedMotifs=False, minCounts=False, saveLocation=False):
         print('================================ Plot: Bar Graph '
               '================================')
         if minCounts:
@@ -1725,11 +1751,15 @@ class NGS:
         for substrate, count in substrates.items():
             x.append(str(substrate))
             y.append(count)
-            iteration += 1
+        N, val = len(x), 5000
+        while val < N:
+            barWidth += 1
+            val += 5000
 
         # Evaluate: Y axis
         maxValue = math.ceil(max(y))
         minValue = math.floor(min(y))
+        yTicks = []
         if maxValue == 1:
             step = 0.1
             yMax = math.ceil(max(y)) + step
@@ -1835,27 +1865,6 @@ class NGS:
 
         # Save the figure
         if self.saveFigures:
-            if self.motifLen == None:
-                seqLength = len(self.xAxisLabels)
-            else:
-                seqLength = self.motifLen
-
-            # Define: Save location
-            figLabel = (f'{self.enzymeName} - Bars - {dataType} - '
-                        f'{seqLength} AA - N {NSubs} - {self.datasetTag}.png')
-            if combinedMotifs:
-                figLabel = figLabel.replace(self.datasetTag,
-                                            f'Combined {self.datasetTag}.png')
-
-            if minCounts:
-                figLabel.replace('.png', f' - MinCounts {minCounts}.png')
-            if 'relative frequency' in dataType.lower():
-                figLabel = figLabel.replace(dataType, 'RF')
-            if saveDir:
-                saveLocation = os.path.join(saveDir, figLabel) # Save in unique directory
-            else:
-                saveLocation = os.path.join(self.pathSaveFigs, figLabel)
-
             # Save figure
             if os.path.exists(saveLocation):
                 print(f'{yellow}The figure was not saved\n\n'
