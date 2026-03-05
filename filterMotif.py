@@ -5,9 +5,6 @@ import pickle as pk
 import sys
 
 
-# Coordinate Descent & Optimization Framework
-
-
 
 # ===================================== User Inputs ======================================
 # Input 1: Select Dataset
