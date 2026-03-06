@@ -1511,14 +1511,28 @@ class NGS:
         # Chop off the C-terminal AAs
         if chopSeq:
             sub = next(iter(seqs))
-            print(f'Cutting substrates from {pink}{len(sub)} AA{resetColor} to '
+            subLen = len(sub)
+            print(f'Cutting substrates from {pink}{subLen} AA{resetColor} to '
                   f'{blue}{chopSeq} AA{resetColor}')
-            print(f'  {pink}{sub}{resetColor} -> {blue}{sub[0:chopSeq]}{resetColor}')
+            x = subLen - chopSeq
             s = {}
-            for seq, counts in seqs.items():
-                seq = seq[0:chopSeq]
-                s[seq] = counts
+            if self.filterSubs:
+                print(f'  {pink}{sub.replace(
+                    sub[0:chopSeq], f'{blue}{sub[0:chopSeq]}{pink}')}'
+                      f'{resetColor}')
+                for seq, counts in seqs.items():
+                    seq = seq[0:chopSeq]
+                    s[seq] = counts
+            else:
+                for i in range(x+1):
+                    print(f'  {pink}{sub.replace(
+                        sub[i:chopSeq+i], f'{blue}{sub[i:chopSeq+i]}{pink}')}'
+                          f'{resetColor}')
+                    for seq, counts in seqs.items():
+                        seq = seq[i:chopSeq+i]
+                        s[seq] = counts
             seqs = s
+            seqs = dict(sorted(seqs.items(), key=lambda x: x[1], reverse=True))
         subLen = len(next(iter(seqs)))
 
         # Limit substrates by counts
@@ -1534,13 +1548,6 @@ class NGS:
                   f'{cyan}counts{orange} >= {cyan}{minCounts}{resetColor}\n\n')
             return
 
-        i = 0
-        print(f'Substrates:')
-        for seq, value in subsCounts.items():
-            print(seq, value)
-            i += 1
-            if i >= minCounts:
-                break
 
         # Get data paths
         t = 'Counts'
@@ -1585,8 +1592,15 @@ class NGS:
         matrix = self.normalizeProbRatios(
             finalRF=finalRF, initialRF=initialRF, pData=False
         )
+        if chopSeq:
+            dropCol = []
+            for i in range(len(matrix.columns)):
+                if i >= chopSeq:
+                    dropCol.append(matrix.columns[i])
+            matrix = matrix.drop(dropCol, axis=1)
 
-        # Calculate: Z-scores Counts
+
+            # Calculate: Z-scores Counts
         subsZCounts = {}
         mu = np.average(list(subsCounts.values()))
         sigma = np.std(list(subsCounts.values()))
@@ -1773,9 +1787,16 @@ class NGS:
             x.append(str(substrate))
             y.append(count)
         N, val = len(x), 5000
-        while val < N:
-            barWidth += 1
-            val += 5000
+        if N < 200:
+            val = 50
+            barWidth = 0.5
+            while val < N:
+                barWidth += 0.5
+                val += 50
+        else:
+            while val < N:
+                barWidth += 1
+                val += 5000
 
         # Evaluate: Y axis
         maxValue = math.ceil(max(y))

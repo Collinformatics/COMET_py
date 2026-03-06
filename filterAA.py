@@ -18,9 +18,9 @@ inSaveFigures = True
 inSetFigureTimer = False
 
 # Input 2: Computational Parameters
-inFixResidues = False
-inFixedResidue = ['L', 'L'] # ['C', 'I', 'V'] ['R',['G','S']] # [['A','G','S']]
-inFixedPosition = [3,5]
+inFixResidues = True
+inFixedResidue = [['A','C','I','T','V'],['L','M'],['Q'],['A','C','G','S']] # ['C', 'I', 'V'] ['R',['G','S']] # [['A','G','S']]
+inFixedPosition = [1,3,4,5]
 inExcludeResidues = False
 inExcludedResidue = ['Q'] # ['Y','Y','Y','Y','Y','Y','Y']
 inExcludedPosition = [8] # [1,2,3,4,6,7,8,9]
@@ -66,26 +66,26 @@ inFindSeq = 'ILQA'
 
 # Input 5: CSV
 inSaveCSV = True # Save substrates in a csv file
-inMinSubsCSV = 5 # Minimum counts for saved substrates
-inSubLengthCSV = 6 # If: False, use full seq, If: 6, use 6 AA seq
+inMinSubsCSV = 100 # Minimum counts for saved substrates
+inSubLengthCSV = False # If: False, use full seq, If: 6, use 6 AA seq
 
-# Input 5: Plot Heatmap
+# Input 6: Plot Heatmap
 inShowEnrichmentScores = True
 inShowEnrichmentAsSquares = False
 inYLabelEnrichmentMap = 2 # 0 for full Residue name, 1 for 3-letter code, 2 for 1 letter
 
-# Input 6: Plot Sequence Motif
+# Input 7: Plot Sequence Motif
 inBigLettersOnTop = False
 inLimitYAxis = False
 
-# Input 7: Word Cloud
+# Input 8: Word Cloud
 inLimitWords = True
 inTotalWords = 50
 
-# Input 8: Bar Graphs
+# Input 9: Bar Graphs
 inNSequences = 50
 
-# Input 9: PCA
+# Input 10: PCA
 inPCAMotif = False
 inNumberOfPCs = 2
 inTotalSubsPCA = 10000
@@ -94,7 +94,7 @@ inExtractPopulations = False
 inPlotEntropyPCAPopulations = False
 inAdjustZeroCounts = False # Prevent counts of 0 in PCA EM & Motif
 
-# Input 10: Predict Activity
+# Input 11: Predict Activity
 inPredictionTag = 'pp1a/b Substrates'
 inPredictSubstrates = ['AVLQSGFR', 'VTFQSAVK', 'ATVQSKMS', 'ATLQAIAS',
                        'VKLQNNEL', 'VRLQAGNA', 'PMLQSADA', 'TVLQAVGA',
@@ -114,17 +114,17 @@ inPredictSubstrates = ['AVLQSGFR', 'VILQSGFR', 'VILQSPFR', 'VILHSGFR', 'VIMQSGFR
 inRankScores = False
 inScalePredMatrix = False # Scale EM by ΔS
 
-# Input 11: Optimal Substrates
+# Input 12: Optimal Substrates
 inEvaluateOS = False
 inPrintOSNumber = 10
 inMaxResidueCount = 4
 
-# Input 12: Evaluate Substrate Enrichment
+# Input 13: Evaluate Substrate Enrichment
 inEvaluateSubstrateEnrichment = False # ============= Fix: Load Initial Subs =============
 inSaveEnrichedSubstrates = False
 inNumberOfSavedSubstrates = 10**6
 
-# Input 13: Evaluate Positional Preferences
+# Input 14: Evaluate Positional Preferences
 inPlotPosProb = False # Plot RF distributions of a given AA
 inCompairAA = 'L' # Select AA of interest (different A than inFixedResidue)
 
