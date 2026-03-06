@@ -19,9 +19,9 @@ inSetFigureTimer = False
 
 # Input 2: Computational Parameters
 inFixResidues = False
-inFixedResidue = ['Q'] # ['C', 'I', 'V'] ['R',['G','S']] # [['A','G','S']]
-inFixedPosition = [4]
-inExcludeResidues = True
+inFixedResidue = ['L', 'L'] # ['C', 'I', 'V'] ['R',['G','S']] # [['A','G','S']]
+inFixedPosition = [3,5]
+inExcludeResidues = False
 inExcludedResidue = ['Q'] # ['Y','Y','Y','Y','Y','Y','Y']
 inExcludedPosition = [8] # [1,2,3,4,6,7,8,9]
 inMinimumSubstrateCount = 1
@@ -33,8 +33,6 @@ inCodonSequence = 'NNS' # Baseline probs of degenerate codons (can be N, S, or K
 inUseCodonProb = False # Use AA prob from inCodonSequence to calculate enrichment
 inAvgInitialProb = False
 inDropResidue = ['R9'] # To drop: inDropResidue = ['R9'], For nothing: inDropResidue = []
-inSaveCSV = True # Save substrates in a csv file
-inMinSubsCSV = 100 # Minimum counts for saved substrates
 
 # Input 3: Making Figures
 inBlockFigures = True
@@ -52,7 +50,7 @@ if inBlockFigures:
     inPlotLogo = False
     inPlotWeblogo = False
     inPlotMotifEnrichment = False
-    inPlotWordCloud = True
+    inPlotWordCloud = False
 inPlotWordCloud = False # <--------------------
 inPlotAADistribution = False
 inPlotBarGraphs = False
@@ -65,6 +63,11 @@ inPlotPositionalProbDist = False # For understanding shannon entropy
 inPrintNumber = 10
 inFindSequences = False
 inFindSeq = 'ILQA'
+
+# Input 5: CSV
+inSaveCSV = True # Save substrates in a csv file
+inMinSubsCSV = 5 # Minimum counts for saved substrates
+inSubLengthCSV = 6 # If: False, use full seq, If: 6, use 6 AA seq
 
 # Input 5: Plot Heatmap
 inShowEnrichmentScores = True
@@ -314,7 +317,7 @@ else:
 if inSaveCSV:
     ngs.saveSubstrateCSV(
         seqs=substratesFinal, initialRF=probInitial,
-        finalRF=probFinal, minCounts=inMinSubsCSV
+        finalRF=probFinal, minCounts=inMinSubsCSV, chopSeq=inSubLengthCSV
     )
 
 # Evaluate: Sequences

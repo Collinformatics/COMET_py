@@ -1502,19 +1502,45 @@ class NGS:
         return score
 
 
-    def saveSubstrateCSV(self, seqs, initialRF, finalRF,
-                         minCounts=100, combinedMotifs=False):
+    def saveSubstrateCSV(self, seqs, initialRF, finalRF, minCounts=100,
+                         combinedMotifs=False, chopSeq=False):
+        print('==============================  Save Substrate CSV '
+              '==============================')
+        print(f'Minimum substrate count: {red}{minCounts:,}{resetColor}')  ##
+
+        # Chop off the C-terminal AAs
+        if chopSeq:
+            sub = next(iter(seqs))
+            print(f'Cutting substrates from {pink}{len(sub)} AA{resetColor} to '
+                  f'{blue}{chopSeq} AA{resetColor}')
+            print(f'  {pink}{sub}{resetColor} -> {blue}{sub[0:chopSeq]}{resetColor}')
+            s = {}
+            for seq, counts in seqs.items():
+                seq = seq[0:chopSeq]
+                s[seq] = counts
+            seqs = s
         subLen = len(next(iter(seqs)))
 
         # Limit substrates by counts
         subsCounts = {}
-        for seq, count in seqs.items():
-            if count >= minCounts:
-                #subs[seq] = count/maxVal
-                subsCounts[seq] = count
+        for seq, counts in seqs.items():
+            if counts >= minCounts:
+                subsCounts[seq] = counts
             else:
                 break
         N = len(subsCounts)
+        if N == 0:
+            print(f'{orange}ERROR: There were no substrates with '
+                  f'{cyan}counts{orange} >= {cyan}{minCounts}{resetColor}\n\n')
+            return
+
+        i = 0
+        print(f'Substrates:')
+        for seq, value in subsCounts.items():
+            print(seq, value)
+            i += 1
+            if i >= minCounts:
+                break
 
         # Get data paths
         t = 'Counts'
@@ -1555,11 +1581,6 @@ class NGS:
                          )
         ]
 
-
-        print('==============================  Save Substrate CSV '
-              '==============================')
-        print(f'Minimum substrate count: {red}{minCounts:,}{resetColor}') ##
-
         # Get prediction matrix
         matrix = self.normalizeProbRatios(
             finalRF=finalRF, initialRF=initialRF, pData=False
@@ -1576,7 +1597,7 @@ class NGS:
         # Predict substrate activity
         subsZ = {}
         subsZPred = {}
-        if subLen <= len(matrix.columns):
+        if subLen == len(matrix.columns):
             print(f'Scoring Matrix: {purple}{self.datasetTag}{resetColor}\n{matrix}\n')
             for seq, count in subsCounts.items():
                 subsZ[seq] = self.scoreSubstrate(seq, matrix)
