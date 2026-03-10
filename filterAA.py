@@ -18,8 +18,8 @@ inSaveFigures = True
 inSetFigureTimer = False
 
 # Input 2: Computational Parameters
-inFixResidues = True
-inFixedResidue = [['A','C','I','T','V'],['L','M'],['Q'],['A','C','G','S']] # ['C', 'I', 'V'] ['R',['G','S']] # [['A','G','S']]
+inFixResidues = False
+inFixedResidue = [['A','C','I','T','V'],['L','M'],['Q'],['A','C','G','S']]
 inFixedPosition = [1,3,4,5]
 inExcludeResidues = False
 inExcludedResidue = ['Q'] # ['Y','Y','Y','Y','Y','Y','Y']
@@ -32,10 +32,10 @@ inUseEnrichmentFactor = False
 inCodonSequence = 'NNS' # Baseline probs of degenerate codons (can be N, S, or K)
 inUseCodonProb = False # Use AA prob from inCodonSequence to calculate enrichment
 inAvgInitialProb = False
-inDropResidue = ['R9'] # To drop: inDropResidue = ['R9'], For nothing: inDropResidue = []
+inDropResidue = [] # To drop: inDropResidue = ['R9'], For nothing: inDropResidue = []
 
 # Input 3: Making Figures
-inBlockFigures = True
+inBlockFigures = False
 inPlotEntropy = True
 inPlotEnrichmentMap = True
 inPlotEnrichmentMapScaled = False
@@ -51,7 +51,6 @@ if inBlockFigures:
     inPlotWeblogo = False
     inPlotMotifEnrichment = False
     inPlotWordCloud = False
-inPlotWordCloud = False # <--------------------
 inPlotAADistribution = False
 inPlotBarGraphs = False
 inPlotPCA = False
@@ -65,7 +64,7 @@ inFindSequences = False
 inFindSeq = 'ILQA'
 
 # Input 5: CSV
-inSaveCSV = True # Save substrates in a csv file
+inSaveCSV = False # Save substrates in a csv file
 inMinSubsCSV = 100 # Minimum counts for saved substrates
 inSubLengthCSV = False # If: False, use full seq, If: 6, use 6 AA seq
 

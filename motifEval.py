@@ -33,20 +33,20 @@ inMinimumSubstrateCount = 1
 inCodonSequence = 'NNS' # Baseline probs of degenerate codons (can be N, S, or K)
 inUseCodonProb = False # Use AA prob from inCodonSequence to calculate enrichment
 inAvgInitialProb = True
-inSaveCSV = True # Save substrates in a csv file
-inMinSubsCSV = 1000 # Minimum counts for saved substrates
+inSaveCSV = False # Save substrates in a csv file
+inMinSubsCSV = 100 # Minimum counts for saved substrates
 
 # Input 4: Figures
 # inPlotPCA = False # PCA plot of an individual fixed frame
 # inPlotPCACombined = True
-inBlockFigures = True
+inBlockFigures = False
 inPlotEntropy = True
 inPlotEnrichmentMap = True
 inPlotEnrichmentMapScaled = False
 inPlotLogo = True
 inPlotWeblogo = True
 inPlotMotifEnrichment = True
-inPlotWordCloud = False
+inPlotWordCloud = True
 if inBlockFigures:
     inPlotEntropy = False
     inPlotEnrichmentMap = False
@@ -65,7 +65,7 @@ inPredictSubstrateActivityPCA = False
 inPlotBinnedSubstrateES = False
 inPlotBinnedSubstratePrediction = False
 inPlotCounts = False
-inPlotFilteredSubs = False
+inPlotFilteredSubs = True
 inShowSampleSize = True # Include the sample size in your figures
 
 # Input 5: Printing The Data
@@ -111,7 +111,7 @@ inIncludeSubCountsESM = True
 inPlotEntropyPCAPopulations = False
 
 # Input 12: Predict Activity
-inPredictActivity = False
+inPredictActivity = True
 inUseNaturalSubs = False
 if inUseNaturalSubs:
     inPredictionTag = 'pp1a/b Substrates - SqRt'
@@ -971,7 +971,7 @@ if inPredictActivity:
 
 # sys.exit()
 
-if inPlotFilteredSubs:
+if inPlotFilteredSubs or inPlotWordCloud:
     # Plot count related figures
     ngs.processSubstrates(subsInit=substratesInitial, subsFinal=substratesFiltered,
                           motifs=motifs, subLabel=inMotifPositions,
@@ -1003,10 +1003,6 @@ if inPredictCodonsEnrichment:
                                      fileType='Initial Sort', calcAvg=True)
     probCodon = ngs.calculateProbCodon(codonSeq=inCodonSequence)
     ngs.codonPredictions(codon=inCodonSequence, codonProb=probCodon, substrates=motifs)
-
-
-sys.exit()
-
 
 
 sys.exit()
