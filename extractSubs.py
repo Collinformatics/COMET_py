@@ -27,7 +27,7 @@ inFileType = 'fastq' # Define the file type
 inSaveFileName = 'Fyn-F_S1_L002' # Add this name to filePaths() in functions.py
 
 # Input 3: Substrate Parameters
-inAAPositions = ['R1','R2','R3','R4','R5','R6','R7','R8','R9']
+inAAPositions = ['R1','R2','R3','R4','R5','R6','R7','R8']
 
 # Input 4: Substrate Recognition
 inPrintNumber = 10
@@ -135,3 +135,4 @@ ngs.extractionEfficiency(files=inFileName)
 
 # Plot the data
 ngs.plotCounts(countedData=counts, totalCounts=totalSubs, fileName=inSaveFileName)
+
