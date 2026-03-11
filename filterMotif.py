@@ -101,7 +101,7 @@ if inOverlapOSPredictions:
                                inBinPositionRange[1] + addValue))
     inFixedPosition = fixedPositions
 else:
-    if inFixedPosition[0] != 4:
+    if inFixedPosition and inFixedPosition[0] != 4:
         addValue = inFixedPosition[0] - 4
         inBinPositionRange[0] += addValue
         inBinPositionRange[1] += addValue
