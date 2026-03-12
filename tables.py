@@ -60,4 +60,5 @@ if inSavePath:
     fig.savefig(inSavePath, dpi=inFigResolution)
     print(f'Saving figure at path:\n'
           f'     {inSavePath}\n')
-
+else:
+    print(f'The figure was not saved')
