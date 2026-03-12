@@ -13,6 +13,10 @@ inData = {
     'Predicted Sq Root': [0.793, 1.0, 0.138, 0.063, 0.233, 0.635, 0.060, 0.221],
 }
 
+# Save Figure
+inSavePath = ''
+inFigResolution = 300
+
 
 # Convert to %
 table = pd.DataFrame.from_dict(inData)
@@ -51,3 +55,5 @@ for (row, col), cell in tbl.get_celld().items():
 fig.tight_layout(pad=0.5)
 fig.canvas.mpl_connect('key_press_event', pressKey)
 plt.show()
+
+fig.savefig(inSavePath, dpi=inFigResolution)
