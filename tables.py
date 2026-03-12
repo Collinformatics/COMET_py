@@ -56,4 +56,8 @@ fig.tight_layout(pad=0.5)
 fig.canvas.mpl_connect('key_press_event', pressKey)
 plt.show()
 
-fig.savefig(inSavePath, dpi=inFigResolution)
+if inSavePath:
+    fig.savefig(inSavePath, dpi=inFigResolution)
+    print(f'Saving figure at path:\n'
+          f'     {inSavePath}\n')
+
