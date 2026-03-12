@@ -15,7 +15,7 @@ inData = {
 
 # Save Figure
 inSavePath = ''
-inFigResolution = 300
+inFigResolution = 600
 
 
 # Convert to %
