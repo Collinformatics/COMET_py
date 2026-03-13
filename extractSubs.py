@@ -1,3 +1,6 @@
+import os
+from functions import NGS
+
 # PURPOSE: Load in a file (fastq or fasta), extract substrate sequences, and count AA
            # occurrences at each position in the substrates
 # IMPORTANT: File names must include information regarding the direction of expression
@@ -10,21 +13,17 @@
         # conditional statement, so that we correctly define "fileType"
 
 
-import os
-from functions import NGS
-
-
 
 # ===================================== User Inputs ======================================
 # Input 1: File Location
-inFileName = ['Fyn-F_S1_L002_R1_001', 'Fyn-F_S1_L002_R2_001'] # Define file name(s)
+inFileName = ['Mpro2-I_S1_L001_R1_001', 'Mpro2-I_S1_L001_R2_001'] # Define file name(s)
 inEnzymeName = inFileName[0].split('-')[0]
 inPathFolder = f'Enzymes/{inEnzymeName}'
 inPathDNASeqs = os.path.join(inPathFolder, 'Fastq') # Define the fastq folder name
 inFileType = 'fastq' # Define the file type
 
 # Input 2: Saving The Data
-inSaveFileName = 'Fyn-F_S1_L002' # Add this name to filePaths() in functions.py
+inSaveFileName = 'Mpro2-I_S1_L001' # Add this name to filePaths() in functions.py
 
 # Input 3: Substrate Parameters
 inAAPositions = ['R1','R2','R3','R4','R5','R6','R7','R8']
