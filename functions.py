@@ -141,12 +141,11 @@ def getFileNames(enzyme):
         inAAPositions = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9']
     else:
         print(f'{orange}ERROR: There are no file names for {cyan}{enzyme}{orange}\n'
-              f'       Add information to the "filePaths" function in '
-              f'{os.path.basename(__file__)}\n')
+              f'       Add information to the "{cyan}filePaths{resetColor}" function in '
+              f'{cyan}{os.path.basename(__file__)}{resetColor}\n')
         sys.exit(1)
 
     return enzyme, inFileNamesInitialSort, inFileNamesFinalSort, inAAPositions
-
 
 
 def pressKey(event):
@@ -159,55 +158,8 @@ def pressKey(event):
         os.execl(python, python, *sys.argv)
 
 
-x = [2.0, 1.0, 0.8001, 0.60, 0.4001, 0.2, 0.0, -0.2, -0.4, -0.6, -0.8, -1.0, -2.0]
-def formatAxisTicks(ticks):
-    print(f'Ticks:')
-    for tick in ticks:
-        print(f'Tick: {tick}')
-    print('\n\n')
-
-    # Convert .0 decimals to integers
-    newTicks = []
-    for tick in ticks:
-        print(f'Val: {tick}')
-
-        if not isinstance(tick, int) and tick % 1 == 0 or tick % 2 == 0:
-            print(f'  {tick} % 2 = {tick % 2}, {tick} % 2 == 0 = {tick % 2 == 0}')
-            print(f'  {tick} % 1 = {tick % 1}, {tick} % 1 == 0 = {tick % 1 == 0}')
-            x = int(tick)
-            print(f'  New: {x}')
-            newTicks.append(x)
-        else:
-            print(f' Val: {tick}')
-            roundVal = False
-            val = str(tick).replace('0.', '')
-            for idx, e in enumerate(val):
-                if e == '0':
-                    # print(idx, e)
-                    tick = round(tick, idx+1)
-                    print(f'Tick: {tick}\n')
-                    newTicks.append(tick)
-                    roundVal = True
-                    break
-            if not roundVal:
-                newTicks.append(tick)
-        print()
-
-    print(f'Ticks')
-    for tick in ticks:
-        print(tick)
-    print('\n\n')
-    print(f'\nTicks: {ticks}\n')
-    print(f'  New: {newTicks}')
-
-    return newTicks
-
-# x = formatAxisTicks(x)
-
-
 def includeCommas(x):
     return f'{x:,}'
-
 
 
 class NGS:
@@ -3603,7 +3555,7 @@ class NGS:
         # Plot: Bar graphs
         if self.plotFigBars:
             self.plotBarGraph(substrates=motifs, dataType='Counts',
-                              combinedMotifs=combinedMotifs, subsInit=subsInit)
+                              combinedMotifs=combinedMotifs)
             self.plotBarGraph(substrates=motifs, dataType='Relative Frequency',
                               combinedMotifs=combinedMotifs)
 
@@ -6743,7 +6695,11 @@ class NGS:
                     else:
                         score *= value
 
-                x = np.sqrt(score) ##
+                x  = score
+                for t in ['square root', 'square', 'root', 'sqrt', 'sq rt']:
+                    if t in predLabel:
+                        x = np.sqrt(x) ##
+                        break
                 print(f'Sub: {purple}{substrate}{resetColor}\n'
                       f'Score: {score:.3e}\n'
                       f'    X: {x:.3e}\n')

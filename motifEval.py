@@ -39,7 +39,7 @@ inMinSubsCSV = 100 # Minimum counts for saved substrates
 # Input 4: Figures
 # inPlotPCA = False # PCA plot of an individual fixed frame
 # inPlotPCACombined = True
-inBlockFigures = False
+inBlockFigures = True
 inPlotEntropy = True
 inPlotEnrichmentMap = True
 inPlotEnrichmentMapScaled = False
@@ -47,19 +47,10 @@ inPlotLogo = True
 inPlotWeblogo = True
 inPlotMotifEnrichment = True
 inPlotWordCloud = True
-if inBlockFigures:
-    inPlotEntropy = False
-    inPlotEnrichmentMap = False
-    inPlotEnrichmentMapScaled = False
-    inPlotLogo = False
-    inPlotWeblogo = False
-    inPlotMotifEnrichment = False
-    inPlotWordCloud = False
-inPlotStats = False
-inPlotBarGraphs = False
+inPlotStats = True
+inPlotBarGraphs = True
 inPlotPCA = False # PCA plot of the combined set of motifs
 inPlotSuffixTree = False
-inPlotActivityFACS = False
 inPredictSubstrateActivity = False
 inPredictSubstrateActivityPCA = False
 inPlotBinnedSubstrateES = False
@@ -67,6 +58,24 @@ inPlotBinnedSubstratePrediction = False
 inPlotCounts = False
 inPlotFilteredSubs = True
 inShowSampleSize = True # Include the sample size in your figures
+if inBlockFigures:
+    inPlotEntropy = False
+    inPlotEnrichmentMap = False
+    inPlotEnrichmentMapScaled = False
+    inPlotLogo = False
+    inPlotWeblogo = False
+    inPlotMotifEnrichment = False
+    # inPlotWordCloud = False # Word cloud
+    inPlotStats = False
+    inPlotBarGraphs = False
+    inPlotPCA = False
+    inPlotSuffixTree = False
+    inPredictSubstrateActivity = False
+    inPredictSubstrateActivityPCA = False
+    inPlotBinnedSubstrateES = False
+    inPlotBinnedSubstratePrediction = False
+    inPlotCounts = False
+    inPlotFilteredSubs = False
 
 # Input 5: Printing The Data
 inPrintLoadedSubs = True
@@ -111,10 +120,10 @@ inIncludeSubCountsESM = True
 inPlotEntropyPCAPopulations = False
 
 # Input 12: Predict Activity
-inPredictActivity = True
+inPredictActivity = False
 inUseNaturalSubs = False
 if inUseNaturalSubs:
-    inPredictionTag = 'pp1a/b Substrates - SqRt'
+    inPredictionTag = 'pp1a/b Substrates'
     inPredictSubstrates = ['AVLQSGFR', 'VTFQSAVK', 'ATVQSKMS', 'ATLQAIAS',
                            'VKLQNNEL', 'VRLQAGNA', 'PMLQSADA', 'TVLQAVGA',
                            'ATLQAENV', 'TRLQSLEN', 'PKLQSSQA']
@@ -131,15 +140,15 @@ if inUseNaturalSubs:
         'TRLQSLEN': 50.0,
         'PKLQSSQA': 50.0
     }
-elif inUseNaturalSubs is None:
-    inPredictionTag = '30 Min - Uncleaved Sub'
+else:
+    inPredictionTag = '30 Min'
     inSubstrateActivity = {
         'AVLQSG': 54.9, # 60,
         'VILQSG': 72.1, # 70,
         'VILQTG': 7.9, # 6,
         'VILQSP': 0, # 0,
         'VILHSG': 16.0, # 15,
-        'VIMQSG': 58.2, # 50,
+        'VIMQSG': 59.2, # 50,
         'VPLQSG': 0, # 0,
         'NILQSG': 12.6, # 6,
     }
@@ -774,74 +783,6 @@ def predictSubstrateEnrichment(substratesEnriched, matrix, matrixType):
 
 
 
-def plotFACSData():
-    print('============================ Measured FACS Activity '
-          '=============================')
-    # Define the data
-    substrates = ['VVLQSGFR', 'VVLQSPFR', 'VYLQSGFR', 'VVLQAGFR', 'VVMQSGFR',
-                  'IVLQSGFR', 'VVLHSGFR', 'VGLQSGFR', 'VVLMSGFR', 'VVVQSGFR',
-                  'VVLQIGFR', 'VVGQSGFR', 'KVLQSGFR', 'VVLQNGFR', 'VVLYSGFR']
-    dataFACS = {
-        '% Run 1':
-            [100.0, 100, 100.0, 100.0, 94.5, 97.3, 85.1, 89.6, 77.0, 37.0, 5.5,
-             0.2, 0.2, 0.4, 0.3],
-        '% Run 2':
-            [100.0, 100, 100.0, 99.3, 100.0, 93.8, 86.1, 85.8, 68.2, 31.2, 5.2,
-             0.3, 0.3, 0.1, 0.1],
-        '% Run 3':
-            [100.0, 100, 99.4, 100.0, 94.6, 93.2, 90.6, 76.2, 74.5, 42.0, 5.1,
-             1.1, 0.4, 0.1, 0.1]
-    }
-
-    # Convert the data into a pandas DataFrame
-    dataFACS = pd.DataFrame(dataFACS, index=substrates)
-    dataFACS = dataFACS / 100
-    dataFACS['Avg Activity'] = dataFACS[
-        ['% Run 1', '% Run 2', '% Run 3']].mean(axis=1)
-    dataFACS['Std Dev'] = dataFACS[
-        ['% Run 1', '% Run 2', '% Run 3']].std(axis=1)
-    print(f'{dataFACS}\n\n')
-
-
-    # Plot the data
-    fig, ax = plt.subplots(figsize=(10, 8))
-    bars = plt.bar(dataFACS.index, dataFACS.loc[:, 'Avg Activity'],
-                   yerr=dataFACS['Std Dev'], capsize=5,
-                   color='lightgrey', width=inBarWidth)
-    plt.title(f'\n{inEnzymeName}\n'
-              f'FACS Activity', fontsize=inFigureTitleSize, fontweight='bold')
-    plt.ylabel('Normalized Activity', fontsize=inFigureLabelSize)
-    plt.xticks(rotation=90, ha='center')
-    plt.axhline(y=0, color='black', linewidth=inLineThickness)
-    plt.ylim(0, 1.1)
-
-    # Set edge color
-    for index, bar in enumerate(bars):
-        bar.set_edgecolor(inBarColor)
-
-    # Set tick parameters
-    ax.tick_params(axis='both', which='major', length=inTickLength,
-                   labelsize=inFigureTickSize, width=inLineThickness)
-
-    # Set yticks
-    tickStepSize = 0.2
-    yTicks = np.arange(0, 1 + tickStepSize, tickStepSize)
-    yTickLabels = [f'{tick:.0f}' if tick == 0 or int(tick) == 1 else f'{tick:.1f}'
-                   for tick in yTicks]
-    ax.set_yticks(yTicks)
-    ax.set_yticklabels(yTickLabels)
-
-    # Set the thickness of the figure border
-    for _, spine in ax.spines.items():
-        spine.set_visible(True)
-        spine.set_linewidth(inLineThickness)
-
-    fig.canvas.mpl_connect('key_press_event', pressKey)
-    fig.tight_layout()
-    plt.show()
-
-
-
 # ====================================== Load Data =======================================
 # Load: Counts
 countsInitial, countsInitialTotal = ngs.loadCounts(filter=False, fileType='Initial Sort')
@@ -957,10 +898,17 @@ if inFindAAInSequence:
 
 # Predict substrate activity
 if inPredictActivity:
-    ngs.predictActivity(activityExp=inSubstrateActivity,
-                        finalRF=rfCombinedReleasedMotif, initialRF=rfInitial,
-                        predModel=ngs.datasetTag, predLabel=inPredictionTag,
-                        combinedMotifs=combinedMotifs)
+    ngs.predictActivity(
+        activityExp=inSubstrateActivity, finalRF=rfCombinedReleasedMotif,
+        initialRF=rfInitial, predModel=ngs.datasetTag,
+        predLabel=inPredictionTag, combinedMotifs=combinedMotifs)
+
+    # Square Root predictions
+    ngs.predictActivity(
+        activityExp=inSubstrateActivity, finalRF=rfCombinedReleasedMotif,
+        initialRF=rfInitial, predModel=ngs.datasetTag,
+        predLabel=f'{inPredictionTag} - Square Root', combinedMotifs=combinedMotifs)
+
 
     if not inPredictActivity:
         ngs.predictActivityHeatmap(predSubstrates=inPredictSubstrates,
@@ -1011,12 +959,6 @@ sys.exit()
 subsPredict = None
 if inPredictSubstrateActivityPCA:
     inPlotBarGraphs = True
-
-
-# Plot: Measured FACS activity
-if inPlotActivityFACS:
-    plotFACSData()
-
 
 # Predict activity towards substrates
 if inPredictSubstrateActivity:
