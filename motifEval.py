@@ -39,7 +39,7 @@ inMinSubsCSV = 100 # Minimum counts for saved substrates
 # Input 4: Figures
 # inPlotPCA = False # PCA plot of an individual fixed frame
 # inPlotPCACombined = True
-inBlockFigures = False
+inBlockFigures = True
 inPlotEntropy = True
 inPlotEnrichmentMap = True
 inPlotEnrichmentMapScaled = False
@@ -67,7 +67,7 @@ if inBlockFigures:
     inPlotMotifEnrichment = False
     inPlotWordCloud = False # Word cloud
     inPlotStats = False
-    inPlotBarGraphs = False
+    # inPlotBarGraphs = False
     inPlotPCA = False
     inPlotSuffixTree = False
     inPredictSubstrateActivity = False
@@ -919,7 +919,7 @@ if inPredictActivity:
 
 # sys.exit()
 
-if inPlotFilteredSubs or inPlotWordCloud:
+if inPlotFilteredSubs or inPlotWordCloud or inPlotBarGraphs:
     # Plot count related figures
     ngs.processSubstrates(subsInit=substratesInitial, subsFinal=substratesFiltered,
                           motifs=motifs, subLabel=inMotifPositions,

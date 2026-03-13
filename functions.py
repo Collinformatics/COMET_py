@@ -225,7 +225,6 @@ class NGS:
         self.datasetTag = None
         self.datasetTagMotif = None
         self.title = ''
-        self.titleCombined = ''
         self.titleReleased = ''
         self.titleWeblogo = ''
         self.titleWeblogoCombined = ''
@@ -1204,7 +1203,7 @@ class NGS:
         print('================================ Combine Motifs '
               '=================================')
         initialMotifFrame = self.xAxisLabels[motifIndex[0]:motifIndex[1]]
-        print('Combine Matrices: Released counts')
+        print('Combine Matrices: Substrate Profile')
         print(f'Datasets: {purple}{self.datasetTag}{resetColor}\n'
               f'Motif Label: {blue}{", ".join(motifLabel)}{resetColor}\n'
               f'Motif Frame: {blue}{", ".join(initialMotifFrame)}{resetColor}\n\n')
@@ -1221,7 +1220,7 @@ class NGS:
         for index, pathFixedMotifRelCounts in enumerate(paths):
             # Look for the file
             if os.path.exists(pathFixedMotifRelCounts):
-                print(f'Loading ({index}): {greenLightB}Released Counts\n{greenDark}'
+                print(f'Loading ({index}): {greenLightB}Substrate Profile\n{greenDark}'
                       f'     {pathFixedMotifRelCounts}{resetColor}\n')
 
                 # Load file
@@ -1523,8 +1522,7 @@ class NGS:
                     f'Min Counts {minCounts}.png')
         if combinedMotifs:
             figLabel = figLabel.replace(self.datasetTag,
-                                        f'Combined {self.datasetTag}.png')
-
+                                        f'Substrate Profile {self.datasetTag}.png')
         if minCounts:
             figLabel.replace('.png', f' - MinCounts {minCounts}.png')
         pathFigs = [
@@ -1816,10 +1814,7 @@ class NGS:
         #       f'X Labels: {pink}{", ".join([str(x) for x in xTicks])}{resetColor}\n')
 
         # Define: Figure title
-        if combinedMotifs and len(self.motifIndexExtracted) > 1:
-            title = f'{self.enzymeName}\n Combined {self.datasetTag}'
-        else:
-            title = f'{self.enzymeName}\n{self.datasetTag}'
+        title = f'{self.enzymeName}\n{self.datasetTag}'
         if minCounts:
             title += f'\nMinimum Substrate Count: {minCounts:,}'
         else:
@@ -1959,16 +1954,12 @@ class NGS:
             figLabel = (f'{self.enzymeName} - {figType} '
                         f'{self.saveFigureIteration} - {self.datasetTagMotif} - '
                         f'{seqLen} AA - MinCounts {self.minSubCount}.png')
-        elif combinedMotifs and releasedCounts:
-            figLabel = (f'{self.enzymeName} - {figType} - '
-                        f'Combined Released Counts {self.datasetTag} - '
-                        f'{seqLen} AA - MinCounts {self.minSubCount}.png')
         elif combinedMotifs:
-                figLabel = (f'{self.enzymeName} - {figType} - '
-                            f'Combined {self.datasetTag} - {seqLen} AA - '
-                            f'N {self.nSubsFinal} - MinCounts {self.minSubCount}.png')
+            figLabel = (f'{self.enzymeName} - {figType} - Substrate Profile '
+                        f'{self.datasetTag} - '
+                        f'{seqLen} AA - MinCounts {self.minSubCount}.png')
         elif releasedCounts:
-            figLabel = (f'{self.enzymeName} - {figType} Released Counts - '
+            figLabel = (f'{self.enzymeName} - {figType} - Substrate Profile '
                         f'{self.datasetTagMotif} - {seqLen} AA - '
                         f'MinCounts {self.minSubCount}.png')
         else:
@@ -1976,8 +1967,6 @@ class NGS:
                         f'{self.datasetTag} - '
                         f'N {self.nSubsFinal} - {seqLen} AA - '
                         f'MinCounts {self.minSubCount}.png')
-        if combinedMotifs and len(self.motifIndexExtracted) < 2:
-            figLabel = figLabel.replace('Combined ', '')
         if '/' in figLabel:
             figLabel = figLabel.replace('/', '_')
         if N:
@@ -2018,41 +2007,31 @@ class NGS:
 
         # Set figure titles
         self.titleReleased = (f'{self.enzymeName}\n'
-                              f'Combined {self.datasetTagMotif}\n'
+                              f'{self.datasetTagMotif}\n'
                               f'Substrate Profile')
         if self.showSampleSize:
             self.title = (f'{self.enzymeName}\n'
                           f'N Unsorted = {self.nSubsInitial:,}\n'
                           f'N Sorted = {self.nSubsFinal:,}')
-            self.titleCombined = (f'{self.enzymeName}\n'
-                                  f'Combined {self.datasetTagMotif}\n'
-                                  f'N Unsorted = {self.nSubsInitial:,}\n'
-                                  f'N Sorted = {self.nSubsFinal:,}')
             self.titleWeblogo = f'{self.enzymeName}\nN = {self.nSubsFinal:,}'
             self.titleWeblogoCombined = (f'{self.enzymeName}\n'
-                                         f'Combined {self.datasetTagMotif}\n'
+                                         f'{self.datasetTagMotif}\n'
                                          f'N = {self.nSubsFinal:,}')
         else:
             self.title = f'{self.enzymeName}'
             self.titleWeblogo = f'{self.enzymeName}'
             self.titleWeblogoCombined = (f'{self.enzymeName}\n'
-                                         f'Combined {self.datasetTagMotif}')
+                                         f'{self.datasetTagMotif}')
         if self.filterSubs:
             if self.motifFilter:
                 self.titleWords = f'{self.enzymeName}\nMotif {self.motifTag}'
             else:
                 self.titleWords = f'{self.enzymeName}\n{self.datasetTagMotif}'
                 self.titleWordsCombined = (f'{self.enzymeName}\n'
-                                           f'Combined {self.datasetTagMotif}')
+                                           f'{self.datasetTagMotif}')
         else:
             self.titleWords = f'{self.enzymeName}\nUnfiltered'
-        if len(self.motifIndexExtracted) <= 1:
-            self.titleReleased = self.titleReleased.replace('Combined ', '')
-            self.titleCombined = self.titleCombined.replace('Combined ', '')
-            self.titleWeblogoCombined =  self.titleWeblogoCombined.replace(
-                'Combined ', '')
-            self.titleWordsCombined = self.titleWordsCombined.replace(
-                'Combined ', '')
+
 
 
     def calculateRFCombinedMotif(self, countsCombinedMotifs):
@@ -2370,11 +2349,9 @@ class NGS:
                 #     tags.append(tag)
                 # print('tags', ','.join(tags))
                 if isinstance(self.fixedAA[0], list):
-                    self.datasetTag = \
-                        f'Register [{",".join(self.fixedAA[0])}]@R{self.fixedPos[0]}'
+                    self.datasetTag = f'[{",".join(self.fixedAA[0])}]@R{self.fixedPos[0]}'
                 else:
-                    self.datasetTag = \
-                        f'Register {self.fixedAA[0]}@R{self.fixedPos[0]}'
+                    self.datasetTag = f'{self.fixedAA[0]}@R{self.fixedPos[0]}'
             else:
                 fixedPos = sorted(self.fixedPos)
                 # print(f'Fixed Pos: {fixedPos}')
@@ -2436,17 +2413,13 @@ class NGS:
                 # Define the tag
                 if continuous:
                     if multiCombinedFrames:
-                        # print(1)
-                        self.datasetTag = (f'Register '
-                                           f'{fixedAA1}@R{fixedPos1}-'
+                        self.datasetTag = (f'{fixedAA1}@R{fixedPos1}-'
                                            f'{fixedAA2}@R{fixedPos2}')
                     else:
-                        # print(2)
-                        self.datasetTag = (f'Register {fixedAA1}@R'
+                        self.datasetTag = (f'{fixedAA1}@R'
                                            f'{fixedPos1}-R{fixedPos2}')
                 else:
-                    # print(3)
-                    self.datasetTag = f'Register {fixedAA1}@'
+                    self.datasetTag = f'{fixedAA1}@'
                     tags = []
                     for idx, pos in enumerate(fixedPos):
                         tags.append(f'R{pos}')
@@ -2460,8 +2433,7 @@ class NGS:
                         f'{removedAA}@R'
                         f'{self.excludePosition[index]}'.replace(' ', ''))
                 excludeTag = f'Exclude {' '.join(fixResidueList)}'
-                self.datasetTag = self.datasetTag.replace(
-                    'Register', f'Register {excludeTag} Fixed')
+                self.datasetTag = f'{excludeTag} Fixed {self.datasetTag}'
         else:
             if self.filterSubs:
                 fixResidueList = []
@@ -2901,7 +2873,7 @@ class NGS:
             matrix = np.log2(rfFinal / rfInitial)
             # matrix = rfFinal
         if releasedCounts:
-            print(f'Enrichment Score: {purple}Released Counts{resetColor}\n'
+            print(f'Enrichment Score: {purple}Substrate Profile{resetColor}\n'
                   f'{matrix.round(self.roundVal)}\n\n')
             print(f'Prob Initial:\n{rfInitial}\n\n'
                   f'Prob Final:\n{rfFinal}\n\n')
@@ -2912,7 +2884,7 @@ class NGS:
         print('====================== Calculate: Scaled Enrichment Score '
               '=======================')
         if releasedCounts:
-            print(f'Scale Enrichment Scores: {purple}Released Counts{resetColor}\n'
+            print(f'Scale Enrichment Scores: {purple}Substrate Profile{resetColor}\n'
                   f'     {magenta}Enrichment Scores * ΔS{resetColor}\n')
         else:
             print(f'Scale Enrichment Scores:\n'
@@ -3016,14 +2988,8 @@ class NGS:
                 scores = self.eMap
 
         # Define: Figure title
-        if releasedCounts:
+        if releasedCounts or combinedMotifs:
             title = self.titleReleased
-        # elif combinedMotifs and len(self.motifIndexExtracted) > 1:
-        #     print(f'A\n')
-        #     title = self.titleCombined
-        elif combinedMotifs:
-            print(f'B\n')
-            title = self.titleCombined
         else:
             title = self.title
         # if ' - ' in title:
@@ -3151,13 +3117,8 @@ class NGS:
         print('============================= Plot: Enrichment Logo '
               '=============================')
         # Define: Figure title
-        if releasedCounts:
+        if releasedCounts or combinedMotifs or len(self.motifIndexExtracted) > 1:
             title = self.titleReleased
-        elif combinedMotifs and len(self.motifIndexExtracted) > 1:
-            title = self.titleCombined
-        elif combinedMotifs:
-            title = self.titleCombined
-            title = title.replace('Combined ', '')
         else:
             title = self.title
         if len(self.datasetTag.replace('[', '').replace(']', '').replace('-', '')) > 40:
@@ -3339,11 +3300,8 @@ class NGS:
         # Define: Figure title
         if releasedCounts:
             title = self.titleReleased
-        elif combinedMotifs and len(self.motifIndexExtracted) > 1:
+        elif combinedMotifs or len(self.motifIndexExtracted) > 1:
             title = self.titleWeblogoCombined
-        elif combinedMotifs:
-            title = self.titleWeblogoCombined
-            title = title.replace(f'Combined ', '')
         else:
             title = self.titleWeblogo
 
@@ -3717,9 +3675,6 @@ class NGS:
             else:
                 title = (f'{self.enzymeName}\n{self.datasetTag}\n'
                          f'{NSubs:,} Unique Motifs')
-            if combinedMotifs and len(self.motifIndexExtracted) > 1:
-                title = title.replace(self.datasetTag,
-                                      f'Combined {self.datasetTag}')
         if scaleEMap:
             title = title.replace(self.datasetTag, f'Scaled {self.datasetTag}')
 
@@ -3814,9 +3769,6 @@ class NGS:
                     figLabel = (f'{self.enzymeName} - Motif Enrichment - '
                                 f'{self.datasetTag} - {motifLen} AA - '
                                 f'N {plotNSubs} - MinCounts {self.minSubCount}.png')
-                if combinedMotifs and len(self.motifIndexExtracted) > 1:
-                    figLabel = figLabel.replace(self.datasetTag,
-                                                f'Combined {self.datasetTag}')
                 if clusterNumPCA is not None:
                     figLabel = figLabel.replace('Motif Enrichment',
                         f'Motif Enrichment - PCA {clusterNumPCA}')
@@ -3924,7 +3876,7 @@ class NGS:
         accuracy = 1.0
         label = f'R² = {np.round(accuracy, 3)}'
         title = (f'{self.enzymeName}\n'
-                 f'Combined {self.datasetTag}\n'
+                 f'{self.datasetTag}\n'
                  f'{matrixType}')
 
         # Create scatter plot
@@ -4252,11 +4204,8 @@ class NGS:
         print(f'Number of plotted sequences: {red}{NSubs:,}{resetColor}\n\n')
 
         # Define: Figure title
-        if combinedMotifs and len(self.motifIndexExtracted) > 1:
-            title = f'{self.enzymeName}\n Combined {self.datasetTag}'
-        else:
-            title = f'{self.enzymeName}\n{self.datasetTag}'
-        title += f'\nTop {NSubs:,} Substrates'
+        title = (f'{self.enzymeName}\n{self.datasetTag}'
+                 f'\nTop {NSubs:,} Substrates')
 
 
         # Plot the data
@@ -4327,14 +4276,9 @@ class NGS:
                 seqLength = self.motifLen
 
             # Define: Save location
-            if combinedMotifs: # {len(xTicks)} AA -
-                figLabel = (f'{self.enzymeName} - Bars - {dataType} - '
-                            f'{seqLength} AA - N {NSubs} - Combined {self.datasetTag} - '
-                            f'MinCounts {self.minSubCount}.png')
-            else:
-                figLabel = (f'{self.enzymeName} - Bars - {dataType} - '
-                            f'{seqLength} AA - N {NSubs} - {self.datasetTag} - '
-                            f'MinCounts {self.minSubCount}.png')
+            figLabel = (f'{self.enzymeName} - Bars - {dataType} - '
+                        f'{self.datasetTag} - {seqLength} AA - '
+                        f'N {NSubs} - MinCounts {self.minSubCount}.png')
             if 'relative frequency' in dataType.lower():
                 figLabel = figLabel.replace(dataType, 'RF')
             saveLocation = os.path.join(self.pathSaveFigs, figLabel)
@@ -6697,7 +6641,7 @@ class NGS:
 
                 x  = score
                 for t in ['square root', 'square', 'root', 'sqrt', 'sq rt']:
-                    if t in predLabel:
+                    if t in predLabel.lower():
                         x = np.sqrt(x) ##
                         break
                 print(f'Sub: {purple}{substrate}{resetColor}\n'
