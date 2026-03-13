@@ -19,7 +19,7 @@ from functions import NGS
 # Input 1: File Location
 inFileName = ['Fyn-F_S1_L002_R1_001', 'Fyn-F_S1_L002_R2_001'] # Define file name(s)
 inEnzymeName = inFileName[0].split('-')[0]
-inPathFolder = os.path.join('Enzymes', inEnzymeName)
+inPathFolder = f'Enzymes/{inEnzymeName}'
 inPathDNASeqs = os.path.join(inPathFolder, 'Fastq') # Define the fastq folder name
 inFileType = 'fastq' # Define the file type
 
@@ -48,18 +48,17 @@ inPrintQualityScores = True # Phred quality scores
 
 
 # =================================== Initialize Class ===================================
-ngs = NGS(
-    enzyme=None, enzymeName=inEnzymeName, substrateLength=len(inAAPositions),
-    filterSubs=inFixedLibrary, fixedAA=inFixedResidue, fixedPosition=inFixedPosition,
-    excludeAAs=None, excludeAA=None, excludePosition=None, minCounts=0, minEntropy=None,
-    figEMSquares=False, xAxisLabels=inAAPositions, printNumber=inPrintNumber,
-    showNValues=True, bigAAonTop=False, findMotif=False, folderPath=inPathFolder,
-    filesInit=None, filesFinal=None, plotPosS=False, plotFigEM=False,
-    plotFigEMScaled=False, plotFigLogo=False, plotFigWebLogo=False, plotFigWords=False,
-    wordLimit=False, wordsTotal=False, plotFigBars=False, NSubBars=False,
-    plotFigPCA=False, numPCs=False, NSubsPCA=False, plotSuffixTree=False,
-    saveFigures=False, setFigureTimer=None, expressDNA=True
-)
+ngs = NGS(enzyme=None, enzymeName=inEnzymeName, substrateLength=len(inAAPositions),
+          filterSubs=inFixedLibrary, fixedAA=inFixedResidue,
+          fixedPosition=inFixedPosition, excludeAAs=None, excludeAA=None,
+          excludePosition=None, minCounts=0, minEntropy=None, figEMSquares=False,
+          xAxisLabels=inAAPositions, printNumber=inPrintNumber, showNValues=True,
+          bigAAonTop=False, findMotif=False, folderPath=inPathFolder, filesInit=None,
+          filesFinal=None, plotPosS=False, plotFigEM=False, plotFigEMScaled=False,
+          plotFigLogo=False, plotFigWebLogo=False, plotFigWords=False, wordLimit=False,
+          wordsTotal=False, plotFigBars=False, NSubBars=False, plotFigPCA=False,
+          numPCs=False, NSubsPCA=False, plotSuffixTree=False, saveFigures=False,
+          setFigureTimer=None, expressDNA=True)
 
 
 
@@ -135,4 +134,3 @@ ngs.extractionEfficiency(files=inFileName)
 
 # Plot the data
 ngs.plotCounts(countedData=counts, totalCounts=totalSubs, fileName=inSaveFileName)
-

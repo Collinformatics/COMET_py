@@ -39,7 +39,7 @@ inMinSubsCSV = 100 # Minimum counts for saved substrates
 # Input 4: Figures
 # inPlotPCA = False # PCA plot of an individual fixed frame
 # inPlotPCACombined = True
-inBlockFigures = True
+inBlockFigures = False
 inPlotEntropy = True
 inPlotEnrichmentMap = True
 inPlotEnrichmentMapScaled = False
@@ -65,7 +65,7 @@ if inBlockFigures:
     inPlotLogo = False
     inPlotWeblogo = False
     inPlotMotifEnrichment = False
-    # inPlotWordCloud = False # Word cloud
+    inPlotWordCloud = False # Word cloud
     inPlotStats = False
     inPlotBarGraphs = False
     inPlotPCA = False

@@ -43,6 +43,11 @@ inPlotLogo = True
 inPlotWeblogo = True
 inPlotMotifEnrichment = True
 inPlotWordCloud = True
+inPlotAADistribution = False
+inPlotBarGraphs = False
+inPlotPCA = False
+inPlotCounts = False
+inPlotPositionalProbDist = False # For understanding shannon entropy
 if inBlockFigures:
     inPlotEntropy = False
     inPlotEnrichmentMap = False
@@ -50,13 +55,13 @@ if inBlockFigures:
     inPlotLogo = False
     inPlotWeblogo = False
     inPlotMotifEnrichment = False
+    inPlotWordCloud = False # Word cloud
+    inPlotMotifEnrichment = False
     inPlotWordCloud = False
-inPlotAADistribution = False
-inPlotBarGraphs = False
-inPlotPCA = False
-inPredictActivity = False
-inPlotCounts = False
-inPlotPositionalProbDist = False # For understanding shannon entropy
+    inPlotAADistribution = False
+    inPlotBarGraphs = False
+    inPlotPCA = False
+    inPlotCounts = False
 
 # Input 4: Inspecting The data
 inPrintNumber = 10
@@ -94,6 +99,7 @@ inPlotEntropyPCAPopulations = False
 inAdjustZeroCounts = False # Prevent counts of 0 in PCA EM & Motif
 
 # Input 11: Predict Activity
+inPredictActivity = False
 inPredictionTag = 'pp1a/b Substrates'
 inPredictSubstrates = ['AVLQSGFR', 'VTFQSAVK', 'ATVQSKMS', 'ATLQAIAS',
                        'VKLQNNEL', 'VRLQAGNA', 'PMLQSADA', 'TVLQAVGA',
