@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.metrics import r2_score
+import sys
 
 
 pd.set_option('display.float_format', '{:,.3f}'.format)
@@ -15,9 +16,12 @@ inSigFigs = 0
 inData = {
     'Substrates': ['AVLQSGFR', 'VILQSGFR', 'VILQTGFR', 'VILQSPFR',
                    'VILHSGFR', 'VIMQSGFR', 'VPLQSGFR', 'NILQSGFR'],
-    '% Product': [0.761, 1.000, 0.110, 0.000, 0.222, 0.807, 0.000, 0.175],
+    '% Product': [0.76, 1.00, 0.11, 0.0, 0.22, 0.82, 0.000, 0.18],
+    '% St Dev': [0.1, 0.09, 0.02, 0, 0.06, 0.09, 0, 0.05],
     'Predicted': [0.628, 1.000, 0.019, 0.004, 0.054, 0.404, 0.004, 0.048],
     'Predicted Sq Root': [0.793, 1.0, 0.138, 0.063, 0.233, 0.635, 0.060, 0.221],
+    '% Product Rank': [3, 1, 6, 7, 4, 2, 7, 5],
+    'Predicted Rank': [2, 1, 6, 7, 4, 3, 7, 5],
 }
 
 # Save Figure
@@ -28,12 +32,35 @@ inFigResolution = 600
 # Make figure
 def plotTable():
     # Convert to %
-    table = pd.DataFrame.from_dict(inData)
-    for col in table.columns[1:]:
+    activity = []
+    for idx, substrate in enumerate(inData['Substrates']):
+        act = inData['% Product'][idx]
+        stdev = int(inData['% St Dev'][idx] * 100)
         if inSigFigs == 0 or not inSigFigs:
-            table[col] = table[col] = (table[col] * 100).astype(int)
+            act *= 100
+            act = int(act)
         else:
-            table[col] = (table[col] * 100).round(inSigFigs)
+            act *= 100
+            act = round(act, inSigFigs)
+
+
+        if stdev == 0.0:
+            activity.append(act)
+        else:
+            activity.append(f'{act}±{stdev}')
+
+    data = pd.DataFrame(0.0, index=range(len(inData['Substrates'])), columns=[])
+    data['Substrates'] = inData['Substrates']
+    data['% Product'] = activity
+    data['% Product Rank'] = inData['% Product Rank']
+    data['Predicted'] = inData['Predicted']
+    data['Predicted Rank'] = inData['Predicted Rank']
+
+    table = pd.DataFrame.from_dict(data)
+    if inSigFigs == 0 or not inSigFigs:
+        table['Predicted'] = (table['Predicted'] * 100).astype(int)
+    else:
+        table['Predicted'] = (table['Predicted'] * 100).round(inSigFigs)
     print(f'{table}\n')
 
     h = (len(table.index) / 2) - 1
@@ -70,7 +97,7 @@ def plotTable():
               f'     {inSavePath}\n')
     else:
         print(f'The figure was not saved')
-# plotTable()
+plotTable()
 
 
 # ========================================================================================
