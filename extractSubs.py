@@ -36,7 +36,7 @@ inStartSeqR2 = inStartSeqR1
 inEndSeqR2 = inEndSeqR1
 
 # Input 5: Define Variables Used To Extract The Substrates
-inFixedLibrary = True
+inFixedLibrary = False
 inFixedResidue = ['Y']
 inFixedPosition = [5]
 
