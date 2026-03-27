@@ -82,9 +82,8 @@ def getFileNames(enzyme):
         inFileNamesFinalSort = ['IDE-S2_L001', 'IDE-S2_L002',
                                 'IDE-S2_L003', 'IDE-S2_L004']
         inAAPositions = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8']
-    elif enzyme.lower() == 'mpro':
+    elif enzyme.lower() == 'mpro' or enzyme.lower() == 'mpro1':
         enzyme = f'SARS-CoV M{'ᵖʳᵒ'}'
-
         inFileNamesInitialSort = ['Mpro-I_S1_L001', 'Mpro-I_S1_L002',
                                   'Mpro-I_S1_L003', 'Mpro-I_S1_L004']
         inFileNamesFinalSort = ['Mpro-R4_S3_L001', 'Mpro-R4_S3_L002',
@@ -230,7 +229,6 @@ class NGS:
         self.titleWeblogoCombined = ''
         self.titleWeblogoReleased = ''
         self.titleWords = ''
-        self.titleWordsCombined = ''
         self.substrateLength = substrateLength
         self.figEMSquares = figEMSquares
         if figEMSquares:
@@ -493,9 +491,9 @@ class NGS:
                 substrateDNA = DNA[start:end].strip()
                 print(f'     Inspected substrate: '
                       f'{greenLightB}{substrateDNA}{resetColor}')
-                if len(substrateDNA) == self.substrateLength * 3:
 
-                    # Express substrate
+                if len(substrateDNA) == self.substrateLength * 3:
+                    # Translate substrate
                     substrate = str(Seq.translate(substrateDNA))
                     print(f'     Inspected Substrate:'
                           f'{greenLightB} {substrate}{resetColor}')
@@ -581,7 +579,8 @@ class NGS:
 
 
 
-        def evaluateDNAQuality(throwaway, read):
+        def evaluateDNAQuality(totalSeqsDNA, read):
+            throwaway = totalSeqsDNA - self.printNumber
             throwawayPercent = (throwaway / totalSeqsDNA) * 100
             print(f'\nExtraction Efficiency: '
                   f'{greenLight}{fileName}{resetColor}\n'
@@ -601,11 +600,10 @@ class NGS:
                 warnings.simplefilter('ignore', BiopythonWarning)
 
                 for datapoint in data:
-                    printedSeqs = printDNA(printedSeqs)
                     totalSeqsDNA += 1
+                    printedSeqs = printDNA(printedSeqs)
                     if printedSeqs == self.printNumber:
-                        throwaway = totalSeqsDNA - self.printNumber
-                        evaluateDNAQuality(throwaway, read)
+                        evaluateDNAQuality(totalSeqsDNA, read)
                         break
                 if fixData:
                     print(f'\nNote: The displayed substrates were not filtered for '
@@ -651,16 +649,17 @@ class NGS:
                 warnings.simplefilter('ignore', BiopythonWarning)
 
                 for datapoint in data:
+                    totalSeqsDNA += 1
                     printedSeqs = printDNA(printedSeqs)
-                    if printedSeqs == self.printNumber:
-                        throwaway = totalSeqsDNA - self.printNumber
-                        evaluateDNAQuality(throwaway, read)
+                    print(f'Print: {printedSeqs}, {totalSeqsDNA}')
+                    if printedSeqs >= self.printNumber:
+                        evaluateDNAQuality(totalSeqsDNA, read)
                         break
                 if fixData:
                     print(f'\nNote: The displayed substrates were not filtered for '
                           f'{purple}{self.datasetTag}{resetColor}\n'
                           f'      The filter will be applied to the extracted substrates')
-                print('') # print('\n')
+                print('')
 
                 # Extract the substrates
                 totalSeqsDNA = 0
@@ -2024,11 +2023,9 @@ class NGS:
                                          f'{self.datasetTagMotif}')
         if self.filterSubs:
             if self.motifFilter:
-                self.titleWords = f'{self.enzymeName}\nMotif {self.motifTag}'
+                self.titleWords = f'{self.enzymeName}\n{self.motifTag}'
             else:
                 self.titleWords = f'{self.enzymeName}\n{self.datasetTagMotif}'
-                self.titleWordsCombined = (f'{self.enzymeName}\n'
-                                           f'{self.datasetTagMotif}')
         else:
             self.titleWords = f'{self.enzymeName}\nUnfiltered'
 
@@ -2158,180 +2155,6 @@ class NGS:
             print(f'{np.round(rf, 4)}\n\n')
 
         return rf
-
-
-
-    def compairRF(self, probInitial, probFinal, selectAA):
-        print('======================= Evaluate Specificity: Compair RF '
-              '========================')
-        if selectAA in self.letters:
-            residue = self.residues[self.letters.index(selectAA)][0]
-        else:
-            print(f'{greyDark}Residue not recognized:{red} {selectAA}{greyDark}\n'
-                  f'Please check input:{red} self.fixedAA')
-            sys.exit(1)
-        print(f'Fixed Residues:{red} {self.datasetTag}{resetColor}\n'
-              f'Selected Residue:{red} {residue}{resetColor}\n')
-
-        initial = probInitial[probInitial.index.str.contains(selectAA)]
-        final = probFinal[probFinal.index.str.contains(selectAA)]
-
-        print(f'{purple}Initial Sort{resetColor}:\n{initial}\n'
-              f'{purple}Final Sort{resetColor}:\n{final}\n\n')
-
-        # Figure parameters
-        barWidth = 0.4
-
-        # Determine yMax
-        yMin = 0
-        yMax = 1
-
-        # Set the positions of the bars on the x-axis
-        x = np.arange(len(final.columns))
-
-        # Create a figure and axes
-        fig, ax = plt.subplots(figsize=self.figSizeMini)
-
-        # Plotting the bars
-        ax.bar(x - barWidth / 2, initial.iloc[0], width=barWidth, label='Initial Sort',
-               color='#000000')
-        ax.bar(x + barWidth / 2, final.iloc[0], width=barWidth, label='Final Sort',
-               color='#BF5700')
-
-        # Adding labels and title
-        ax.set_ylabel('Relative Frequency', fontsize=self.labelSizeAxis)
-        ax.set_title(f'{residue} RF: {self.enzymeName} Fixed {self.datasetTag}',
-                     fontsize=self.labelSizeTitle, fontweight='bold')
-        ax.legend()
-        plt.subplots_adjust(top=0.898, bottom=0.098, left=0.112, right=0.917)
-
-        # Set tick parameters
-        ax.tick_params(axis='both', which='major', length=self.tickLength,
-                       labelsize=self.labelSizeTicks)
-
-        # Set x ticks
-        ax.set_xticks(x)
-        ax.set_xticklabels(self.xAxisLabels)
-
-        ax.set_ylim(yMin, yMax)
-
-        # Set the edge thickness
-        for spine in ax.spines.values():
-            spine.set_linewidth(self.lineThickness)
-
-        fig.canvas.mpl_connect('key_press_event', pressKey)
-        plt.show()
-
-
-
-    def boxPlotRF(self, probInitial, probFinal, selectAA):
-        print('=============================== Plot: RF Box Plot '
-              '===============================')
-        if selectAA in self.letters:
-            residue = self.residues[self.letters.index(selectAA)][0]
-        else:
-            print(f'{greyDark}Residue not recognized:{red} {selectAA}{greyDark}\n'
-                  f'Please check input:{red} self.fixedAA')
-            sys.exit(1)
-        print(f'Fixed Residues:{red} {self.datasetTag}{resetColor}\n'
-              f'Selected Residue:{red} {residue}{resetColor}\n')
-
-        # Extract data
-        initial = probInitial[probInitial.index.str.contains(selectAA)].T
-        final = probFinal[probFinal.index.str.contains(selectAA)].T
-        print(f'{purple}Initial Sort{resetColor}:\n{initial}\n')
-        print(f'{purple}Final Sort{resetColor}:\n{final}\n\n')
-        print(f'Pos: {self.fixedPos}')
-        final = final.drop(final.index[[int(pos) - 1 for pos in self.fixedPos]])
-        print(f'Remove fixed residues: {purple}Final Sort{resetColor}\n{final}\n\n')
-
-        # Set local parameters
-        self.tickLength, self.lineThickness = 4, 1
-        xLabels = ['Initial Sort', 'Final Sort']
-
-        # Determine yMax
-        yMin = 0
-        yMax = 1
-
-
-        # Find outliers in the initial dataset
-        outliersInitial = []
-        Q1 = initial.quantile(0.25)
-        Q3 = initial.quantile(0.75)
-        IQR = Q3 - Q1
-        outliers = initial[(initial < Q1 - 1.5 * IQR) | (initial > Q3 + 1.5 * IQR)]
-        # Iterate over the indices of outliers
-        for index, row in outliers.iterrows():
-            if not row.isnull().all():
-                outliersInitial.append(index)
-
-        # Find outliers in the final dataset
-        outliersFinal = []
-        Q1 = final.quantile(0.25)
-        Q3 = final.quantile(0.75)
-        IQR = Q3 - Q1
-        outliers = final[(final < Q1 - 1.5 * IQR) | (final > Q3 + 1.5 * IQR)]
-        # Iterate over the indices of outliers
-        for index, row in outliers.iterrows():
-            if not row.isnull().all():
-                outliersFinal.append(index)
-
-        # Print: Outliers
-        if len(outliersInitial) != 0:
-            print(f'Outliers: {purple}Initial Sort{resetColor}')
-            for outlierPosition in outliersInitial:
-                print(f'     {outlierPosition}')
-            print()
-        else:
-            print(f'There were no{red} {residue}{resetColor} RF outliers in: '
-                  f'{purple}Initial Sort{resetColor}\n')
-        if len(outliersFinal) != 0:
-            print(f'Outliers: {purple}Final Sort{resetColor}')
-            for outlierPosition in outliersFinal:
-                print(f'     {outlierPosition}')
-            print('\n')
-        else:
-            print(f'There were no{red} {residue}{resetColor} RF outliers in: '
-                  f'{purple}Final Sort{resetColor} '
-                  f'fixed{red} {self.datasetTag}{resetColor} \n\n')
-
-        # Create a figure and axes
-        fig, ax = plt.subplots(figsize=self.figSizeMini)
-
-        # Plot the data
-        initial.boxplot(
-            ax=ax, positions=[0], widths=0.4, patch_artist=True,
-            boxprops=dict(facecolor='black'), whiskerprops=dict(color='black'),
-            medianprops=dict(color='#F7971F', linewidth=0.5),
-            flierprops=dict(marker='o', markerfacecolor='#F7971F', markersize=10))
-        final.boxplot(
-            ax=ax, positions=[1], widths=0.4, patch_artist=True,
-            boxprops=dict(facecolor='#BF5700'), whiskerprops=dict(color='black'),
-            medianprops=dict(color='#F7971F', linewidth=0.5),
-            flierprops=dict(marker='o', markerfacecolor='#F7971F', markersize=10))
-        plt.subplots_adjust(top=0.898, bottom=0.098, left=0.112, right=0.917)
-
-        # Add labels and title
-        ax.set_title(f'{self.enzymeName} - {residue} RF: Fixed {self.datasetTag}',
-                     fontsize=self.labelSizeTitle, fontweight='bold')
-        ax.set_ylabel('Relative Frequency', fontsize=self.labelSizeAxis)
-
-
-        # Set tick parameters
-        ax.tick_params(axis='both', which='major', length=self.tickLength,
-                       labelsize=self.labelSizeTicks)
-
-        # Set x & y-axis tick labels
-        ax.set_xticks(range(len(xLabels)))
-        ax.set_xticklabels(xLabels, fontsize=self.labelSizeAxis)
-        ax.set_ylim(yMin, yMax)
-
-        # Set the edge thickness
-        for spine in ax.spines.values():
-            spine.set_linewidth(self.lineThickness)
-
-        fig.canvas.mpl_connect('key_press_event', pressKey)
-        plt.show()
 
 
 
@@ -2520,7 +2343,7 @@ class NGS:
         if self.initialize:
             self.datasetTagMotif = self.datasetTag
             self.initialize = False
-        print(f'Dataset Tag: {purple}{self.datasetTag}{resetColor}\n\n')
+        # print(f'Dataset Tag: {purple}{self.datasetTag}{resetColor}\n\n')
 
         return self.datasetTag
 
@@ -3473,8 +3296,112 @@ class NGS:
 
 
         # Plot: Standard deviation
-        self.plotStats(data=frameESStDev, totalCounts=None, dataType='Standard Deviation',
-                       combinedMotifs=True)
+        self.plotStats(
+            data=frameESStDev, totalCounts=None,
+            dataType='Standard Deviation', combinedMotifs=True
+        )
+
+
+
+    def plotStats(self, data, totalCounts, dataType,
+                  combinedMotifs=False, releasedCounts=False):
+        print('========================= Plot: Statistical Evaluation '
+              '==========================')
+        print(f'{dataType}: {purple}{self.datasetTag}{resetColor}\n{data}\n\n')
+
+        # Set figure title
+        if totalCounts is not None and self.showSampleSize:
+            title = f'{self.enzymeName}\n{self.datasetTag}\n{dataType}\nN={totalCounts:,}'
+        else:
+            if combinedMotifs:
+                title = f'\n{self.enzymeName}\n{self.datasetTag}\n{dataType}'
+                if len(self.datasetTag.replace('[', '').replace(
+                        ']', '').replace('-', '')) > 40:
+                    title = title.replace('Register ', 'Register\n')
+            else:
+                title = f'\n{self.enzymeName}\n{self.datasetTag}\n{dataType}'
+
+
+        # Create heatmap
+        cMapCustom = self.createCustomColorMap(colorType=dataType)
+
+        # Convert the counts to a data frame for Seaborn heatmap
+        if self.residueLabelType == 0:
+            data.index = [residue[0] for residue in self.residues]
+        elif self.residueLabelType == 1:
+            data.index = [residue[1] for residue in self.residues]
+        elif self.residueLabelType == 2:
+            data.index = [residue[2] for residue in self.residues]
+
+        # Define color bar limits
+        cBarMax = np.max(data)
+        cBarMax = math.ceil(cBarMax * 10) / 10 # Round up the 1st decimal
+        if int(cBarMax * 10) % 2 != 0:
+            # Set max to an even value
+            cBarMax = (cBarMax * 10 + 1) / 10
+
+
+        # Plot the heatmap with numbers centered inside the squares
+        fig, ax = plt.subplots(figsize=self.figSizeEM)
+        heatmap = sns.heatmap(data, annot=True, fmt='.3f', cmap=cMapCustom,
+                              cbar=True, linewidths=self.lineThickness-1,
+                              linecolor='black', square=False, center=None,
+                              annot_kws={'fontweight': 'bold'}, vmax=cBarMax, vmin=0)
+        ax.set_xlabel('Substrate Position', fontsize=self.labelSizeAxis)
+        ax.set_ylabel('Residue', fontsize=self.labelSizeAxis)
+        ax.set_title(title, fontsize=self.labelSizeTitle, fontweight='bold')
+        figBorders = [0.852, 0.075, 0.117, 1]
+        plt.subplots_adjust(top=figBorders[0], bottom=figBorders[1],
+                            left=figBorders[2], right=figBorders[3])
+
+
+        # Set the thickness of the figure border
+        for _, spine in ax.spines.items():
+            spine.set_visible(True)
+            spine.set_linewidth(self.lineThickness)
+
+        # Set tick parameters
+        ax.tick_params(axis='both', which='major', length=self.tickLength,
+                       labelsize=self.labelSizeTicks, width=self.lineThickness)
+        ax.tick_params(axis='y', labelrotation=0)
+
+        # Set x-ticks
+        xTicks = np.arange(len(data.columns)) + 0.5
+        ax.set_xticks(xTicks)
+        ax.set_xticklabels(data.columns)
+
+        # Set y-ticks
+        yTicks = np.arange(len(data.index)) + 0.5
+        ax.set_yticks(yTicks)
+        ax.set_yticklabels(data.index)
+
+        # Set the edge thickness
+        for _, spine in ax.spines.items():
+            spine.set_visible(True)
+
+        # Modify the colorbar
+        cbar = heatmap.collections[0].colorbar
+        cbar.ax.tick_params(axis='y', which='major', labelsize=self.labelSizeTicks,
+                            length=self.tickLength, width=self.lineThickness)
+        cbar.outline.set_linewidth(self.lineThickness)
+        cbar.outline.set_edgecolor('black')
+
+        fig.canvas.mpl_connect('key_press_event', pressKey)
+        if self.setFigureTimer:
+            plt.ion()
+            plt.show()
+            plt.pause(self.figureTimerDuration)
+            plt.close(fig)
+            plt.ioff()
+        else:
+            plt.show()
+
+        # Save the figure
+        if self.saveFigures:
+            self.saveFigure(
+                fig=fig, figType=dataType, seqLen=len(xTicks),
+                combinedMotifs=combinedMotifs, releasedCounts=releasedCounts
+            )
 
 
 
@@ -4150,24 +4077,16 @@ class NGS:
                     break
 
             # Evaluate: Y axis
-            maxValue = math.ceil(max(y))
+            yMin = 0
+            maxValue = max(y)
             magnitude = math.floor(math.log10(maxValue))
-            unit = 10 ** (magnitude - 1)
-            yMax = math.ceil(maxValue / unit) * unit
-            yMax += 3 * unit  # Increase yMax
-            if min(y) < 0:
-                minValue = math.floor(min(y))
-                magnitude = math.floor(math.log10(abs(minValue)))
-                unit = 10 ** (magnitude - 1)
-                yMin = math.floor(minValue / unit) * unit
-                while yMin > min(y):
-                    yMin -= unit  # Decrease yMin
-            else:
-                yMin = 0
+            val = 5 * 10 ** (magnitude - 1)
+            yMax = val
+            while yMax < maxValue:
+                yMax += val
             # print(f'\nY Axis:\n'
             #       f'  Max: {yMax}\n'
             #       f'  Min: {yMin}\n')
-
         elif 'relative frequency' in dataType.lower():
             # Evaluate: Substrates
             for substrate, value in substrates.items():
@@ -4202,6 +4121,7 @@ class NGS:
             yMin = math.floor(min(y))
         NSubs = len(x)
         print(f'Number of plotted sequences: {red}{NSubs:,}{resetColor}\n\n')
+
 
         # Define: Figure title
         title = (f'{self.enzymeName}\n{self.datasetTag}'
@@ -4243,7 +4163,7 @@ class NGS:
             yMax += 0.1
         else:
             step = yMax / 10
-            yTicks = np.arange(yMin, yMax + step, step)
+            yTicks = np.linspace(yMin, yMax, 11)
         plt.ylim(yMin, yMax)
         plt.xticks(rotation=90, ha='center')
         if plotYTicks:
@@ -4279,6 +4199,9 @@ class NGS:
             figLabel = (f'{self.enzymeName} - Bars - {dataType} - '
                         f'{self.datasetTag} - {seqLength} AA - '
                         f'N {NSubs} - MinCounts {self.minSubCount}.png')
+            if combinedMotifs:
+                figLabel = figLabel.replace(self.datasetTag,
+                                            f'Substrate Profile {self.datasetTag}')
             if 'relative frequency' in dataType.lower():
                 figLabel = figLabel.replace(dataType, 'RF')
             saveLocation = os.path.join(self.pathSaveFigs, figLabel)
@@ -4404,23 +4327,18 @@ class NGS:
 
 
         # Define: Figure title
-        if self.filterSubs:
-            # Modify dataset tag
-            if 'Excl' in self.datasetTag:
-                title = (f'\n{self.enzymeName}\n'
-                         f'{self.datasetTag.replace('Excl', 'Exclude')}\n'
-                         f'{N:,} Unique Substrates')
-            else:
-                title = (f'\n{self.enzymeName}\n'
-                         f'{self.datasetTag}\n'
-                         f'{N:,} Unique Substrates')
+        if combinedMotifs:
+            title = (f'\n{self.enzymeName}\n'
+                     f'{self.datasetTagMotif}\n'
+                     f'{N:,} Unique Substrates')
+            if 'Excl' in self.datasetTagMotif:
+                title = title.replace('Excl', 'Exclude')
         else:
             title = (f'\n{self.enzymeName}\n'
-                     f'Unfiltered'
+                     f'{self.datasetTag}\n'
                      f'{N:,} Unique Substrates')
-        if combinedMotifs  and len(self.motifIndexExtracted) > 1:
-            title = title.replace('Motifs', 'Combined Motifs')
-
+            if 'Excl' in self.datasetTag:
+                title = title.replace('Excl', 'Exclude')
 
         # Plot the data
         for components in headerCombinations:
@@ -5352,12 +5270,6 @@ class NGS:
             title = f'\n\n{self.enzymeName}\n{self.datasetTag}'
         else:
             title = f'\n\n\n{self.enzymeName}'
-        if combinedMotifs and len(self.motifIndexExtracted) > 1:
-            title = title.replace(self.datasetTag, f'Combined {self.datasetTag}')
-        if releasedCounts:
-            title = title.replace(self.datasetTag, f'Released {self.datasetTag}')
-        # if self.excludeAA:
-        #     title = title.replace(" Fixed", ', Fixed')
 
         # Figure parameters
         yMax = self.entropyMax + 0.2
@@ -5449,12 +5361,9 @@ class NGS:
                 figLabel = (f'{self.enzymeName} - Entropy - '
                             f'Unfiltered - {len(xTicks)} AA - '
                             f'MinCounts {self.minSubCount}.png')
-            if combinedMotifs and len(self.motifIndexExtracted) > 1:
-                figLabel = figLabel.replace(
-                    self.datasetTag, f'Combined {self.datasetTag}')
             if releasedCounts:
                 figLabel = figLabel.replace(self.datasetTag,
-                                            f'Released {self.datasetTag}')
+                                            f'Substrate Profile {self.datasetTag}')
             if '/' in figLabel:
                 figLabel = figLabel.replace('/', '_')
             saveLocation = os.path.join(self.pathSaveFigs, figLabel)
@@ -5732,106 +5641,6 @@ class NGS:
 
 
 
-    def plotStats(self, data, totalCounts, dataType,
-                  combinedMotifs=False, releasedCounts=False):
-        print('========================= Plot: Statistical Evaluation '
-              '==========================')
-        print(f'{dataType}: {purple}{self.datasetTag}{resetColor}\n{data}\n\n')
-
-        # Set figure title
-        if totalCounts is not None and self.showSampleSize:
-            title = f'{self.enzymeName}\n{self.datasetTag}\n{dataType}\nN={totalCounts:,}'
-        else:
-            if combinedMotifs:
-                title = f'\n{self.enzymeName}\nCombined {self.datasetTag}\n{dataType}'
-                if len(self.datasetTag.replace('[', '').replace(
-                        ']', '').replace('-', '')) > 40:
-                    title = title.replace('Register ', 'Register\n')
-            else:
-                title = f'\n{self.enzymeName}\n{self.datasetTag}\n{dataType}'
-
-
-        # Create heatmap
-        cMapCustom = self.createCustomColorMap(colorType=dataType)
-
-        # Convert the counts to a data frame for Seaborn heatmap
-        if self.residueLabelType == 0:
-            data.index = [residue[0] for residue in self.residues]
-        elif self.residueLabelType == 1:
-            data.index = [residue[1] for residue in self.residues]
-        elif self.residueLabelType == 2:
-            data.index = [residue[2] for residue in self.residues]
-
-        # Define color bar limits
-        cBarMax = np.max(data)
-        cBarMax = math.ceil(cBarMax * 10) / 10 # Round up the 1st decimal
-        if int(cBarMax * 10) % 2 != 0:
-            # Set max to an even value
-            cBarMax = (cBarMax * 10 + 1) / 10
-
-
-        # Plot the heatmap with numbers centered inside the squares
-        fig, ax = plt.subplots(figsize=self.figSizeEM)
-        heatmap = sns.heatmap(data, annot=True, fmt='.3f', cmap=cMapCustom,
-                              cbar=True, linewidths=self.lineThickness-1,
-                              linecolor='black', square=False, center=None,
-                              annot_kws={'fontweight': 'bold'}, vmax=cBarMax, vmin=0)
-        ax.set_xlabel('Substrate Position', fontsize=self.labelSizeAxis)
-        ax.set_ylabel('Residue', fontsize=self.labelSizeAxis)
-        ax.set_title(title, fontsize=self.labelSizeTitle, fontweight='bold')
-        figBorders = [0.852, 0.075, 0.117, 1]
-        plt.subplots_adjust(top=figBorders[0], bottom=figBorders[1],
-                            left=figBorders[2], right=figBorders[3])
-
-
-        # Set the thickness of the figure border
-        for _, spine in ax.spines.items():
-            spine.set_visible(True)
-            spine.set_linewidth(self.lineThickness)
-
-        # Set tick parameters
-        ax.tick_params(axis='both', which='major', length=self.tickLength,
-                       labelsize=self.labelSizeTicks, width=self.lineThickness)
-        ax.tick_params(axis='y', labelrotation=0)
-
-        # Set x-ticks
-        xTicks = np.arange(len(data.columns)) + 0.5
-        ax.set_xticks(xTicks)
-        ax.set_xticklabels(data.columns)
-
-        # Set y-ticks
-        yTicks = np.arange(len(data.index)) + 0.5
-        ax.set_yticks(yTicks)
-        ax.set_yticklabels(data.index)
-
-        # Set the edge thickness
-        for _, spine in ax.spines.items():
-            spine.set_visible(True)
-
-        # Modify the colorbar
-        cbar = heatmap.collections[0].colorbar
-        cbar.ax.tick_params(axis='y', which='major', labelsize=self.labelSizeTicks,
-                            length=self.tickLength, width=self.lineThickness)
-        cbar.outline.set_linewidth(self.lineThickness)
-        cbar.outline.set_edgecolor('black')
-
-        fig.canvas.mpl_connect('key_press_event', pressKey)
-        if self.setFigureTimer:
-            plt.ion()
-            plt.show()
-            plt.pause(self.figureTimerDuration)
-            plt.close(fig)
-            plt.ioff()
-        else:
-            plt.show()
-
-        # Save the figure
-        if self.saveFigures:
-            self.saveFigure(fig=fig, figType=dataType, seqLen=len(xTicks),
-                            combinedMotifs=combinedMotifs, releasedCounts=releasedCounts)
-
-
-
     def plotWordCloud(self, substrates, clusterNumPCA=None,
                       combinedMotifs=False, predActivity=False, predModel=False):
         print('=============================== Plot: Word Cloud '
@@ -5867,13 +5676,7 @@ class NGS:
         if predActivity:
             title = f'{self.enzymeName}\n{predModel}'
         else:
-            if combinedMotifs and len(self.motifIndexExtracted) > 1:
-                title = self.titleWordsCombined
-            elif combinedMotifs:
-                title = self.titleWordsCombined
-                title = title.replace('Combined ', '')
-            else:
-                title = self.titleWords
+            title = self.titleWords
             title += f'\nTop {totalWords} Substrates'
 
 
@@ -5915,23 +5718,30 @@ class NGS:
                 seqLength = self.motifLen
 
             # Define: Save location
-            figLabel = (f'{self.enzymeName} - Words - {self.datasetTag} - '
-                        f'{seqLength} AA - Plot {totalWords} - '
-                        f'MinCounts {self.minSubCount}.png')
+            if combinedMotifs:
+                figLabel = (f'{self.enzymeName} - Words - Substrate Profile '
+                            f'{self.datasetTagMotif} - {seqLength} AA - '
+                            f'Plot {totalWords} - MinCounts {self.minSubCount}.png')
+            else:
+                figLabel = (f'{self.enzymeName} - Words - '
+                            f'{self.datasetTag} - {seqLength} AA - '
+                            f'Plot {totalWords} - MinCounts {self.minSubCount}.png')
             if self.wordsLimit:
                 figLabel = figLabel.replace(
                     f'Plot {totalWords}',
                     f'Select {self.wordsTotal} Plot {totalWords}')
-            if len(self.motifIndexExtracted) > 1:
-                figLabel = figLabel.replace('Frame',
-                                            'Combined Frame')
             if clusterNumPCA is not None:
                 figLabel = figLabel.replace('Words',
                                             f'Words - PCA {clusterNumPCA}')
             if predActivity:
-                figLabel = figLabel.replace(
-                    self.datasetTag,
-                    f'{self.datasetTag} - Predictions - {predModel}')
+                if combinedMotifs:
+                    figLabel = figLabel.replace(
+                        self.datasetTagMotif,
+                        f'{self.datasetTagMotif} - Predictions - {predModel}')
+                else:
+                    figLabel = figLabel.replace(
+                        self.datasetTag,
+                        f'{self.datasetTag} - Predictions - {predModel}')
             saveLocation = os.path.join(self.pathSaveFigs, figLabel)
             if self.useEF:
                 saveLocation = saveLocation.replace('Words', 'Words - EF')
@@ -6698,9 +6508,9 @@ class NGS:
 
             # Set title
             title = f'{self.enzymeName}\n{self.datasetTag}\n{predLabel} - {tag}'
-            if combinedMotifs and len(self.motifIndexExtracted) > 1:
+            if combinedMotifs:
                 title = title.replace(self.datasetTag,
-                                      f'Combined {self.datasetTag}')
+                                      f'Substrate Profile {self.datasetTag}')
 
             if plotBars:
                 # Plot bar graph
