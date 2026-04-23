@@ -11,6 +11,12 @@ import sys
 pd.set_option('display.float_format', '{:,.3f}'.format)
 
 
+"""
+    If a key in inData is "% St Dev", table will exclude it.
+    The "% Product" values will be converted from decimal to percentage.
+    The order of the keys in inData will have the same order in the table.
+"""
+
 # Make table
 inSigFigs = 0
 inData = {
@@ -18,9 +24,9 @@ inData = {
                    'VILHSGFR', 'VIMQSGFR', 'VPLQSGFR', 'NILQSGFR'],
     '% Product': [0.76, 1.00, 0.11, 0.0, 0.22, 0.82, 0.000, 0.18],
     '% St Dev': [0.1, 0.09, 0.02, 0, 0.06, 0.09, 0, 0.05],
-    'Predicted': [0.628, 1.000, 0.019, 0.004, 0.054, 0.404, 0.004, 0.048],
-    'Predicted Sq Root': [0.793, 1.0, 0.138, 0.063, 0.233, 0.635, 0.060, 0.221],
     '% Product Rank': [3, 1, 6, 7, 4, 2, 7, 5],
+    'Predicted': [0.628, 1.000, 0.019, 0.004, 0.054, 0.404, 0.004, 0.048],
+    # 'Predicted Sq Root': [0.793, 1.0, 0.138, 0.063, 0.233, 0.635, 0.060, 0.221],
     'Predicted Rank': [2, 1, 6, 7, 4, 3, 7, 5],
 }
 
@@ -29,12 +35,11 @@ inSavePath = ''
 inFigResolution = 600
 
 
-# Make figure
-def plotTable():
+def convertNum(data):
     # Convert to %
     activity = []
     for idx, substrate in enumerate(inData['Substrates']):
-        act = inData['% Product'][idx]
+        act = data[idx]
         stdev = int(inData['% St Dev'][idx] * 100)
         if inSigFigs == 0 or not inSigFigs:
             act *= 100
@@ -42,19 +47,30 @@ def plotTable():
         else:
             act *= 100
             act = round(act, inSigFigs)
-
-
         if stdev == 0.0:
             activity.append(act)
         else:
             activity.append(f'{act}±{stdev}')
+    return activity
 
+
+# Make figure
+def plotTable():
     data = pd.DataFrame(0.0, index=range(len(inData['Substrates'])), columns=[])
-    data['Substrates'] = inData['Substrates']
-    data['% Product'] = activity
-    data['% Product Rank'] = inData['% Product Rank']
-    data['Predicted'] = inData['Predicted']
-    data['Predicted Rank'] = inData['Predicted Rank']
+    for col in inData.keys():
+        if '% St Dev' in col:
+            continue
+        if '% Product' in col and 'Rank' not in col:
+            data[col] = convertNum(inData[col])
+        else:
+            data[col] = inData[col]
+
+    # data['Substrates'] = inData['Substrates']
+    # data['% Product'] = convertNum(inData['% Product'])
+    # for key in inData.keys():
+    #     if 'Predicted' in key or 'Rank' in key:
+    #         data[key] = inData[key]
+    #         print(f'* {key}')
 
     table = pd.DataFrame.from_dict(data)
     if inSigFigs == 0 or not inSigFigs:
