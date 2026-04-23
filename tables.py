@@ -8,6 +8,8 @@ from sklearn.metrics import r2_score
 import sys
 
 
+# Set options
+pd.set_option('display.max_columns', None)
 pd.set_option('display.float_format', '{:,.3f}'.format)
 
 
@@ -26,8 +28,10 @@ inData = {
     '% St Dev': [0.1, 0.09, 0.02, 0, 0.06, 0.09, 0, 0.05],
     '% Product Rank': [3, 1, 6, 7, 4, 2, 7, 5],
     'Predicted': [0.628, 1.000, 0.019, 0.004, 0.054, 0.404, 0.004, 0.048],
-    # 'Predicted Sq Root': [0.793, 1.0, 0.138, 0.063, 0.233, 0.635, 0.060, 0.221],
     'Predicted Rank': [2, 1, 6, 7, 4, 3, 7, 5],
+    f'% Product M{"ᵖʳᵒ"}': [0.54, 0.658, 0.342, 0.0, 0.257, 0.613, 0.0, 0.218],
+    f'% St Dev M{"ᵖʳᵒ"}': [0.01, 0.058, 0.025, 0.0, 0.027, 0.044, 0.0, 0.033],
+    f'% Product Rank M{"ᵖʳᵒ"}': [3, 1, 6, 7, 4, 2, 7, 5],
 }
 
 # Save Figure
@@ -35,17 +39,19 @@ inSavePath = ''
 inFigResolution = 600
 
 
-def convertNum(data):
+def convertNum(data, key):
+    keyStDev = '% St Dev'
+    if key != '% St Dev':
+        keyStDev = f'% St Dev{key.replace("% Product", "")}'
+    print(f'Key: {keyStDev}')
     # Convert to %
     activity = []
-    for idx, substrate in enumerate(inData['Substrates']):
-        act = data[idx]
-        stdev = int(inData['% St Dev'][idx] * 100)
+    for idx, substrate in enumerate(data['Substrates']):
+        act = data[key][idx] * 100
+        stdev = int(data[keyStDev][idx] * 100)
         if inSigFigs == 0 or not inSigFigs:
-            act *= 100
             act = int(act)
         else:
-            act *= 100
             act = round(act, inSigFigs)
         if stdev == 0.0:
             activity.append(act)
@@ -61,16 +67,9 @@ def plotTable():
         if '% St Dev' in col:
             continue
         if '% Product' in col and 'Rank' not in col:
-            data[col] = convertNum(inData[col])
+            data[col] = convertNum(inData, col)
         else:
             data[col] = inData[col]
-
-    # data['Substrates'] = inData['Substrates']
-    # data['% Product'] = convertNum(inData['% Product'])
-    # for key in inData.keys():
-    #     if 'Predicted' in key or 'Rank' in key:
-    #         data[key] = inData[key]
-    #         print(f'* {key}')
 
     table = pd.DataFrame.from_dict(data)
     if inSigFigs == 0 or not inSigFigs:
