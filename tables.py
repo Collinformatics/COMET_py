@@ -10,6 +10,7 @@ import sys
 
 # Set options
 pd.set_option('display.max_columns', None)
+pd.set_option('display.width', 1000)
 pd.set_option('display.float_format', '{:,.3f}'.format)
 
 
@@ -20,32 +21,51 @@ pd.set_option('display.float_format', '{:,.3f}'.format)
 """
 
 # Make table
+inEnzyme = f'M{"ᵖʳᵒ"}2'
+inEnzyme2 = f'M{"ᵖʳᵒ"}'
 inSigFigs = 0
+inSubstrates = ['AVLQSGFR', 'VILQSGFR', 'VILQTGFR', 'VILQSPFR',
+                   'VILHSGFR', 'VIMQSGFR', 'VPLQSGFR', 'NILQSGFR']
 inData = {
-    'Substrates': ['AVLQSGFR', 'VILQSGFR', 'VILQTGFR', 'VILQSPFR',
-                   'VILHSGFR', 'VIMQSGFR', 'VPLQSGFR', 'NILQSGFR'],
-    '% Product': [0.76, 1.00, 0.11, 0.0, 0.22, 0.82, 0.000, 0.18],
-    '% St Dev': [0.1, 0.09, 0.02, 0, 0.06, 0.09, 0, 0.05],
-    '% Product Rank': [3, 1, 6, 7, 4, 2, 7, 5],
-    'Predicted': [0.628, 1.000, 0.019, 0.004, 0.054, 0.404, 0.004, 0.048],
-    'Predicted Rank': [2, 1, 6, 7, 4, 3, 7, 5],
-    f'% Product M{"ᵖʳᵒ"}': [0.54, 0.658, 0.342, 0.0, 0.257, 0.613, 0.0, 0.218],
-    f'% St Dev M{"ᵖʳᵒ"}': [0.01, 0.058, 0.025, 0.0, 0.027, 0.044, 0.0, 0.033],
-    f'% Product Rank M{"ᵖʳᵒ"}': [3, 1, 6, 7, 4, 2, 7, 5],
+    'Substrates': inSubstrates,
+    f'% Product {inEnzyme}':      [0.76, 0.82, 0.38, 0.0, 0.32, 0.66, 0.0, 0.23],
+    f'% Product Rank {inEnzyme}': [0 for i in range(1, len(inSubstrates) + 1)],
+    f'% St Dev {inEnzyme}': [0.1, 0.09, 0.02, 0, 0.06, 0.09, 0, 0.05],
+    f'Predicted {inEnzyme}': [0.628, 1.000, 0.019, 0.004, 0.054, 0.404, 0.004, 0.048],
+    f'Predicted Rank {inEnzyme}': [0 for i in range(1, len(inSubstrates) + 1)],
+
+    f'% Product {inEnzyme2}': [0.54, 0.66, 0.34, 0.0, 0.26, 0.61, 0.0, 0.22],
+    f'% Product Rank {inEnzyme2}': [i for i in range(1, len(inSubstrates) + 1)],
+    f'% St Dev {inEnzyme2}': [0.01, 0.058, 0.025, 0.0, 0.027, 0.044, 0.0, 0.033],
+    f'Predicted {inEnzyme2}': [0.572,1.0,0.015,0.010,0.038,0.510,0.034,0.066],
+    f'Predicted Rank {inEnzyme2}': [0 for i in range(1, len(inSubstrates) + 1)],
 }
+
+# Scatter plot
+inScatter = [f'Activity {inEnzyme}', f'Activity Z {inEnzyme}',
+             f'Pred {inEnzyme}', f'Pred Z {inEnzyme}']
 
 # Save Figure
 inSavePath = ''
 inFigResolution = 600
 
 
+def normalizeData():
+    for key in inData.keys():
+        if '% Product' in key and 'Rank' not in key:
+            maxValue = max(inData[key])
+            norm = []
+            for val in inData[key]:
+                norm.append(val / maxValue)
+            inData[key] = norm
+
+
 def convertNum(data, key):
     keyStDev = '% St Dev'
     if key != '% St Dev':
         keyStDev = f'% St Dev{key.replace("% Product", "")}'
-    print(f'Key: {keyStDev}')
-    # Convert to %
-    activity = []
+
+    activity = [] # Convert to %
     for idx, substrate in enumerate(data['Substrates']):
         act = data[key][idx] * 100
         stdev = int(data[keyStDev][idx] * 100)
@@ -56,7 +76,7 @@ def convertNum(data, key):
         if stdev == 0.0:
             activity.append(act)
         else:
-            activity.append(f'{act}±{stdev}')
+            activity.append(f'{act} ± {stdev}')
     return activity
 
 
@@ -68,15 +88,24 @@ def plotTable():
             continue
         if '% Product' in col and 'Rank' not in col:
             data[col] = convertNum(inData, col)
+        elif 'Predicted' in col and 'Rank' not in col:
+            val = []
+            for v in inData[col]:
+                if inSigFigs == 0 or not inSigFigs:
+                    val.append(int(v * 100))
+                else:
+                     val.append((v * 100).round(inSigFigs))
+            data[col] = val
+        elif 'Rank' in col:
+            key = col.replace(' Rank', '')
+            data.loc[:, col] = (
+                pd.Series(inData[key]).rank(ascending=False, method='min').astype(int)
+            )
         else:
             data[col] = inData[col]
 
     table = pd.DataFrame.from_dict(data)
-    if inSigFigs == 0 or not inSigFigs:
-        table['Predicted'] = (table['Predicted'] * 100).astype(int)
-    else:
-        table['Predicted'] = (table['Predicted'] * 100).round(inSigFigs)
-    print(f'{table}\n')
+    print(f'Table:\n{table}\n')
 
     h = (len(table.index) / 2) - 1
     w = len(table.columns) * 2
@@ -112,6 +141,8 @@ def plotTable():
               f'     {inSavePath}\n')
     else:
         print(f'The figure was not saved')
+
+normalizeData()
 plotTable()
 
 
@@ -127,17 +158,29 @@ def zScore(values):
 
 # Evaluate data
 data = pd.DataFrame(0.0, index=inData['Substrates'],
-                    columns=['Activity', 'Activity Z', 'Pred', 'Pred Z'])
-activity = inData['% Product']
-data['Activity'] = activity
-data['Activity Z'] = zScore(activity)
-pred = inData['Predicted']
-data['Pred'] = pred
-data['Pred Z'] = zScore(pred)
+                    columns=inScatter)
+activity = inData[f'% Product {inEnzyme}']
+data[f'Activity {inEnzyme}'] = activity
+data[f'Activity Z {inEnzyme}'] = zScore(activity)
+pred = inData[f'Predicted {inEnzyme}']
+data[f'Pred {inEnzyme}'] = pred
+data[f'Pred Z {inEnzyme}'] = zScore(pred)
 print(f'\nZ Scores:\n{data}\n')
+actR2 = round(r2_score(data[f'Activity {inEnzyme}'], data[f'Pred {inEnzyme}']), 2)
+actZR2 = round(r2_score(data[f'Activity Z {inEnzyme}'], data[f'Pred Z {inEnzyme}']), 2)
 
-actR2 = round(r2_score(data['Activity'], data['Pred']), 2)
-actZR2 = round(r2_score(data['Activity Z'], data['Pred Z']), 2)
+# Evaluate a second set
+if inEnzyme2:
+    activity = inData[f'% Product {inEnzyme2}']
+    data[f'Activity {inEnzyme2}'] = activity
+    data[f'Activity Z {inEnzyme2}'] = zScore(activity)
+    pred = inData[f'Predicted {inEnzyme2}']
+    data[f'Pred {inEnzyme2}'] = pred
+    data[f'Pred Z {inEnzyme2}'] = zScore(pred)
+    print(f'\nZ Scores:\n{data}\n')
+
+
+sys.exit()
 
 inTitleSize = 16
 inLabelSize = 14
