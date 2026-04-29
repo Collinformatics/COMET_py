@@ -180,22 +180,21 @@ if inEnzyme2:
     print(f'\nZ Scores:\n{data}\n')
 
 
-sys.exit()
-
 inTitleSize = 16
 inLabelSize = 14
 
 # Plot data
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
 data.plot(
-    x='Activity', y='Pred', ax=ax1, marker='o',
+    x=f'Activity {inEnzyme}', y=f'Pred {inEnzyme}', ax=ax1, marker='o',
     linestyle='none', color='#BF5700', legend=f'R² = {actR2}'
 )
 data.plot(
-    x='Activity Z', y='Pred Z', ax=ax2, marker='s',
+    x=f'Activity Z {inEnzyme}', y=f'Pred Z {inEnzyme}', ax=ax2, marker='s',
     linestyle='none', color='#BF5700', legend=f'R² = {actZR2}'
 )
-fig.suptitle('Substrate Activity', fontsize=inTitleSize, fontweight='bold', va='top')
+fig.suptitle(f'Substrate Activity {inEnzyme}', fontsize=inTitleSize,
+             fontweight='bold', va='top')
 
 # X Axis
 ax1.set_xlabel('Activity', fontsize=inLabelSize)
@@ -222,4 +221,5 @@ ax2.legend(prop=FontProperties(size=10, weight='bold'), handles=[Line2D(
 )
 
 plt.tight_layout()
+fig.canvas.mpl_connect('key_press_event', pressKey)
 plt.show()
