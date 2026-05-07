@@ -16,14 +16,19 @@ from functions import NGS
 
 # ===================================== User Inputs ======================================
 # Input 1: File Location
-inFileName = ['Mpro2-I_S1_L001_R1_001', 'Mpro2-I_S1_L001_R2_001'] # Define file name(s)
+inFileName = [
+    'Mpro2-R4_S3_L001_R1_001', 'Mpro2-R4_S3_L001_R2_001',
+    'Mpro2-R4_S3_L002_R1_001', 'Mpro2-R4_S3_L002_R2_001',
+    'Mpro2-R4_S3_L003_R1_001', 'Mpro2-R4_S3_L003_R2_001',
+    'Mpro2-R4_S3_L004_R1_001', 'Mpro2-R4_S3_L004_R2_001'
+] # Define file name(s)
 inEnzymeName = inFileName[0].split('-')[0]
 inPathFolder = os.path.join('Enzymes', inEnzymeName)
 inPathDNASeqs = os.path.join(inPathFolder, 'Fastq') # Define the fastq folder name
 inFileType = 'fastq' # Define the file type
 
-# Input 2: Saving The Data
-inSaveFileName = 'Mpro2-I_S1_L001' # Add this name to filePaths() in functions.py
+# Input 2: Saving The Data 'Mpro2-I_S1_L001'
+inSaveFileName = 'Mpro2-R4_S3' # Add this name to filePaths() in functions.py
 
 # Input 3: Substrate Parameters
 inAAPositions = ['R1','R2','R3','R4','R5','R6','R7','R8']

@@ -9,6 +9,8 @@ import gzip
 from itertools import combinations, product
 import logomaker
 import math
+from matplotlib.font_manager import FontProperties
+from matplotlib.lines import Line2D
 import matplotlib.patheffects as path_effects
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, Normalize
@@ -84,10 +86,10 @@ def getFileNames(enzyme):
         inAAPositions = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8']
     elif enzyme.lower() == 'mpro' or enzyme.lower() == 'mpro1':
         enzyme = f'SARS-CoV M{'ᵖʳᵒ'}'
-        inFileNamesInitialSort = ['Mpro-I_S1_L001', 'Mpro-I_S1_L002',
-                                  'Mpro-I_S1_L003', 'Mpro-I_S1_L004']
-        inFileNamesFinalSort = ['Mpro-R4_S3_L001', 'Mpro-R4_S3_L002',
-                                'Mpro-R4_S3_L003', 'Mpro-R4_S3_L004']
+        inFileNamesInitialSort = ['Mpro1-I_S1_L001', 'Mpro1-I_S1_L002',
+                                  'Mpro1-I_S1_L003', 'Mpro1-I_S1_L004']
+        inFileNamesFinalSort = ['Mpro1-R4_S3_L001', 'Mpro1-R4_S3_L002',
+                                'Mpro1-R4_S3_L003', 'Mpro1-R4_S3_L004']
         inAAPositions = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8']
     elif enzyme.lower() == 'mpro2':
         enzyme = f'SARS-CoV-2 M{'ᵖʳᵒ'}'
@@ -727,7 +729,7 @@ class NGS:
         print('======================== Substrate Extraction Efficiency '
               '========================')
         for index, file in enumerate(files):
-            print(f'{pink}Evaluate file{resetColor}:{yellow} {file}{resetColor}\n'
+            print(f'{pink}Evaluate file{resetColor}:{greenLight} {file}{resetColor}\n'
                   f'     Total DNA sequences in the file: '
                   f'{red}{self.fileSize[index]:,}{resetColor}\n'
                   f'     Number of extracted Substrates: '
@@ -6418,9 +6420,9 @@ class NGS:
 
 
 
-    def predictActivity(self, activityExp, finalRF, initialRF, predModel, predLabel,
-                        combinedMotifs=False, releasedCounts=False, plotBars=True,
-                        barWidth=0.35):
+    def predictActivity(self, activityExp, finalRF, initialRF, predModel,
+                        predLabel, errorBars=False, combinedMotifs=False,
+                        releasedCounts=False, plotBars=True, barWidth=0.35):
         print('============================ Predict Substrate Activity '
               '=============================')
         N = len(activityExp.keys())
@@ -6433,56 +6435,80 @@ class NGS:
                                           initialRF=initialRF,
                                           pHeader=False)
 
-        def evalSubs(values, tag):
+        # z = matrix.copy()
+        # for col in matrix.columns:
+        #     for aa in matrix.index:
+        #         z.loc[aa, col] = self.zScore(matrix[col], aa)
+        # print(f'Z Matrix:\n{z}\n')
+
+
+        def evalSubs(values, errorBars, tag):
             # Calculate: Activity
             activityPred = {}
             subLen = len(next(iter(activityExp)))
             for substrate in activityExp.keys():
+                print(f'{pink}{substrate}{resetColor}')
                 score = 0
                 for index in range(subLen):
                     # Evaluate substrate
                     AA = substrate[index]
                     pos = values.columns[index]
                     value = values.loc[AA, pos]
+                    print(f'* {pink}{AA}@{pos}{resetColor}: {round(value,4)}')
+
                     if score == 0:
                         score = value
                     else:
                         score *= value
-
+                print(f'Score: {red}{score:.3e}{resetColor}\n')
                 x  = score
-                for t in ['square root', 'square', 'root', 'sqrt', 'sq rt']:
-                    if t in predLabel.lower():
-                        x = np.sqrt(x) ##
-                        break
-                print(f'Sub: {purple}{substrate}{resetColor}\n'
-                      f'Score: {score:.3e}\n'
-                      f'    X: {x:.3e}\n')
+                # for t in ['square root', 'square', 'root', 'sqrt', 'sq rt']:
+                #     if t in predLabel.lower():
+                #         x = np.sqrt(x) ##
+                #         break
+                # print(f'Sub: {purple}{substrate}{resetColor}\n'
+                #       f'Score: {score:.3e}\n'
+                #       f'    X: {x:.3e}\n')
 
                 activityPred[substrate] = x
+            ranked = pd.Series(activityPred.values()).rank(
+                ascending=False, method='min').astype(int)
+
+
             maxActivity = max(activityPred.values())
             dec = self.roundVal - 1
             print(f'Matrix Type: {purple}{tag}{resetColor}\n'
                   f'Predicted Activity: '
                   f'(Max Score: {red}{maxActivity:.{dec}e}{resetColor})')
-            for index, (substrate, activity) in enumerate(activityPred.items(), start=1):
-                print(f'    {pink}{substrate}{resetColor}, '
+            for index, (substrate, activity) in enumerate(activityPred.items()):
+                print(f'    {pink}{substrate}{resetColor} ({ranked[index]}), '
                       f'Score: {red}{activity:.{dec}e}{resetColor}')
-                if index == self.printNumber:
+                if index == self.printNumber - 1:
                     break
             print()
 
             # Normalize values
             maxExpActivity = max(activityExp.values())
-            for substrate, activity in activityPred.items():
+            for index, (substrate, activity) in enumerate(activityPred.items()):
                 activityPred[substrate] = activity / maxActivity
                 activityExp[substrate] = activityExp[substrate] / maxExpActivity
             print(f'Predicted Normalized Activity:')
-            for index, (substrate, activity) in enumerate(activityPred.items(), start=1):
-                print(f'    {pink}{substrate}{resetColor}, '
-                      f'Score: {red}{activity:,.{self.roundVal}f}{resetColor}')
-                if index == self.printNumber:
+            scores = []
+            for index, (substrate, activity) in enumerate(activityPred.items()):
+                s = f'{activity:,.{self.roundVal}f}'
+                l = np.log(activity)
+                l = f'{l:,.{self.roundVal}f}'
+                scores.append(float(s))
+                print(f'    {pink}{substrate}{resetColor} ({ranked[index]}), '
+                      f'Score: {red}{s}{resetColor}, '
+                      f'Nat Log: {red}{l}{resetColor}')
+                if index == self.printNumber - 1:
                     break
+            print(f'Activity: {scores}')
+            if errorBars:
+                print(f'Error Bars: {errorBars}')
             print('')
+            sys.exit()
 
             # Rank activity scores
             rankedActivity = dict(sorted(activityPred.items(),
@@ -6558,12 +6584,18 @@ class NGS:
             y = list(activityPred.values())
             ticks = [0, 0.2, 0.4, 0.6, 0.8, 1]
 
+            from sklearn.metrics import r2_score
+            r2 = round(r2_score(x, y), 2)
+
             fig, ax = plt.subplots(figsize=self.figSize)
-            plt.scatter(x, y, color='#BF5700', edgecolor='black')
+            if errorBars:
+                plt.errorbar(x, y, yerr=errorBars, fmt="o", color='#BF5700', ecolor='black')
+            else:
+                plt.scatter(x, y, color='#BF5700', edgecolor='black')
             plt.xlabel('Experimental Activity', fontsize=self.labelSizeAxis)
             plt.ylabel('Predicted Activity', fontsize=self.labelSizeAxis)
             plt.title(title, fontsize=self.labelSizeTitle, fontweight='bold')
-            plt.grid(True, linestyle='-', color='black')
+            # plt.grid(True, linestyle='-', color='black')
             plt.xlim(-0.03, 1.03)
             plt.xticks(ticks)
             plt.xticks(ticks)
@@ -6574,9 +6606,16 @@ class NGS:
             ax.tick_params(axis='both', which='major', length=self.tickLength,
                            labelsize=self.labelSizeTicks)
 
+            # Legend
+            ax.legend(prop=FontProperties(size=10, weight='bold'), handles=[Line2D(
+                [], [], linestyle='None', marker='None',
+                label=f'R² = {r2:.2f}')], handletextpad=0, handlelength=0
+                      )
+
             fig.canvas.mpl_connect('key_press_event', pressKey)
             plt.tight_layout()
             plt.show()
+
 
             # Save the Figure
             if self.saveFigures:
@@ -6588,7 +6627,7 @@ class NGS:
                 self.saveFigure(fig=fig, figType=figTag, seqLen=subLen, N=N,
                                 combinedMotifs=combinedMotifs,
                                 releasedCounts=releasedCounts)
-        evalSubs(values=matrix, tag='Probability Ratios')
+        evalSubs(values=matrix, errorBars=errorBars, tag='Probability Ratios')
         # evalSubs(values=finalRF, tag='Relative Frequency')
 
 
@@ -6647,7 +6686,7 @@ class NGS:
                     score = v
                 else:
                     score *= v
-            activityScores[substrate] = score # + 2.6
+            activityScores[substrate] = np.log(score) # + 2.6
             print(f'Score: {red}{score:.{self.roundVal}}{resetColor}\n')
 
         if rankScores:
@@ -6678,7 +6717,7 @@ class NGS:
         for substrate, ES in activityScores.items():
             print(f'     {pink} {substrate}{resetColor}, '
                   f'ES:{red} {ES:,.3f}{resetColor}')
-        print('')
+        print()
 
 
         if not rankScores:
