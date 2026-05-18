@@ -1648,7 +1648,7 @@ class NGS:
                 )
         print()
         savedData = False
-        plotData = [False, False, False]
+        plotData = [False, False, False, False]
 
         # CSV: Scores
         savePath = paths[0]
@@ -1665,7 +1665,7 @@ class NGS:
                 for seq, count in subsCounts.items():
                     writer.writerow([seq, count])
 
-        # CSV: Z Scores
+        # CSV: Normalized scores
         savePath = paths[1]
         if not os.path.exists(savePath):
             if not savedData:
@@ -1677,18 +1677,33 @@ class NGS:
             with open(savePath, 'w', newline='') as c:
                 writer = csv.writer(c)
                 writer.writerow(['sequence', self.enzyme])
-                for seq, score in subsZCounts.items():
-                    writer.writerow([seq, score])
+                for seq, value in subsCountsNorm.items():
+                    writer.writerow([seq, value])
 
-        # CSV: Z-Pred
+        # CSV: Z Scores
         savePath = paths[2]
-        if subsZPred and not os.path.exists(savePath):
+        if not os.path.exists(savePath):
             if not savedData:
                 savedData = True
                 print(f'Saving {red}{N:,}{resetColor} substrates in a CSV file\n'
                       f'Save path:')
             print(f'    {greenDark}{savePath}{resetColor}')
             plotData[2] = True
+            with open(savePath, 'w', newline='') as c:
+                writer = csv.writer(c)
+                writer.writerow(['sequence', self.enzyme])
+                for seq, score in subsZCounts.items():
+                    writer.writerow([seq, score])
+
+        # CSV: Z-Pred
+        savePath = paths[3]
+        if subsZPred and not os.path.exists(savePath):
+            if not savedData:
+                savedData = True
+                print(f'Saving {red}{N:,}{resetColor} substrates in a CSV file\n'
+                      f'Save path:')
+            print(f'    {greenDark}{savePath}{resetColor}')
+            plotData[3] = True
             with open(savePath, 'w', newline='') as c:
                 writer = csv.writer(c)
                 writer.writerow(['sequence', self.enzyme])
