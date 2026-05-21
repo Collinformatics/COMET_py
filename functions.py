@@ -1632,12 +1632,12 @@ class NGS:
 
         # Calculate: Z-scores Counts
         subsZCounts = {}
-        mu = np.average(list(subsCountsNorm.values()))
-        sigma = np.std(list(subsCountsNorm.values()))
+        mu = np.average(list(subsCounts.values()))
+        sigma = np.std(list(subsCounts.values()))
         print(f'Z-Scores: Counts\n'
-              f'* µ: {mu}\n'
-              f'* σ: {sigma}\n')
-        for seq, count in subsCountsNorm.items():
+              f'* µ: {red}{round(mu, 3):,}{resetColor}\n'
+              f'* σ: {red}{round(sigma, 3):,}{resetColor}\n')
+        for seq, count in subsCounts.items():
             subsZCounts[seq] = (count - mu) / sigma
 
 
@@ -1659,8 +1659,8 @@ class NGS:
                 mu = np.average(list(subsZ.values()))
                 sigma = np.std(list(subsZ.values()))
                 print(f'Z-Scores: Predicted Activity\n'
-                      f'* µ: {mu}\n'
-                      f'* σ: {sigma}\n')
+                      f'* µ: {red}{round(mu, 3):,}{resetColor}\n'
+                      f'* σ: {red}{round(sigma, 3):,}{resetColor}\n')
                 for seq, score in subsZ.items():
                     subsZPred[seq] = (score - mu) / sigma
 
@@ -1678,9 +1678,6 @@ class NGS:
         widthZCount = max(
             max(len(val) for val in frmtZCounts), max(len(val) for val in frmtZCountsLow)
         )
-
-        def lowScores(data):
-            return dict(list(data)[-self.printNumber:])
 
         # Print data
         print('Substrate Scores:')
@@ -1773,7 +1770,6 @@ class NGS:
                     writer.writerow([seq, score])
 
         # CSV: Z-Pred
-        print('L:', len(paths))
         if len(paths) > 3 and subsZPred and not os.path.exists(paths[3]):
             savePath = paths[3]
             if not savedData:
@@ -1787,39 +1783,40 @@ class NGS:
                 writer.writerow(['sequence', self.enzyme])
                 for seq, score in subsZPred.items():
                     writer.writerow([seq, f'{score:.2f}'])
-        if not savedData:
-            print(f'Print no data was saved. Files already saved at:')
-            for path in paths:
-                print(f'    {greenDark}{path}{resetColor}')
-        print('\n')
+        # if not savedData:
+        #     print(f'\nPrint no data was saved. Files already saved at:')
+        #     for path in paths:
+        #         print(f'    {greenDark}{path}{resetColor}')
+        print()
 
 
         # Plot bar graphs
-        if not os.path.exists(pathFigs[0]):
-            self.plotBarGraphCSV(
-                substrates=subsCounts, dataType='Counts',
-                combinedMotifs=combinedMotifs, minCounts=minCounts,
-                saveLocation=pathFigs[0]
-            )
-        if not os.path.exists(pathFigs[1]):
-            self.plotBarGraphCSV(
-                substrates=subsCountsNorm, dataType='Normalized Counts',
-                combinedMotifs=combinedMotifs, minCounts=minCounts,
-                saveLocation=pathFigs[1]
-            )
-        if not os.path.exists(pathFigs[2]):
-            self.plotBarGraphCSV(
-                substrates=subsZCounts, dataType='Z Counts',
-                combinedMotifs=combinedMotifs, minCounts=minCounts,
-                saveLocation=pathFigs[2]
-            )
-        if subsZ and not os.path.exists(pathFigs[3]):
+        ##
+        # ===============================================================================
+        self.plotBarGraphCSV(
+            substrates=subsCounts, dataType='Counts',
+            combinedMotifs=combinedMotifs, minCounts=minCounts,
+            saveLocation=pathFigs[0]
+        )
+        # self.plotBarGraphCSV(
+        #     substrates=subsCountsNorm, dataType='Normalized Counts',
+        #     combinedMotifs=combinedMotifs, minCounts=minCounts,
+        #     saveLocation=pathFigs[1]
+        # )
+        # ===============================================================================
+        ##
+        self.plotBarGraphCSV(
+            substrates=subsZCounts, dataType='Z Counts',
+            combinedMotifs=combinedMotifs, minCounts=minCounts,
+            saveLocation=pathFigs[2]
+        )
+        if subsZ:
             self.plotBarGraphCSV(
                 substrates=subsZ, dataType='Pred',
                 combinedMotifs=combinedMotifs, minCounts=minCounts,
                 saveLocation=pathFigs[3]
             )
-        if subsZPred and not os.path.exists(pathFigs[4]):
+        if subsZPred:
             self.plotBarGraphCSV(
                 substrates=subsZPred, dataType='Z Pred',
                 combinedMotifs=combinedMotifs, minCounts=minCounts,
@@ -1828,8 +1825,9 @@ class NGS:
 
 
 
-    def plotBarGraphCSV(self, substrates, dataType, barColor='#BF5700', barWidth=3,
-                     combinedMotifs=False, minCounts=False, saveLocation=False):
+    def plotBarGraphCSV(self, substrates, dataType, barColor='#BF5700',
+                        barWidth=3, combinedMotifs=False, minCounts=False,
+                        saveLocation=False):
         print('================================ Plot: Bar Graph '
               '================================')
         if minCounts:
@@ -6766,8 +6764,9 @@ class NGS:
 
 
 
-    def predictActivityHeatmap(self, predSubstrates, predModel, predLabel, RF,
-                               releasedCounts=False, rankScores=True, scaleEMap=False):
+    def predictActivityHeatmap(self, predSubstrates, predModel, predLabel,
+                               RF, releasedCounts=False, rankScores=True,
+                               scaleEMap=False):
         print('=========================== Predict Substrate Activity '
               '==========================')
         print(f'Dataset: {purple}{predModel}{resetColor}\n'
