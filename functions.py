@@ -1,4 +1,5 @@
 # PURPOSE: This script contains the functions that you will need to process your NGS data
+import pty
 
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -1462,59 +1463,59 @@ class NGS:
               '===============================')
         print(f'Minimum substrate count: {red}{minCounts:,}{resetColor}')  ##
         excValid = False
-        predScores = False
+        predScores = True
 
         # Chop off the C-terminal AAs
-        print(f'Chop: {chopSeq}\n')
+        print(f'Chop: {chopSeq}')
+        subsCounts = {}  # Limit substrates by counts
         if chopSeq:
             sub = next(iter(seqs))
             subLen = len(sub)
             print(f'Cutting substrates from {pink}{subLen} AA{resetColor} to '
                   f'{blue}{chopSeq} AA{resetColor}')
             x = subLen - chopSeq
-            s = {}
             if self.filterSubs:
                 print(f'  {pink}{sub.replace(
                     sub[0:chopSeq], f'{blue}{sub[0:chopSeq]}{pink}')}'
                       f'{resetColor}')
                 for seq, counts in seqs.items():
-                    seq = seq[0:chopSeq]
-                    s[seq] = counts
+                    if counts >= minCounts:
+                        subsCounts[seq[0:chopSeq]] = counts
             else:
                 for i in range(x+1):
                     print(f'  {pink}{sub.replace(
                         sub[i:chopSeq+i], f'{blue}{sub[i:chopSeq+i]}{pink}')}'
                           f'{resetColor}')
                     for seq, counts in seqs.items():
-                        seq = seq[i:chopSeq+i]
-                        s[seq] = counts
-            seqs = s
-            seqs = dict(
-                sorted(seqs.items(), key=lambda x: x[1], reverse=True)
-            )
-        subLen = len(next(iter(seqs)))
-
-        # Limit substrates by counts
-        subsCounts = {}
-        for seq, counts in seqs.items():
-            if counts >= minCounts:
-                subsCounts[seq] = counts
-            else:
-                break
+                        if counts >= minCounts:
+                            subsCounts[seq[i:chopSeq+i]] = counts
+        else:
+            for seq, counts in seqs.items():
+                if counts >= minCounts:
+                    subsCounts[seq] = counts
         N = len(subsCounts.keys())
         if N == 0:
             print(f'{orange}ERROR: There were no substrates with '
                   f'{cyan}counts{orange} >= {cyan}{minCounts}{resetColor}\n\n')
             return
+        subLen = len(next(iter(subsCounts)))
+        print()
 
         # Add bg substrates
         tagMod = ''
         if seqsBg:
             s = {}
-            for seq, count in seqsBg.items():
-                if (count <= maxCountsBg and seq not in subsCounts.keys()
-                        and excludeAA not in seq):
-                    s[seq] = count
+            if isinstance(chopSeq, int):
+                for seq, count in seqsBg.items():
+                    if (count <= maxCountsBg and seq not in subsCounts.keys()
+                            and excludeAA not in seq):
+                        seq = seq[0:chopSeq]
+                        s[seq] = count
+            else:
+                for seq, count in seqsBg.items():
+                    if (count <= maxCountsBg and seq not in subsCounts.keys()
+                            and excludeAA not in seq):
+                        s[seq] = count
 
             bg, Nexp, i = {}, N, 0
             print(f'Add Background substrates:')
@@ -1536,8 +1537,6 @@ class NGS:
                         i += 1
                         if i % mod == 0:
                             bg[seq] = count
-
-            bg = dict(sorted(bg.items(), key=lambda x: x[1], reverse=True))
             for i, (seq, count) in enumerate(bg.items()):
                 if i >= self.printNumber:
                     break
@@ -1550,6 +1549,9 @@ class NGS:
                   f'Total Unique Substrates:   {red}{N:,}{resetColor}\n')
         else:
             print(f'Total Unique Substrates: {red}{N:,}{resetColor}\n')
+        subsCounts = dict(
+            sorted(subsCounts.items(), key=lambda x: x[1], reverse=True)
+        )
 
         # Normalize counts
         subsCountsNorm = {}
@@ -1596,7 +1598,8 @@ class NGS:
         if seqsBg:
             if tagMod:
                 figLabel = figLabel.replace(
-                    '.png', f' MinBgCounts {maxCountsBg} - scaledMod {tagMod}.png'
+                    '.png',
+                    f' MinBgCounts {maxCountsBg} - scaledMod {tagMod}.png'
                 )
             else:
                 figLabel = figLabel.replace(
@@ -1645,7 +1648,7 @@ class NGS:
         subsZ = {}
         subsZPred = {}
         if predScores:
-            if subLen == len(matrix.columns):
+            if subLen <= len(matrix.columns):
                 print(f'Scoring Matrix: {purple}{self.datasetTag}{resetColor}\n{matrix}\n')
                 for seq, count in subsCounts.items():
                     subsZ[seq] = self.scoreSubstrate(seq, matrix)
@@ -1663,7 +1666,10 @@ class NGS:
                       f'* σ: {red}{round(sigma, 3):,}{resetColor}\n')
                 for seq, score in subsZ.items():
                     subsZPred[seq] = (score - mu) / sigma
-
+            else:
+                print(f'{orange}Activity scores were not predicted:\n'
+                      f'* Substrate length: {cyan}{subLen}{orange}\n'
+                      f'* N matrix columns: {cyan}{len(matrix.columns)}{resetColor}\n')
 
         # Pre-format values
         pSeqs = list(subsCounts)[:self.printNumber]
@@ -1687,15 +1693,16 @@ class NGS:
             frmtPredLow = [f'{subsZ[seq]:.3f}' for seq in pSeqsLow]
             frmtZPredLow = [f'{subsZPred[seq]:,.3f}' for seq in pSeqsLow]
             widthProd = max(len(val) for val in frmtPred)
-            widthZ = max(len(val) for val in frmtZPred)
+            widthZ = max(max(len(val) for val in frmtZPred),
+                         max(len(val) for val in frmtZPredLow))
             for seq, countStr, zCountStr, prodStr, zStr in zip(
                     pSeqs, frmtCounts, frmtZCounts, frmtPred, frmtZPred):
                 print(
                     f'    {pink}{seq}{resetColor}, '
                     f'Count: {red}{countStr:>{widthCount}}{resetColor}, '
                     f'Z-Score Counts: {red}{zCountStr:>{widthZCount}}{resetColor}, '
-                    f'Z-Score Pred: {red}{zStr:>{widthZ}}{resetColor}, '
-                    f'Pred: {red}{prodStr:>{widthProd}}{resetColor}'
+                    f'Pred: {red}{prodStr:>{widthProd}}{resetColor}, '
+                    f'Z-Score Pred: {red}{zStr:>{widthZ}}{resetColor}'
                 )
             print('    ...')
             for seq, countStr, zCountStr, prodStr, zStr in zip(
@@ -1704,8 +1711,8 @@ class NGS:
                     f'    {pink}{seq}{resetColor}, '
                     f'Count: {red}{countStr:>{widthCount}}{resetColor}, '
                     f'Z-Score Counts: {red}{zCountStr:>{widthZCount}}{resetColor}, '
-                    f'Z-Score Pred: {red}{zStr:>{widthZ}}{resetColor}, '
-                    f'Pred: {red}{prodStr:>{widthProd}}{resetColor}'
+                    f'Pred: {red}{prodStr:>{widthProd}}{resetColor}, '
+                    f'Z-Score Pred: {red}{zStr:>{widthZ}}{resetColor}'
                 )
         else:
             for seq, countStr, zCountStr in zip(pSeqs, frmtCounts, frmtZCounts):
@@ -1718,11 +1725,11 @@ class NGS:
                     pSeqsLow, frmtCountsLow, frmtZCountsLow):
                 print(f'    {pink}{seq}{resetColor}, '
                       f'Count: {red}{countStr:>{widthCount}}{resetColor}, '
-                      f'Z Score Counts: {red}{zCountStr:>{widthZCount}}{resetColor}'
+                      f'Z Score Counts: {red}{zCountStr:>{widthZCount}}{resetColor}\n'
                 )
-        print()
-        savedData = False
         plotData = [False for _ in range(len(paths))]
+        savedData = False
+        print()
 
         # CSV: Scores
         savePath = paths[0]
@@ -1798,13 +1805,13 @@ class NGS:
             combinedMotifs=combinedMotifs, minCounts=minCounts,
             saveLocation=pathFigs[0]
         )
-        # self.plotBarGraphCSV(
-        #     substrates=subsCountsNorm, dataType='Normalized Counts',
-        #     combinedMotifs=combinedMotifs, minCounts=minCounts,
-        #     saveLocation=pathFigs[1]
-        # )
+        self.plotBarGraphCSV(
+            substrates=subsCountsNorm, dataType='Normalized Counts',
+            combinedMotifs=combinedMotifs, minCounts=minCounts,
+            saveLocation=pathFigs[1]
+        )
         # ===============================================================================
-        ##
+        #
         self.plotBarGraphCSV(
             substrates=subsZCounts, dataType='Z Counts',
             combinedMotifs=combinedMotifs, minCounts=minCounts,

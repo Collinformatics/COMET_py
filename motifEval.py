@@ -21,11 +21,11 @@ inSetFigureTimer = False
 inMotifPositions = ['P4','P3','P2','P1','P1\'','P2\''] # ,'P3\'','P4\''
 # inMotifPositions = ['-4', '-3', '-2', '-1', '0', '1', '2', '3', '4']
 # inMotifPositions = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8']
-inIndexNTerminus = 0 # Define the index if the first AA in the motif
+inIndexNTerminus = 1 # Define the index if the first AA in the motif
 
 # Input 3: Computational Parameters
-inFixedResidue = 'Q' # ['L', 'L']
-inFixedPosition = [4,5,6] # [[4,5], [6,7]]
+inFixedResidue = ['Q']
+inFixedPosition = [5,6]
 inExcludeResidues = False
 inExcludedResidue = ['A','A']
 inExcludedPosition = [9,10]
@@ -33,13 +33,11 @@ inMinimumSubstrateCount = 1
 inCodonSequence = 'NNS' # Baseline probs of degenerate codons (can be N, S, or K)
 inUseCodonProb = False # Use AA prob from inCodonSequence to calculate enrichment
 inAvgInitialProb = True
-inSaveCSV = False # Save substrates in a csv file
-inMinSubsCSV = 100 # Minimum counts for saved substrates
 
 # Input 4: Figures
 # inPlotPCA = False # PCA plot of an individual fixed frame
 # inPlotPCACombined = True
-inBlockFigures = False
+inBlockFigures = True
 inPlotEntropy = True
 inPlotEnrichmentMap = True
 inPlotEnrichmentMapScaled = False
@@ -77,7 +75,17 @@ if inBlockFigures:
     inPlotCounts = False
     inPlotFilteredSubs = False
 
-# Input 5: Printing The Data
+# Input 5: CSV
+inSaveCSV = True # Save substrates in a csv file
+inMinSubsCSV = 4000 # Minimum counts for saved substrates
+inSubLengthCSV = 6 # If: False, use full seq, If: 6, use 6 AA seq
+inUseBgSubs = True
+inExcludeSeq = 'LQ'
+inMaxBgSubstrateCount = 50
+inModulo = 30000 # Increase to select fewer Bg substrates
+inScaleModulo = True # Continually increase modulus value to keep fewer low count bg subs
+
+# Input 6: Printing The Data
 inPrintLoadedSubs = True
 inPrintSampleSize = True
 inPrintCounts = True
@@ -87,18 +95,18 @@ inPrintEntropy = True
 inPrintMotifData = True
 inPrintNumber = 10
 
-# Input 6: Find Protein Sequences
+# Input 7: Find Protein Sequences
 inFindSequences = False
 inFindSeq = ['LA', 'LF', 'LW']
 inFindAAInSequence = False
 inFindAA = ['A', 'F', 'W']
 inAAPos = 4
 
-# Input 7: Plot Heatmap
+# Input 8: Plot Heatmap
 inShowEnrichmentScores = True
 inShowEnrichmentAsSquares = False
 
-# Input 8: Plot Sequence Motif
+# Input 9: Plot Sequence Motif
 inNormLetters = False  # Normalize fixed letter heights
 inPlotWeblogoMotif = False
 inShowWeblogoYTicks = True
@@ -106,20 +114,20 @@ inAddHorizontalLines = False
 inPlotNegativeWeblogoMotif = False
 inBigLettersOnTop = False
 
-# Input 9: Motif Enrichment
+# Input 10: Motif Enrichment
 inPlotNBars = 50
 
-# Input 10: Word Cloud
+# Input 11: Word Cloud
 inLimitWords = True
 inTotalWords = inPlotNBars
 
-# Input 11: PCA
+# Input 12: PCA
 inNumberOfPCs = 2
 inTotalSubsPCA = int(5*10**4)
 inIncludeSubCountsESM = True
 inPlotEntropyPCAPopulations = False
 
-# Input 12: Predict Activity
+# Input 13: Predict Activity
 inPredictActivity = False
 inUseNaturalSubs = False
 if inUseNaturalSubs:
@@ -140,6 +148,7 @@ if inUseNaturalSubs:
         'TRLQSLEN': 50.0,
         'PKLQSSQA': 50.0
     }
+    inErrorBars = []
 else:
     inPredictionTag = '30 Min'
     inSubstrateActivity = {
@@ -152,6 +161,7 @@ else:
         'VPLQSG': 0, # 0,
         'NILQSG': 12.6, # 6,
     }
+    inErrorBars = [0.1,0.09,0.02,0,0.06,0.09,0,0.05] # Avg stdev
 inEMapStartIndex = 0  # Sub: ACDEFGHI, if idx = 0 start at A
 inRankScores = False
 inScalePredMatrix = False  # Scale EM by ΔS
@@ -808,7 +818,7 @@ else:
 ngs.getDatasetTag(combinedMotifs=True, useCodonProb=inUseCodonProb, codon=inCodonSequence)
 
 # Load: Substrates
-substratesInitial, totalSubsInitial = ngs.loadUnfilteredSubs(loadInitial=True)
+# substratesInitial, totalSubsInitial = ngs.loadUnfilteredSubs(loadInitial=True)
 
 # Load: Substrate motifs
 motifs, motifsCountsTotal, substratesFiltered = ngs.loadMotifSeqs(
@@ -829,20 +839,9 @@ if len(ngs.motifIndexExtracted) > 1:
 
 # # Evaluate: Count Matrices
 # Load: Motif counts
-if inPlotStats:
-    countsMotifs, countsRelCombined, countsRelCombinedTotal = ngs.loadMotifCounts(
+countsMotifs, countsRelCombined, countsRelCombinedTotal = ngs.loadMotifCounts(
         motifLabel=inMotifPositions, motifIndex=motifFramePos, returnList=True
-    )
-
-    # Evaluate statistics
-    if len(countsMotifs) > 1:
-        ngs.fixedMotifStats(countsList=countsMotifs, initialRF=rfInitial,
-                            motifFrame=inMotifPositions, datasetTag=ngs.datasetTag
-                            )
-else:
-    countsRelCombined, countsRelCombinedTotal = ngs.loadMotifCounts(
-        motifLabel=inMotifPositions, motifIndex=motifFramePos
-    )
+)
 
 # Calculate: RF
 rfCombinedReleasedMotif = ngs.calculateRFCombinedMotif(
@@ -854,6 +853,13 @@ ngs.calculateEntropy(
     rf=rfCombinedReleasedMotif, combinedMotifs=combinedMotifs, releasedCounts=True
 )
 
+# Evaluate statistics
+if inPlotStats and len(countsMotifs) > 1:
+    ngs.fixedMotifStats(
+        countsList=countsMotifs, initialRF=rfInitial,
+        motifFrame=inMotifPositions, datasetTag=ngs.datasetTag
+    )
+
 # Calculate enrichment scores
 ngs.calculateEnrichment(
     rfInitial=rfInitial, rfFinal=rfCombinedReleasedMotif,
@@ -862,19 +868,38 @@ ngs.calculateEnrichment(
 
 # Create csv
 if inSaveCSV:
-    # Save full length substrates
-    ngs.saveSubstrateCSV(
-        seqs=substratesFiltered, initialRF=rfInitial,
-        finalRF=rfCombinedReleasedMotif, minCounts=inMinSubsCSV,
-        combinedMotifs=combinedMotifs
-    )
+    if motifLen != len(labelAAPos):
+        substrates = motifs
+    else:
+        substrates = substratesFiltered
+    if inUseBgSubs:
+        substratesInitial, totalSubsInitial = ngs.loadUnfilteredSubs(loadInitial=True)
+        ngs.saveSubstrateCSV(
+            seqs=substrates, initialRF=rfInitial, finalRF=rfCombinedReleasedMotif,
+            minCounts=inMinSubsCSV, seqsBg=substratesInitial, excludeAA=inExcludeSeq,
+            maxCountsBg=inMaxBgSubstrateCount, mod=inModulo, modScale=inScaleModulo,
+            chopSeq=inSubLengthCSV
+        )
+    else:
+        ngs.saveSubstrateCSV(
+            seqs=substrates, initialRF=rfInitial, finalRF=rfCombinedReleasedMotif,
+            minCounts=inMinSubsCSV, chopSeq=inSubLengthCSV
+        )
+# if inSaveCSV:
+#     # Save full length substrates
+#     ngs.saveSubstrateCSV(
+#         seqs=substratesFiltered, initialRF=rfInitial,
+#         finalRF=rfCombinedReleasedMotif, minCounts=inMinSubsCSV,
+#         combinedMotifs=combinedMotifs
+#     )
+#
+#     # Save motif sequences
+#     ngs.saveSubstrateCSV(
+#         seqs=motifs, initialRF=rfInitial,
+#         finalRF=rfCombinedReleasedMotif, minCounts=inMinSubsCSV,
+#         combinedMotifs=combinedMotifs
+#     )
 
-    # Save motif sequences
-    ngs.saveSubstrateCSV(
-        seqs=motifs, initialRF=rfInitial,
-        finalRF=rfCombinedReleasedMotif, minCounts=inMinSubsCSV,
-        combinedMotifs=combinedMotifs
-    )
 
 # Find sequences
 if inFindSequences:
@@ -899,15 +924,15 @@ if inFindAAInSequence:
 # Predict substrate activity
 if inPredictActivity:
     ngs.predictActivity(
-        activityExp=inSubstrateActivity, finalRF=rfCombinedReleasedMotif,
-        initialRF=rfInitial, predModel=ngs.datasetTag,
+        activityExp=inSubstrateActivity, errorBars=inErrorBars,
+        finalRF=rfCombinedReleasedMotif, initialRF=rfInitial, predModel=ngs.datasetTag,
         predLabel=inPredictionTag, combinedMotifs=combinedMotifs)
 
-    # Square Root predictions
-    ngs.predictActivity(
-        activityExp=inSubstrateActivity, finalRF=rfCombinedReleasedMotif,
-        initialRF=rfInitial, predModel=ngs.datasetTag,
-        predLabel=f'{inPredictionTag} - Square Root', combinedMotifs=combinedMotifs)
+    # # Square Root predictions
+    # ngs.predictActivity(
+    #     activityExp=inSubstrateActivity, errBars=inErrorBars,
+    #     finalRF=rfCombinedReleasedMotif, initialRF=rfInitial, predModel=ngs.datasetTag,
+    #     predLabel=f'{inPredictionTag} - Square Root', combinedMotifs=combinedMotifs)
 
 
     if not inPredictActivity:
@@ -1098,7 +1123,7 @@ if (inPlotBarGraphs or inPlotBinnedSubstrateES
             if os.path.exists(filePathFixedMotifInitial):
                 # Load the data
                 with open(filePathFixedMotifInitial, 'rb') as file:
-                    frameProbInitial = pk.load(file)
+                    framerfInitial = pk.load(file)
 
                 # Calculate: Sample size
                 frameTotalCountsInitial = pd.read_csv(
@@ -1110,13 +1135,13 @@ if (inPlotBarGraphs or inPlotBinnedSubstrateES
                     substrates=substratesInitial)
 
                 # Evaluate: Probability
-                frameProbInitial = substrateProbability(substrates=frameCountsInitial,
+                framerfInitial = substrateProbability(substrates=frameCountsInitial,
                                                         N=frameTotalCountsInitial,
                                                         sortType='Initial Sort')
 
                 # Save the data
                 with open(filePathFixedMotifInitial, 'wb') as file:
-                    pk.dump(frameProbInitial, file)
+                    pk.dump(framerfInitial, file)
                 frameTotalCountsInitial = pd.DataFrame([frameTotalCountsInitial])
                 frameTotalCountsInitial.to_csv(filePathFixedMotifInitialTotalCounts,
                                                index=False, header=False)
@@ -1126,20 +1151,20 @@ if (inPlotBarGraphs or inPlotBinnedSubstrateES
             if os.path.exists(filePathFixedMotifFinal):
                 # Load the data
                 with open(filePathFixedMotifFinal, 'rb') as file:
-                    frameProbFinal = pk.load(file)
+                    framerfFinal = pk.load(file)
             else:
                 # Evaluate: Probability
-                frameProbFinal = substrateProbability(substrates=motifs,
+                framerfFinal = substrateProbability(substrates=motifs,
                                                       N=frameTotalCountsInitial,
                                                       sortType='Final Sort')
                 with open(filePathFixedMotifFinal, 'wb') as file:
-                    pk.dump(frameProbFinal, file)
+                    pk.dump(framerfFinal, file)
 
 
             # Calculate: ES
-            enrichedMotif = subMotifEnrichment(substratesInitial=frameProbInitial,
+            enrichedMotif = subMotifEnrichment(substratesInitial=framerfInitial,
                                                 initialN=frameTotalCountsInitial,
-                                                substratesFinal=frameProbFinal)
+                                                substratesFinal=framerfFinal)
 
             # Save the fixed substrate dataset
             if inSaveBinnedSubES:
