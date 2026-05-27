@@ -410,6 +410,24 @@ class NGS:
 
 
 
+    @staticmethod
+    def scoreSubstrate(seq, matrix, sqroot=False):
+        score = 0
+        for index in range(len(seq)):
+            # Evaluate substrate
+            AA = seq[index]
+            pos = matrix.columns[index]
+            value = matrix.loc[AA, pos]
+            if score == 0:
+                score = value
+            else:
+                score *= value
+        if sqroot:
+            score = np.sqrt(score)
+        return score
+
+
+
     def loadAndTranslate(self, filePath, fileName, fileType, fixedSubs,
                          startSeq, endSeq, printQS, forwardRead):
         if forwardRead is None:
@@ -1439,22 +1457,6 @@ class NGS:
 
 
 
-    def scoreSubstrate(self, seq, matrix, sqroot=False):
-        score = 0
-        for index in range(len(seq)):
-            # Evaluate substrate
-            AA = seq[index]
-            pos = matrix.columns[index]
-            value = matrix.loc[AA, pos]
-            if score == 0:
-                score = value
-            else:
-                score *= value
-        if sqroot:
-            score = np.sqrt(score)
-        return score
-
-
     def saveSubstrateCSV(self, seqs, initialRF, finalRF, minCounts=100,
                          seqsBg=False, excludeAA='', maxCountsBg=5,
                          mod=25, modScale=False, combinedMotifs=False,
@@ -1499,6 +1501,9 @@ class NGS:
                   f'{cyan}counts{orange} >= {cyan}{minCounts}{resetColor}\n\n')
             return
         subLen = len(next(iter(subsCounts)))
+        subsCounts = dict(
+            sorted(subsCounts.items(), key=lambda x: x[1], reverse=True)
+        )
         print()
 
         # Add bg substrates
@@ -1537,6 +1542,7 @@ class NGS:
                         i += 1
                         if i % mod == 0:
                             bg[seq] = count
+            bg = dict(sorted(bg.items(), key=lambda x: x[1], reverse=True))
             for i, (seq, count) in enumerate(bg.items()):
                 if i >= self.printNumber:
                     break
@@ -1549,9 +1555,6 @@ class NGS:
                   f'Total Unique Substrates:   {red}{N:,}{resetColor}\n')
         else:
             print(f'Total Unique Substrates: {red}{N:,}{resetColor}\n')
-        subsCounts = dict(
-            sorted(subsCounts.items(), key=lambda x: x[1], reverse=True)
-        )
 
         # Normalize counts
         subsCountsNorm = {}
@@ -1592,6 +1595,8 @@ class NGS:
         figLabel = (f'{self.enzyme} - Bars - Counts - '
                     f'{self.datasetTag} - {subLen} AA - N {N} - '
                     f'Min Counts {minCounts}.png')
+        if excValid:
+            figLabel = figLabel.replace('Counts','Counts ExtValid')
         if combinedMotifs:
             figLabel = figLabel.replace(self.datasetTag,
                                         f'Substrate Profile {self.datasetTag}.png')
@@ -1608,18 +1613,19 @@ class NGS:
         pathFigs = [
             os.path.join(pathCSVFig, figLabel),
             os.path.join(pathCSVFig, figLabel.replace(
-                '- Counts -', '- Counts Norm -')
+                '- Counts', '- Counts Norm')
                          ),
             os.path.join(pathCSVFig, figLabel.replace(
-                '- Counts -', '- Z Counts -')
+                '- Counts', '- Z Counts')
                          ),
             os.path.join(pathCSVFig, figLabel.replace(
-                '- Counts -', '- Pred -')
+                '- Counts', '- Pred')
                          ),
             os.path.join(pathCSVFig, figLabel.replace(
-                '- Counts -', '- Z Pred -')
+                '- Counts', '- Z Pred')
                          )
         ]
+
 
         # Get prediction matrix
         matrix = self.normalizeProbRatios(
@@ -1632,7 +1638,6 @@ class NGS:
                     dropCol.append(matrix.columns[i])
             matrix = matrix.drop(dropCol, axis=1)
 
-
         # Calculate: Z-scores Counts
         subsZCounts = {}
         mu = np.average(list(subsCounts.values()))
@@ -1642,7 +1647,6 @@ class NGS:
               f'* σ: {red}{round(sigma, 3):,}{resetColor}\n')
         for seq, count in subsCounts.items():
             subsZCounts[seq] = (count - mu) / sigma
-
 
         # Predict substrate activity
         subsZ = {}
@@ -1730,6 +1734,7 @@ class NGS:
         plotData = [False for _ in range(len(paths))]
         savedData = False
         print()
+
 
         # CSV: Scores
         savePath = paths[0]
