@@ -1,3 +1,5 @@
+import os.path
+
 from functions import pressKey
 from matplotlib.font_manager import FontProperties
 from matplotlib.lines import Line2D
@@ -200,9 +202,10 @@ def plotTable():
     plt.show()
 
     if inSavePath:
-        fig.savefig(inSavePath, dpi=inFigResolution)
+        path = os.path.join(inSavePath, 'activity_table.png')
+        fig.savefig(path, dpi=inFigResolution)
         print(f'Saving figure at path:\n'
-              f'     {inSavePath}\n')
+              f'     {path}\n')
     else:
         print(f'The figure was not saved\n')
 
@@ -291,6 +294,14 @@ def plotBars(data, e1, e2, barWidth=0.35):
     fig.canvas.mpl_connect('key_press_event', pressKey)
     plt.tight_layout()
     plt.show()
+
+    if inSavePath:
+        path = os.path.join(inSavePath, 'enzActivity_bars.png')
+        fig.savefig(path, dpi=inFigResolution)
+        print(f'Saving figure at path:\n'
+              f'     {path}\n')
+    else:
+        print(f'The figure was not saved\n')
 
 
 # ========================================================================================
@@ -393,6 +404,14 @@ plt.tight_layout()
 fig.canvas.mpl_connect('key_press_event', pressKey)
 plt.show()
 
+if inSavePath:
+    path = os.path.join(inSavePath, 'enzActivity.png')
+    fig.savefig(path, dpi=inFigResolution)
+    print(f'Saving figure at path:\n'
+          f'     {path}\n')
+else:
+    print(f'The figure was not saved\n')
+
 
 # ========================================================================================
 
@@ -472,3 +491,11 @@ else:
 plt.tight_layout()
 fig.canvas.mpl_connect('key_press_event', pressKey)
 plt.show()
+
+if inSavePath:
+    path = os.path.join(inSavePath, 'enzActivity_norm+zscores.png')
+    fig.savefig(path, dpi=inFigResolution)
+    print(f'Saving figure at path:\n'
+          f'     {path}\n')
+else:
+    print(f'The figure was not saved\n')
