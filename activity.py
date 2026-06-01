@@ -51,7 +51,7 @@ inData = {
 }
 
 # Input: Table
-inPlotTable = True
+inPlotTable = False
 inTableEnz = inEnzyme
 inTableCols = [f'% Product {inTableEnz}',
                f'Activity Z {inTableEnz}', f'Activity Rank {inTableEnz}',
@@ -71,6 +71,15 @@ inPlotBoth = True # Add the secondary enzyme to the scatter plot
 # Input: Save Figure
 inSavePath = ''
 inFigResolution = 600
+
+# Input: Figure Params
+inFigSize = (9.5, 8)
+inTitle = 'Enzyme Activity'
+inTickLength = 4
+inLinewidth = 1.5
+inTitleSize = 18
+inLabelSize = 16
+inLabelTickSize = 13
 
 
 def normalizeData():
@@ -116,7 +125,7 @@ def plotTable():
         elif ('predicted' in col.lower() and
               'rank' not in col.lower() and
               'ln' not in col.lower()):
-            print(f'Col: {col}')
+            # print(f'Col: {col}')
             key = col.replace('Rank', 'Z')
             vals = []
             for v in inData[col]:
@@ -128,11 +137,10 @@ def plotTable():
                 #     vals.append(str(round((v * 100), 0)))
             # data[col] = [str(v) for v in vals]
             data[col] = vals
-            print(f'* Pred: {data[col]}\n')
+            # print(f'* Pred: {data[col]}\n')
         elif 'rank' in col.lower():
-            # print(f'* Rank: {col}')
             key = col.replace('Rank', 'Z')
-            # print(f'* Rank: {col}, {key}')
+            print(f'* Rank: {col}, {key}')
             # print(inData[key])
             rank = list(pd.Series(inData[key]).rank(ascending=False, method='min'))
             l = []
@@ -246,8 +254,48 @@ def fitData(x, y):
     return xFit, yFit, r2
 
 
+def plotBars(data, e1, e2, barWidth=0.35):
+    substrates = data['Substrates']
+    xTicks = np.arange(len(substrates))
+    y1 = data[f'% Product {e1}']
+    y2 = data[f'% Product {e2}']
+
+    d = pd.DataFrame(0.0, index=substrates, columns=[e1, e2])
+    d.loc[substrates, e1] = y1
+    d.loc[substrates, e2] = y2
+    print(f'Bar Graph: Normalized Activity\n'
+          f'{d}\n\n')
+
+    # Plot bar graph
+    fig, ax = plt.subplots(figsize=inFigSize)
+    ax.bar(xTicks - barWidth / 2, y1, barWidth, label=e1,
+           color='#F8971F', edgecolor='black', linewidth=inLinewidth)
+    ax.bar(xTicks + barWidth / 2, y2, barWidth, label=e2,
+           color='#BF5700', edgecolor='black', linewidth=inLinewidth)
+    plt.title(inTitle, fontsize=inTitleSize, fontweight='bold')
+    ax.set_ylabel('Normalized Activity', fontsize=inLabelSize)
+    ax.legend(edgecolor='black', fontsize=inLabelTickSize)
+
+    # Set xticks
+    ax.set_xticks(xTicks)
+    ax.set_xticklabels(substrates, rotation=0)
+
+    # Set yticks
+    ax.set_ylim([0, 1.1])
+
+    # Set tick parameters
+    ax.tick_params(axis='both', which='major', length=inTickLength,
+                   labelsize=inLabelTickSize)
+    ax.tick_params(axis='x', labelsize=inLabelTickSize)
+
+    fig.canvas.mpl_connect('key_press_event', pressKey)
+    plt.tight_layout()
+    plt.show()
+
+
 # ========================================================================================
 normalizeData()
+plotBars(data=inData, e1=inEnzyme2, e2=inEnzyme)
 
 # Calculate Z-Scores
 for tags in inCalcZScores:
@@ -271,8 +319,10 @@ data[f'Activity {inEnzyme}'] = inData[f'% Product {inEnzyme}']
 data[f'Activity Z {inEnzyme}'] = inData[f'Activity Z {inEnzyme}']
 data[f'Pred {inEnzyme}'] = inData[f'Predicted {inEnzyme}']
 data[f'Predicted Z {inEnzyme}'] = inData[f'Predicted Z {inEnzyme}']
-actR2 = round(r2_score(data[f'Activity {inEnzyme}'], data[f'Pred {inEnzyme}']), inRoundVal)
-actZR2 = round(r2_score(data[f'Activity Z {inEnzyme}'], data[f'Predicted Z {inEnzyme}']), inRoundVal)
+actR2 = round(r2_score(data[f'Activity {inEnzyme}'],
+                       data[f'Pred {inEnzyme}']), inRoundVal)
+actZR2 = round(r2_score(data[f'Activity Z {inEnzyme}'],
+                        data[f'Predicted Z {inEnzyme}']), inRoundVal)
 print(f'{data}\n\n')
 
 
@@ -284,11 +334,67 @@ data2[f'Pred {inEnzyme2}'] = inData[f'Predicted {inEnzyme2}']
 data2[f'Predicted Z {inEnzyme2}'] = inData[f'Predicted Z {inEnzyme2}']
 print(f'{data2}\n\n')
 actEnzR2 = round(
-    r2_score(data2[f'Activity {inEnzyme2}'], data2[f'Pred {inEnzyme2}']), inRoundVal
+    r2_score(data2[f'Activity {inEnzyme2}'],
+             data2[f'Pred {inEnzyme2}']), inRoundVal
 )
 actEnzZR2 = round(
-    r2_score(data2[f'Activity Z {inEnzyme2}'], data2[f'Predicted Z {inEnzyme2}']), inRoundVal
+    r2_score(data2[f'Activity Z {inEnzyme2}'],
+             data2[f'Predicted Z {inEnzyme2}']), inRoundVal
 )
+
+
+# Plot data
+c1, c2, = '#101010', '#BF5700'
+fig, ax = plt.subplots(figsize=inFigSize)
+x, y = f'Activity Z {inEnzyme}', f'Predicted Z {inEnzyme}'
+x_fit, y_fit, fitCurve = fitData(x=data[x].values, y=data[y].values)
+data.plot(
+    x=x, y=y, ax=ax, marker='D', linestyle='none', color=c2, legend=f'R² = {fitCurve:.3f}'
+)
+ax.plot(x_fit, y_fit, color=c2, linestyle='-', linewidth=inLinewidth)
+plt.title(f'Enzyme Activity', fontsize=inTitleSize,
+             fontweight='bold')
+
+# X Axis
+ax.set_xlabel('Experimental Activity Z Scores', fontsize=inLabelSize)
+ax.set_xticks(ax.get_xticks()) # Fix the tick positions
+ax.set_xticklabels(ax.get_xticklabels(), ha='center', fontsize=inLabelSize-2)
+
+# Y Axis
+ax.set_ylabel('Predicted Z Scores', fontsize=inLabelSize)
+ax.tick_params(axis='y', labelsize=inLabelSize-2)
+
+# Legend
+if inPlotBoth:
+    x, y = f'Activity Z {inEnzyme2}', f'Predicted Z {inEnzyme2}'
+    x_fit4, y_fit4, fitCurve4 = fitData(x=data2[x].values, y=data2[y].values)
+    data2.plot(
+        x=x, y=y, ax=ax, marker='o', linestyle='none', color=c1,
+        legend=f'R² = {fitCurve4:.3f}'
+    )
+    ax.plot(x_fit4, y_fit4, color=c1, linestyle='-', linewidth=1.5)
+
+    ax.legend(
+        prop=FontProperties(size=10, weight='bold'),
+        handles=[
+            Line2D([], [], color=c1, marker='o', linewidth=1.5,
+                   label=f'{inEnzyme2} R² = {fitCurve4:.3f}'),
+            Line2D([], [], color=c2, marker='D', linewidth=inLinewidth,
+                   label=f'{inEnzyme} R² = {fitCurve:.3f}'),
+        ]
+    )
+else:
+    ax.legend(prop=FontProperties(size=10, weight='bold'), handles=[Line2D(
+        [], [], linestyle='None', marker='None',
+        label=f'R² {inEnzyme} = {fitCurve:.3f}')], handletextpad=0, handlelength=0
+               )
+
+plt.tight_layout()
+fig.canvas.mpl_connect('key_press_event', pressKey)
+plt.show()
+
+
+# ========================================================================================
 
 
 # Plot data
@@ -301,16 +407,15 @@ x_fit, y_fit, fitCurve = fitData(x=data[x].values, y=data[y].values)
 data.plot(
     x=x, y=y, ax=ax1, marker='^',linestyle='none', color=c2, label=f'R² = {fitCurve:.3f}'
 )
-ax1.plot(x_fit, y_fit, color=c2, linestyle='-', linewidth=1.5)
+ax1.plot(x_fit, y_fit, color=c2, linestyle='-', linewidth=inLinewidth)
 
 x, y = f'Activity Z {inEnzyme}', f'Predicted Z {inEnzyme}'
 x_fit2, y_fit2, fitCurve2 = fitData(x=data[x].values, y=data[y].values)
 data.plot(
     x=x, y=y, ax=ax2, marker='D', linestyle='none', color=c2, legend=f'R² = {fitCurve2:.3f}'
 )
-ax2.plot(x_fit2, y_fit2, color=c2, linestyle='-', linewidth=1.5)
-fig.suptitle(f'Enzyme Activity', fontsize=inTitleSize,
-             fontweight='bold', va='top')
+ax2.plot(x_fit2, y_fit2, color=c2, linestyle='-', linewidth=inLinewidth)
+plt.suptitle(inTitle, fontsize=inTitleSize, fontweight='bold')
 
 # X Axis
 ax1.set_xlabel('Experimental Activity', fontsize=inLabelSize)
@@ -334,7 +439,7 @@ if inPlotBoth:
         x=x, y=y, ax=ax1, marker='*', linestyle='none', color=c1,
         legend=f'R² = {fitCurve3:.3f}'
     )
-    ax1.plot(x_fit3, y_fit3, color=c1, linestyle='--', linewidth=1.5)
+    ax1.plot(x_fit3, y_fit3, color=c1, linestyle='--', linewidth=inLinewidth)
 
     x, y = f'Activity Z {inEnzyme2}', f'Predicted Z {inEnzyme2}'
     x_fit4, y_fit4, fitCurve4 = fitData(x=data2[x].values, y=data2[y].values)
@@ -342,7 +447,7 @@ if inPlotBoth:
         x=x, y=y, ax=ax2, marker='o', linestyle='none', color=c1,
         legend=f'R² = {fitCurve4:.3f}'
     )
-    ax2.plot(x_fit4, y_fit4, color=c1, linestyle='--', linewidth=1.5)
+    ax2.plot(x_fit4, y_fit4, color=c1, linestyle='--', linewidth=inLinewidth)
 
     ax1.legend(prop=FontProperties(size=10, weight='bold'), handles=[Line2D(
         [], [], linestyle='None', marker='None',
