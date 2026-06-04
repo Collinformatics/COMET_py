@@ -52,8 +52,9 @@ inData = {
 }
 
 # Input: Plot Figures
-inPlotBarGraph = False
-inPlotTable = False
+inPlotBarGraph = True
+inPlotTable = True
+inPlotBoth = True # Add the secondary enzyme to the figures
 
 # Input: Table
 inTableCols = [
@@ -68,9 +69,6 @@ inCalcZScores = [ # Format: (x, y), use "x" values to calc the Z-Score saved in 
     (f'% Product {inEnzyme}', f'Activity Z {inEnzyme}'),
     (f'Predicted {inEnzyme}', f'Predicted Z {inEnzyme}')
 ]
-
-# Input: Scatter Plot
-inPlotBoth = True # Add the secondary enzyme to the scatter plot
 
 # Input: Save Figure
 inSavePath = '/Users/ca34522/Documents/Papers/COMET/Figures'
