@@ -55,6 +55,8 @@ inData = {
 inPlotBarGraph = True
 inPlotTable = True
 inPlotBoth = True # Add the secondary enzyme to the figures
+inColor1 = '#BF5700'
+inColor2 = '#F8971F'
 
 # Input: Table
 inTableCols = [
@@ -279,9 +281,9 @@ def plotBars(data, e1, e2, barWidth=0.35):
     # Plot bar graph
     fig, ax = plt.subplots(figsize=inFigSize)
     ax.bar(xTicks - barWidth / 2, y1, barWidth, label=l1,
-           color='#F8971F', edgecolor='black', linewidth=inLinewidth)
+           color=inColor2, edgecolor='black', linewidth=inLinewidth)
     ax.bar(xTicks + barWidth / 2, y2, barWidth, label=l2,
-           color='#BF5700', edgecolor='black', linewidth=inLinewidth)
+           color=inColor1, edgecolor='black', linewidth=inLinewidth)
     plt.title(inTitle, fontsize=inTitleSize, fontweight='bold')
     ax.set_ylabel('Normalized Activity', fontsize=inLabelSize)
 
@@ -370,7 +372,7 @@ actEnzZR2 = round(
 
 
 # Plot data
-c1, mkr1, c2, mkr2 = '#BF5700', 'D', '#101010', 'o'
+mkr1, mkr2, edgeWidth = 'D', 'o', 1
 fig, ax = plt.subplots(figsize=inFigSize)
 plt.title(f'Enzyme Activity', fontsize=inTitleSize, fontweight='bold')
 
@@ -378,8 +380,9 @@ x, y = f'Activity Z {inEnzyme}', f'Predicted Z {inEnzyme}'
 x_fit, y_fit, fitCurve = fitData(x=data[x].values, y=data[y].values)
 l1 = f'{inEnzyme} R² = {fitCurve:.3f}'
 l1 = f'SARS-CoV-2 {inEnzyme.replace('2', '')} R² = {fitCurve:.3f}'
-data.plot(x=x, y=y, ax=ax, color=c1, marker=mkr1, linestyle='none', legend=l1)
-ax.plot(x_fit, y_fit, color=c1, linestyle='-', linewidth=inLinewidth)
+data.plot(x=x, y=y, ax=ax, color=inColor1, marker=mkr1, linestyle='none',
+          markeredgecolor='black', markeredgewidth=edgeWidth, legend=l1)
+ax.plot(x_fit, y_fit, color=inColor1, linestyle='-', linewidth=inLinewidth)
 
 # Legend
 if inPlotBoth:
@@ -387,21 +390,25 @@ if inPlotBoth:
     x_fit2, y_fit2, fitCurve2 = fitData(x=data2[x].values, y=data2[y].values)
     l2 = f'{inEnzyme2} R² = {fitCurve2:.3f}'
     l2 = f'SARS-CoV {inEnzyme2} R² = {fitCurve2:.3f}'
-    data2.plot(x=x, y=y, ax=ax, color=c2, marker=mkr2, linestyle='none', legend=l2)
-    ax.plot(x_fit2, y_fit2, color=c2, linestyle='-', linewidth=1.5)
+    data2.plot(x=x, y=y, ax=ax, color=inColor2, marker=mkr2, linestyle='none',
+               markeredgecolor='black', markeredgewidth=edgeWidth, legend=l2)
+    ax.plot(x_fit2, y_fit2, color=inColor2, linestyle='-', linewidth=1.5)
 
     ax.legend(
         prop=FontProperties(size=inLabelTickSize, weight='bold'),
         handles=[
-            Line2D([], [], color=c2, marker=mkr2,
+            Line2D([], [], color=inColor2, marker=mkr2,
+                   markeredgecolor='black', markeredgewidth=edgeWidth,
                    linewidth=inLinewidth, label=l2),
-            Line2D([], [], color=c1, marker=mkr1,
+            Line2D([], [], color=inColor1, marker=mkr1,
+                   markeredgecolor='black', markeredgewidth=edgeWidth,
                    linewidth=inLinewidth, label=l1),
         ]
     )
 else:
     ax.legend(prop=FontProperties(size=inLabelTickSize, weight='bold'),
               handles=[Line2D([], [], linestyle='None', marker='None',
+                              markeredgecolor='black', markeredgewidth=edgeWidth,
                               label=l1)], handletextpad=0, handlelength=0
               )
 # X Axis
