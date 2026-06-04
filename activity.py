@@ -1,10 +1,9 @@
-import os.path
-
 from functions import pressKey
 from matplotlib.font_manager import FontProperties
 from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import pandas as pd
 from scipy.optimize import curve_fit
 from sklearn.metrics import r2_score
@@ -52,12 +51,15 @@ inData = {
     f'Predicted Rank {inEnzyme2}': inEmptyList,
 }
 
-# Input: Table
+# Input: Plot Figures
+inPlotBarGraph = False
 inPlotTable = False
-inTableEnz = inEnzyme
-inTableCols = [f'% Product {inTableEnz}',
-               f'Activity Z {inTableEnz}', f'Activity Rank {inTableEnz}',
-               f'Predicted Z {inTableEnz}', f'Predicted Rank {inTableEnz}']
+
+# Input: Table
+inTableCols = [
+    f'% Product {inEnzyme2}', f'Activity Rank {inEnzyme2}', f'Predicted Rank {inEnzyme2}',
+    f'% Product {inEnzyme}', f'Activity Rank {inEnzyme}', f'Predicted Rank {inEnzyme}'
+]
 
 # Input: Z-Scores
 inCalcZScores = [ # Format: (x, y), use "x" values to calc the Z-Score saved in "y"
@@ -68,10 +70,10 @@ inCalcZScores = [ # Format: (x, y), use "x" values to calc the Z-Score saved in 
 ]
 
 # Input: Scatter Plot
-inPlotBoth = True # Add the secondary enzyme to the scatter plot
+inPlotBoth = False # Add the secondary enzyme to the scatter plot
 
 # Input: Save Figure
-inSavePath = ''
+inSavePath = '/Users/ca34522/Documents/Papers/COMET/Figures'
 inFigResolution = 600
 
 # Input: Figure Params
@@ -262,22 +264,35 @@ def plotBars(data, e1, e2, barWidth=0.35):
     xTicks = np.arange(len(substrates))
     y1 = data[f'% Product {e1}']
     y2 = data[f'% Product {e2}']
-
     d = pd.DataFrame(0.0, index=substrates, columns=[e1, e2])
     d.loc[substrates, e1] = y1
     d.loc[substrates, e2] = y2
     print(f'Bar Graph: Normalized Activity\n'
           f'{d}\n\n')
 
+    # Labels
+    l1 = e1
+    l2 = e2
+    if f'M{"ᵖʳᵒ"}' in e1 or f'M{"ᵖʳᵒ"}' in e2:
+        l1 = f'SARS-CoV {e1}'
+        l2 = f'SARS-CoV-2 {e1}'
+
+
     # Plot bar graph
     fig, ax = plt.subplots(figsize=inFigSize)
-    ax.bar(xTicks - barWidth / 2, y1, barWidth, label=e1,
+    ax.bar(xTicks - barWidth / 2, y1, barWidth, label=l1,
            color='#F8971F', edgecolor='black', linewidth=inLinewidth)
-    ax.bar(xTicks + barWidth / 2, y2, barWidth, label=e2,
+    ax.bar(xTicks + barWidth / 2, y2, barWidth, label=l2,
            color='#BF5700', edgecolor='black', linewidth=inLinewidth)
     plt.title(inTitle, fontsize=inTitleSize, fontweight='bold')
     ax.set_ylabel('Normalized Activity', fontsize=inLabelSize)
-    ax.legend(edgecolor='black', fontsize=inLabelTickSize)
+
+    # Legend
+    legend_props = {
+        'size': inLabelTickSize,
+        'weight': 'bold'
+    }
+    ax.legend(edgecolor='black', prop=legend_props)
 
     # Set xticks
     ax.set_xticks(xTicks)
@@ -306,7 +321,9 @@ def plotBars(data, e1, e2, barWidth=0.35):
 
 # ========================================================================================
 normalizeData()
-plotBars(data=inData, e1=inEnzyme2, e2=inEnzyme)
+
+if inPlotBarGraph:
+    plotBars(data=inData, e1=inEnzyme2, e2=inEnzyme)
 
 # Calculate Z-Scores
 for tags in inCalcZScores:
@@ -355,50 +372,48 @@ actEnzZR2 = round(
 
 
 # Plot data
-c1, c2, = '#101010', '#BF5700'
+c1, mkr1, c2, mkr2 = '#BF5700', 'D', '#101010', 'o'
 fig, ax = plt.subplots(figsize=inFigSize)
+plt.title(f'Enzyme Activity', fontsize=inTitleSize, fontweight='bold')
+
 x, y = f'Activity Z {inEnzyme}', f'Predicted Z {inEnzyme}'
 x_fit, y_fit, fitCurve = fitData(x=data[x].values, y=data[y].values)
-data.plot(
-    x=x, y=y, ax=ax, marker='D', linestyle='none', color=c2, legend=f'R² = {fitCurve:.3f}'
-)
-ax.plot(x_fit, y_fit, color=c2, linestyle='-', linewidth=inLinewidth)
-plt.title(f'Enzyme Activity', fontsize=inTitleSize,
-             fontweight='bold')
+l1 = f'{inEnzyme} R² = {fitCurve:.3f}'
+l1 = f'SARS-CoV-2 {inEnzyme.replace('2', '')} R² = {fitCurve:.3f}'
+data.plot(x=x, y=y, ax=ax, color=c1, marker=mkr1, linestyle='none', legend=l1)
+ax.plot(x_fit, y_fit, color=c1, linestyle='-', linewidth=inLinewidth)
 
+# Legend
+if inPlotBoth:
+    x, y = f'Activity Z {inEnzyme2}', f'Predicted Z {inEnzyme2}'
+    x_fit2, y_fit2, fitCurve2 = fitData(x=data2[x].values, y=data2[y].values)
+    l2 = f'{inEnzyme2} R² = {fitCurve2:.3f}'
+    l2 = f'SARS-CoV {inEnzyme2} R² = {fitCurve2:.3f}'
+    data2.plot(x=x, y=y, ax=ax, color=c2, marker=mkr2, linestyle='none', legend=l2)
+    ax.plot(x_fit2, y_fit2, color=c2, linestyle='-', linewidth=1.5)
+
+    ax.legend(
+        prop=FontProperties(size=inLabelTickSize, weight='bold'),
+        handles=[
+            Line2D([], [], color=c2, marker=mkr2,
+                   linewidth=inLinewidth, label=l2),
+            Line2D([], [], color=c1, marker=mkr1,
+                   linewidth=inLinewidth, label=l1),
+        ]
+    )
+else:
+    ax.legend(prop=FontProperties(size=inLabelTickSize, weight='bold'),
+              handles=[Line2D([], [], linestyle='None', marker='None',
+                              label=l1)], handletextpad=0, handlelength=0
+              )
 # X Axis
 ax.set_xlabel('Experimental Activity Z Scores', fontsize=inLabelSize)
 ax.set_xticks(ax.get_xticks()) # Fix the tick positions
 ax.set_xticklabels(ax.get_xticklabels(), ha='center', fontsize=inLabelSize-2)
 
 # Y Axis
-ax.set_ylabel('Predicted Z Scores', fontsize=inLabelSize)
+ax.set_ylabel('Predicted Activity Z Scores', fontsize=inLabelSize)
 ax.tick_params(axis='y', labelsize=inLabelSize-2)
-
-# Legend
-if inPlotBoth:
-    x, y = f'Activity Z {inEnzyme2}', f'Predicted Z {inEnzyme2}'
-    x_fit4, y_fit4, fitCurve4 = fitData(x=data2[x].values, y=data2[y].values)
-    data2.plot(
-        x=x, y=y, ax=ax, marker='o', linestyle='none', color=c1,
-        legend=f'R² = {fitCurve4:.3f}'
-    )
-    ax.plot(x_fit4, y_fit4, color=c1, linestyle='-', linewidth=1.5)
-
-    ax.legend(
-        prop=FontProperties(size=10, weight='bold'),
-        handles=[
-            Line2D([], [], color=c1, marker='o', linewidth=1.5,
-                   label=f'{inEnzyme2} R² = {fitCurve4:.3f}'),
-            Line2D([], [], color=c2, marker='D', linewidth=inLinewidth,
-                   label=f'{inEnzyme} R² = {fitCurve:.3f}'),
-        ]
-    )
-else:
-    ax.legend(prop=FontProperties(size=10, weight='bold'), handles=[Line2D(
-        [], [], linestyle='None', marker='None',
-        label=f'R² {inEnzyme} = {fitCurve:.3f}')], handletextpad=0, handlelength=0
-               )
 
 plt.tight_layout()
 fig.canvas.mpl_connect('key_press_event', pressKey)
@@ -406,94 +421,6 @@ plt.show()
 
 if inSavePath:
     path = os.path.join(inSavePath, 'enzActivity.png')
-    fig.savefig(path, dpi=inFigResolution)
-    print(f'Saving figure at path:\n'
-          f'     {path}\n\n')
-else:
-    print(f'The figure was not saved\n\n')
-
-
-# ========================================================================================
-
-
-# Plot data
-c1, c2, = '#A800FF', '#BF5700'
-inTitleSize = 16
-inLabelSize = 14
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
-x, y = f'Activity {inEnzyme}', f'Pred {inEnzyme}'
-x_fit, y_fit, fitCurve = fitData(x=data[x].values, y=data[y].values)
-data.plot(
-    x=x, y=y, ax=ax1, marker='^',linestyle='none', color=c2, label=f'R² = {fitCurve:.3f}'
-)
-ax1.plot(x_fit, y_fit, color=c2, linestyle='-', linewidth=inLinewidth)
-
-x, y = f'Activity Z {inEnzyme}', f'Predicted Z {inEnzyme}'
-x_fit2, y_fit2, fitCurve2 = fitData(x=data[x].values, y=data[y].values)
-data.plot(
-    x=x, y=y, ax=ax2, marker='D', linestyle='none', color=c2, legend=f'R² = {fitCurve2:.3f}'
-)
-ax2.plot(x_fit2, y_fit2, color=c2, linestyle='-', linewidth=inLinewidth)
-plt.suptitle(inTitle, fontsize=inTitleSize, fontweight='bold')
-
-# X Axis
-ax1.set_xlabel('Experimental Activity', fontsize=inLabelSize)
-ax2.set_xlabel('Experimental Activity Z Scores', fontsize=inLabelSize)
-ax1.set_xticks(ax1.get_xticks()) # Fix the tick positions
-ax1.set_xticklabels(ax1.get_xticklabels(), ha='center', fontsize=inLabelSize-2)
-ax2.set_xticks(ax2.get_xticks()) # Fix the tick positions
-ax2.set_xticklabels(ax2.get_xticklabels(), ha='center', fontsize=inLabelSize-2)
-
-# Y Axis
-ax1.set_ylabel('Predicted Activity', fontsize=inLabelSize)
-ax2.set_ylabel('Predicted Z Scores', fontsize=inLabelSize)
-ax1.tick_params(axis='y', labelsize=inLabelSize-2)
-ax2.tick_params(axis='y', labelsize=inLabelSize-2)
-
-# Legend
-if inPlotBoth:
-    x, y = f'Activity {inEnzyme2}', f'Pred {inEnzyme2}'
-    x_fit3, y_fit3, fitCurve3 = fitData(x=data2[x].values, y=data2[y].values)
-    data2.plot(
-        x=x, y=y, ax=ax1, marker='*', linestyle='none', color=c1,
-        legend=f'R² = {fitCurve3:.3f}'
-    )
-    ax1.plot(x_fit3, y_fit3, color=c1, linestyle='--', linewidth=inLinewidth)
-
-    x, y = f'Activity Z {inEnzyme2}', f'Predicted Z {inEnzyme2}'
-    x_fit4, y_fit4, fitCurve4 = fitData(x=data2[x].values, y=data2[y].values)
-    data2.plot(
-        x=x, y=y, ax=ax2, marker='o', linestyle='none', color=c1,
-        legend=f'R² = {fitCurve4:.3f}'
-    )
-    ax2.plot(x_fit4, y_fit4, color=c1, linestyle='--', linewidth=inLinewidth)
-
-    ax1.legend(prop=FontProperties(size=10, weight='bold'), handles=[Line2D(
-        [], [], linestyle='None', marker='None',
-        label=f'R² {inEnzyme2}  = {fitCurve3:.3f}\nR² {inEnzyme} = {fitCurve:.3f}')],
-               handletextpad=0, handlelength=0
-               )
-    ax2.legend(prop=FontProperties(size=10, weight='bold'), handles=[Line2D(
-        [], [], linestyle='None', marker='None',
-        label=f'R² {inEnzyme2}  = {fitCurve4:.3f}\nR² {inEnzyme} = {fitCurve2:.3f}')],
-               handletextpad=0, handlelength=0
-               )
-else:
-    ax1.legend(prop=FontProperties(size=10, weight='bold'), handles=[Line2D(
-        [], [], linestyle='None', marker='None',
-        label=f'R² {inEnzyme} = {fitCurve:.3f}')], handletextpad=0, handlelength=0
-               )
-    ax2.legend(prop=FontProperties(size=10, weight='bold'), handles=[Line2D(
-        [], [], linestyle='None', marker='None',
-        label=f'R² {inEnzyme} = {fitCurve2:.3f}')], handletextpad=0, handlelength=0
-               )
-
-plt.tight_layout()
-fig.canvas.mpl_connect('key_press_event', pressKey)
-plt.show()
-
-if inSavePath:
-    path = os.path.join(inSavePath, 'enzActivity_norm+zscores.png')
     fig.savefig(path, dpi=inFigResolution)
     print(f'Saving figure at path:\n'
           f'     {path}\n\n')

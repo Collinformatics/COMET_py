@@ -28,7 +28,7 @@ inPathDNASeqs = os.path.join(inPathFolder, 'Fastq') # Define the fastq folder na
 inFileType = 'fastq' # Define the file type
 
 # Input 2: Saving The Data 'Mpro2-I_S1_L001'
-inSaveFileName = 'Mpro2-R4_S3' # Add this name to filePaths() in functions.py
+inSaveFileName = 'Mpro2-R4_S3-MinCounts' # Add this name to filePaths() in functions.py
 
 # Input 3: Substrate Parameters
 inAAPositions = ['R1','R2','R3','R4','R5','R6','R7','R8']
@@ -46,7 +46,7 @@ inFixedResidue = ['Y']
 inFixedPosition = [5]
 
 # Input 6: Miscellaneous
-inAlertPath = '/path/Bells.mp3' # Play a sound to let you know the script is done
+inAlertPath = '/Sounds/Bells.mp3' # Play a sound to let you know the script is done
 inPrintQualityScores = True # Phred quality scores
 
 
@@ -137,4 +137,4 @@ ngs.saveData(substrates=substrates, counts=counts, saveTag=inSaveFileName)
 ngs.extractionEfficiency(files=inFileName)
 
 # Plot the data
-ngs.plotCounts(countedData=counts, totalCounts=totalSubs, fileName=inSaveFileName)
+ngs.plotMatrix(data=counts, figLabel=inSaveFileName, totalCounts=totalSubs)

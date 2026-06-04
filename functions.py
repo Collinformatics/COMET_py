@@ -1,6 +1,4 @@
 # PURPOSE: This script contains the functions that you will need to process your NGS data
-import pty
-
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio import BiopythonWarning
@@ -1467,6 +1465,7 @@ class NGS:
         excValid = False
         predScores = True
 
+
         # Chop off the C-terminal AAs
         print(f'Chop: {chopSeq}')
         subsCounts = {}  # Limit substrates by counts
@@ -1552,9 +1551,11 @@ class NGS:
             N = len(subsCounts)
             print(f'\nN Experimental Substrates: {red}{Nexp:,}{resetColor}\n'
                   f'N Background Substrates:   {red}{len(bg.keys()):,}{resetColor}\n'
-                  f'Total Unique Substrates:   {red}{N:,}{resetColor}\n')
+                  f'Total Unique Substrates:   {red}{N:,}{resetColor}')
         else:
-            print(f'Total Unique Substrates: {red}{N:,}{resetColor}\n')
+            print(f'Total Unique Substrates: {red}{N:,}{resetColor}')
+        print(f'Total Substrates: {red}{sum(subsCounts.values()):,}{resetColor}\n')
+
 
         # Normalize counts
         subsCountsNorm = {}
@@ -5301,39 +5302,47 @@ class NGS:
 
 
 
-    def plotCounts(self, countedData, totalCounts, fileName):
+    def plotMatrix(self, data, figLabel,
+                   releasedCounts=False, totalCounts=False):
         # Remove commas from string values and convert to float
-        countedData = countedData.applymap(lambda x:
-                                           float(x.replace(',', ''))
-                                           if isinstance(x, str) else x)
+        if totalCounts:
+            data = data.applymap(
+                lambda x:float(x.replace(',', '')) if isinstance(x, str) else x
+            )
 
         # Create heatmap
         cMapCustom = self.createCustomColorMap(colorType='Counts')
 
         # Convert the counts to a data frame for Seaborn heatmap
         if self.residueLabelType == 0:
-            countedData.index = [residue[0] for residue in self.residues]
+            data.index = [residue[0] for residue in self.residues]
         elif self.residueLabelType == 1:
-            countedData.index = [residue[1] for residue in self.residues]
+            data.index = [residue[1] for residue in self.residues]
         elif self.residueLabelType == 2:
-            countedData.index = [residue[2] for residue in self.residues]
+            data.index = [residue[2] for residue in self.residues]
 
         # Set figure title
-        title = f'\n\n{self.enzymeName}\n{fileName}\nN={totalCounts:,}'
+        if totalCounts:
+            title = f'\n\n{self.enzymeName}\n{figLabel}\nN={totalCounts:,}'
+        else:
+            title = f'{self.enzymeName}\n{figLabel}'
 
 
         # Plot the heatmap with numbers centered inside the squares
         fig, ax = plt.subplots(figsize=self.figSize)
-        heatmap = sns.heatmap(countedData, annot=True, fmt=',d', cmap=cMapCustom,
-                              cbar=True, linewidths=self.lineThickness-1,
-                              linecolor='black', square=False, center=None,
-                              annot_kws={'fontweight': 'bold'})
+        if totalCounts:
+            heatmap = sns.heatmap(data, annot=True, fmt=',d', cmap=cMapCustom,
+                                  cbar=True, linewidths=self.lineThickness-1,
+                                  linecolor='black', square=False, center=None,
+                                  annot_kws={'fontweight': 'bold'})
+        else:
+            heatmap = sns.heatmap(data, annot=True, fmt='.4f', cmap=cMapCustom,
+                                  cbar=True, linewidths=self.lineThickness - 1,
+                                  linecolor='black', square=False, center=None,
+                                  annot_kws={'fontweight': 'bold'})
         ax.set_xlabel('Substrate Position', fontsize=self.labelSizeAxis)
         ax.set_ylabel('Residue', fontsize=self.labelSizeAxis)
         ax.set_title(title, fontsize=self.labelSizeTitle, fontweight='bold')
-        figBorders = [0.852, 0.075, 0.117, 1]
-        plt.subplots_adjust(top=figBorders[0], bottom=figBorders[1],
-                            left=figBorders[2], right=figBorders[3])
 
         # Set the thickness of the figure border
         for _, spine in ax.spines.items():
@@ -5346,14 +5355,14 @@ class NGS:
         ax.tick_params(axis='y', labelrotation=0)
 
         # Set x-ticks
-        xTicks = np.arange(len(countedData.columns)) + 0.5
+        xTicks = np.arange(len(data.columns)) + 0.5
         ax.set_xticks(xTicks)
-        ax.set_xticklabels(countedData.columns)
+        ax.set_xticklabels(data.columns)
 
         # Set y-ticks
-        yTicks = np.arange(len(countedData.index)) + 0.5
+        yTicks = np.arange(len(data.index)) + 0.5
         ax.set_yticks(yTicks)
-        ax.set_yticklabels(countedData.index)
+        ax.set_yticklabels(data.index)
 
 
         for _, spine in ax.spines.items():
@@ -5367,7 +5376,36 @@ class NGS:
         cbar.outline.set_edgecolor('black')
 
         fig.canvas.mpl_connect('key_press_event', pressKey)
+        fig.tight_layout()
         plt.show()
+
+        # Save the figure
+        if self.saveFigures:
+            # Define: Save location
+            if totalCounts:
+                figLabel = (f'{self.enzymeName} - Counts - '
+                            f'{self.datasetTag} - '
+                            f'MinCounts {self.minSubCount}.png')
+            else:
+                figLabel = (f'{self.enzymeName} - Prediction Matrix - '
+                            f'{self.datasetTag} - {len(xTicks)} AA - '
+                            f'MinCounts {self.minSubCount}.png')
+            if releasedCounts:
+                figLabel = figLabel.replace(self.datasetTag,
+                                            f'Substrate Profile {self.datasetTag}')
+            if '/' in figLabel:
+                figLabel = figLabel.replace('/', '_')
+            saveLocation = os.path.join(self.pathSaveFigs, figLabel)
+
+            # Save figure
+            if os.path.exists(saveLocation):
+                print(f'{yellow}The figure was not saved\n\n'
+                      f'File was already found at path:\n'
+                      f'     {saveLocation}{resetColor}\n\n')
+            else:
+                print(f'Saving figure at path:\n'
+                      f'     {greenDark}{saveLocation}{resetColor}\n\n')
+                fig.savefig(saveLocation, dpi=self.figureResolution)
 
 
 
@@ -5526,12 +5564,12 @@ class NGS:
 
 
 
-    def plotLibraryProbDist(self, probInitial, probFinal, codonType, datasetTag,
+    def plotLibraryAADist(self, rfInitial, rfFinal, codonType, datasetTag,
                             skipInitial=False):
         # Inspect data
-        if probInitial is None and probFinal is None:
-            print(f'{orange}ERROR: both of the inputs for probInitial and '
-                  f'probFinal cannot be None.{resetColor}\n')
+        if rfInitial is None and rfFinal is None:
+            print(f'{orange}ERROR: both of the inputs for rfInitial and '
+                  f'rfFinal cannot be None.{resetColor}\n')
             sys.exit(1)
 
         # Initialize parameters
@@ -5542,17 +5580,17 @@ class NGS:
         maxFinalAdj = 0
 
         # Determine yMax
-        if probInitial is not None:
+        if rfInitial is not None:
             plotInitial = True
-            numPos = probInitial.shape[1]
-            numAA = probInitial.shape[0]
-            maxInitial = probInitial.values.max()
+            numPos = rfInitial.shape[1]
+            numAA = rfInitial.shape[0]
+            maxInitial = rfInitial.values.max()
             maxInitialAdj = np.floor(maxInitial * 10) / 10
-        if probFinal is not None:
+        if rfFinal is not None:
             plotFinal = True
-            numPos = probFinal.shape[1]
-            numAA = probFinal.shape[0]
-            maxFinal = probFinal.values.max()
+            numPos = rfFinal.shape[1]
+            numAA = rfFinal.shape[0]
+            maxFinal = rfFinal.values.max()
             maxFinalAdj= np.floor(maxFinal * 10) / 10
         if maxFinalAdj > maxInitialAdj:
             yMax = maxFinalAdj
@@ -5674,12 +5712,12 @@ class NGS:
 
         # Plot the data
         if plotInitial and not skipInitial:
-            plotFig(rf=probInitial, sortType='Initial Sort')
+            plotFig(rf=rfInitial, sortType='Initial Sort')
         if plotFinal:
             if codonType == datasetTag:
-                plotFig(rf=probFinal, sortType=datasetTag)
+                plotFig(rf=rfFinal, sortType=datasetTag)
             else:
-                plotFig(rf=probFinal, sortType='Final Sort')
+                plotFig(rf=rfFinal, sortType='Final Sort')
 
 
 
@@ -5917,6 +5955,10 @@ class NGS:
             print(f'Dataset: {purple}{self.datasetTag}{resetColor}\n'
                   f' Enzyme: {purple}{self.enzymeName}{resetColor}\n'
                   f'   Sort: {purple}{sortType}{resetColor}')
+        hitsTotal = {}
+        for seq in sequence:
+            hitsTotal[seq] = 0
+
         totalSubstrates = 0
         totalHits = 0
         hits = {}
@@ -5927,6 +5969,7 @@ class NGS:
                 if sequence in substrate:
                     totalHits += count
                     hits[substrate] = count
+                    hitsTotal[sequence] += count
         else:
             useStr = False
             for substrate, count in substrates.items():
@@ -5935,6 +5978,7 @@ class NGS:
                     if seq in substrate:
                         totalHits += count
                         hits[substrate] = count
+                        hitsTotal[seq] += count
         if combinedMotifs:
             print(f'Unique Motifs: {red}{len(substrates.keys()):,}{resetColor}\n'
                   f' Total Motifs: {red}{totalSubstrates:,}{resetColor}\n')
@@ -5968,7 +6012,14 @@ class NGS:
         print(f'Unique Sequences: {red}{len(hits.keys()):,}{resetColor}\n'
               f'   Total Matches: {red}{totalHits:,}{resetColor}\n')
         hitsPercent = (totalHits / totalSubstrates) * 100
-        print(f'Hit Population: {red}{totalHits:,}{resetColor} / {red}{totalSubstrates:,}'
+
+        # Total occurrences
+        print('Total occurrences:')
+        hitsTotal = dict(sorted(hitsTotal.items(), key=lambda item: item[1], reverse=True))
+        for substrate, count in hitsTotal.items():
+            print(f'  {blue}{substrate}{resetColor}, {red}{count:,}{resetColor}')
+
+        print(f'\nHit Population: {red}{totalHits:,}{resetColor} / {red}{totalSubstrates:,}'
               f'{resetColor} = {red}{round(hitsPercent,self.roundVal)} %'
               f'{resetColor}\n\n')
 
@@ -6553,14 +6604,14 @@ class NGS:
 
 
         # Calculate: Ratio probability
-        prob = pd.DataFrame(0.0, index=finalRF.index, columns=finalRF.columns)
-        for col in prob.columns:
-            for AA in prob.index:
-                prob.loc[AA, col] = ratio.loc[AA, col] / sum(ratio.loc[:, col])
+        norm = pd.DataFrame(0.0, index=finalRF.index, columns=finalRF.columns)
+        for col in norm.columns:
+            for AA in norm.index:
+                norm.loc[AA, col] = ratio.loc[AA, col] / sum(ratio.loc[:, col])
         if pData:
-            print(f'Probability:\n{prob}\n\n')
+            print(f'Normalized RF Ratios:\n{norm}\n\n')
 
-        return prob
+        return norm
 
 
 
@@ -6578,6 +6629,8 @@ class NGS:
         matrix = self.normalizeProbRatios(finalRF=finalRF,
                                           initialRF=initialRF,
                                           pHeader=False)
+        self.plotMatrix(data=matrix, figLabel='Prediction Matrix',
+                        releasedCounts=releasedCounts)
 
         # z = matrix.copy()
         # for col in matrix.columns:
@@ -6652,7 +6705,7 @@ class NGS:
             if errorBars:
                 print(f'Error Bars: {errorBars}')
             print('')
-            sys.exit()
+            # sys.exit()
 
             # Rank activity scores
             rankedActivity = dict(sorted(activityPred.items(),
@@ -6665,7 +6718,7 @@ class NGS:
                     break
             print('')
 
-            # Compair predictions
+            # Compare predictions
             print(f'Predicted Vs Experimental Activity:')
             for index, (substrate, activity) in enumerate(activityPred.items(), start=1):
                 print(f'    {pink}{substrate}{resetColor}, '
