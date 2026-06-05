@@ -1509,24 +1509,28 @@ class NGS:
         tagMod = ''
         if seqsBg:
             s = {}
-            if isinstance(chopSeq, int):
+            print(f'N: {len(subsCounts.keys())}\nN: {len(seqsBg.keys())}')
+            if isinstance(chopSeq, bool) or chopSeq > 1:
+                for seq, count in seqsBg.items():
+                    if (count <= maxCountsBg and seq not in subsCounts.keys()
+                            and excludeAA not in seq):
+                        s[seq] = count
+                print(f'Chop: {chopSeq}, {isinstance(chopSeq, int)}')
+            else:
                 for seq, count in seqsBg.items():
                     if (count <= maxCountsBg and seq not in subsCounts.keys()
                             and excludeAA not in seq):
                         seq = seq[0:chopSeq]
                         s[seq] = count
-            else:
-                for seq, count in seqsBg.items():
-                    if (count <= maxCountsBg and seq not in subsCounts.keys()
-                            and excludeAA not in seq):
-                        s[seq] = count
-
             bg, Nexp, i = {}, N, 0
             print(f'Add Background substrates:')
             if modScale:
                 tagMod = f'{mod}'
                 mag = np.ceil(np.log10(len(s.keys())) - 1)
                 divisor = int(5*10**(mag - 1))
+                if divisor == 0:
+                    divisor = 1
+                print('D:', divisor)
                 for seq, count in s.items():
                     i += 1
                     if i % divisor == 0:
@@ -1537,6 +1541,8 @@ class NGS:
                     if i % mod == 0:
                         bg[seq] = count
             else:
+                print('Mod:', mod)
+                print(f'Seqs: {len(s.keys())}')
                 for seq, count in s.items():
                         i += 1
                         if i % mod == 0:
@@ -1555,7 +1561,6 @@ class NGS:
         else:
             print(f'Total Unique Substrates: {red}{N:,}{resetColor}')
         print(f'Total Substrates: {red}{sum(subsCounts.values()):,}{resetColor}\n')
-
 
         # Normalize counts
         subsCountsNorm = {}
@@ -1654,7 +1659,8 @@ class NGS:
         subsZPred = {}
         if predScores:
             if subLen <= len(matrix.columns):
-                print(f'Scoring Matrix: {purple}{self.datasetTag}{resetColor}\n{matrix}\n')
+                print(f'Scoring Matrix: {purple}{self.datasetTag}{resetColor}\n'
+                      f'{matrix}\n')
                 for seq, count in subsCounts.items():
                     subsZ[seq] = self.scoreSubstrate(seq, matrix)
 
@@ -1796,10 +1802,10 @@ class NGS:
                 writer.writerow(['sequence', self.enzyme])
                 for seq, score in subsZPred.items():
                     writer.writerow([seq, f'{score:.2f}'])
-        # if not savedData:
-        #     print(f'\nPrint no data was saved. Files already saved at:')
-        #     for path in paths:
-        #         print(f'    {greenDark}{path}{resetColor}')
+        if not savedData:
+            print(f'\nPrint no data was saved. Files already saved at:')
+            for path in paths:
+                print(f'    {greenDark}{path}{resetColor}')
         print()
 
 

@@ -25,6 +25,7 @@ pd.set_option('display.float_format', '{:,.3f}'.format)
 # Input: Data
 inEnzyme = f'M{"ᵖʳᵒ"}2'
 inEnzyme2 = f'M{"ᵖʳᵒ"}' # Secondary enzyme
+inPlotBoth = True # Add the secondary enzyme to the figures
 inSigFigs = 0
 inRoundVal = 3
 inNatLog = False
@@ -54,7 +55,6 @@ inData = {
 # Input: Plot Figures
 inPlotBarGraph = True
 inPlotTable = True
-inPlotBoth = True # Add the secondary enzyme to the figures
 inColor1 = '#BF5700'
 inColor2 = '#F8971F'
 
@@ -347,6 +347,16 @@ data[f'Activity {inEnzyme}'] = inData[f'% Product {inEnzyme}']
 data[f'Activity Z {inEnzyme}'] = inData[f'Activity Z {inEnzyme}']
 data[f'Pred {inEnzyme}'] = inData[f'Predicted {inEnzyme}']
 data[f'Predicted Z {inEnzyme}'] = inData[f'Predicted Z {inEnzyme}']
+x = ['AVLQSG', 'VILQSG', 'VILQTG', 'VILQSP',
+     'VILHSG', 'VIMQSG', 'VPLQSG', 'NILQSG']
+# data[f'Predicted Z {inEnzyme}'] = [
+#     -0.497679174, -1.163590908, -1.320950508, -1.541718721,
+#     -1.36593771, -1.147068858, -1.0361408, -1.221100092
+# ] # Transformer
+# data[f'Predicted Z {inEnzyme}'] = [
+#     -0.117790319025517, -0.20222044, -0.256611586, -0.351389557,
+#     -0.319180578, -0.451004088, -0.174632221, -0.164621562
+# ] # LSTM
 actR2 = round(r2_score(data[f'Activity {inEnzyme}'],
                        data[f'Pred {inEnzyme}']), inRoundVal)
 actZR2 = round(r2_score(data[f'Activity Z {inEnzyme}'],
