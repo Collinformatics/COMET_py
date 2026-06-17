@@ -226,10 +226,9 @@ class NGS:
         self.datasetTag = None
         self.datasetTagMotif = None
         self.title = ''
+        self.titleCombined = ''
         self.titleReleased = ''
         self.titleWeblogo = ''
-        self.titleWeblogoCombined = ''
-        self.titleWeblogoReleased = ''
         self.titleWords = ''
         self.substrateLength = substrateLength
         self.figEMSquares = figEMSquares
@@ -2172,6 +2171,8 @@ class NGS:
               f'{red}{self.nSubsFinalUniqueSeqs:,}{resetColor}\n\n')
 
         # Set figure titles
+        self.titleCombined = (f'{self.enzymeName}\n'
+                              f'Combined Filter {self.datasetTag}')
         self.titleReleased = (f'{self.enzymeName}\n'
                               f'{self.datasetTagMotif}\n'
                               f'Substrate Profile')
@@ -2180,14 +2181,10 @@ class NGS:
                           f'N Unsorted = {self.nSubsInitial:,}\n'
                           f'N Sorted = {self.nSubsFinal:,}')
             self.titleWeblogo = f'{self.enzymeName}\nN = {self.nSubsFinal:,}'
-            self.titleWeblogoCombined = (f'{self.enzymeName}\n'
-                                         f'Combined Filter  {self.datasetTagMotif}\n'
-                                         f'N = {self.nSubsFinal:,}')
+
         else:
             self.title = f'{self.enzymeName}'
             self.titleWeblogo = f'{self.enzymeName}'
-            self.titleWeblogoCombined = (f'{self.enzymeName}\n'
-                                         f'Combined Filter  {self.datasetTagMotif}')
         if self.filterSubs:
             if self.motifFilter:
                 self.titleWords = f'{self.enzymeName}\n{self.motifTag}'
@@ -2977,19 +2974,17 @@ class NGS:
         # Define: Figure title
         if self.releasedCounts:
             title = self.titleReleased
+        elif combinedMotifs:
+            title = self.titleCombined
         else:
             title = self.title
         # if ' - ' in title:
         #     title = title.replace(' - ', '\n')
         if len(self.datasetTag.replace('[', '').replace(']', '').replace('-', '')) > 40:
             title = title.replace('Register ', 'Register\n')
-        if combinedMotifs and not self.releasedCounts:
-            title = title.replace(self.enzymeName,
-                                  f'{self.enzymeName}\n'
-                                  f'Combined Filter {self.datasetTag}')
 
         print(f'Dataset: {purple}{self.datasetTag}{resetColor}\n'
-              f'Unique Substrates: {red}{self.nSubsFinalUniqueSeqs:,}{resetColor}')
+             f'Unique Substrates: {red}{self.nSubsFinalUniqueSeqs:,}{resetColor}')
         if self.motifFilter:
             print(f'Figure Number: '
                   f'{magenta}{self.saveFigureIteration}{resetColor}')
@@ -3111,6 +3106,8 @@ class NGS:
         # Define: Figure title
         if self.releasedCounts:
             title = self.titleReleased
+        elif combinedMotifs:
+            title = self.titleCombined
         else:
             title = self.title
         if len(self.datasetTag.replace('[', '').replace(']', '').replace('-', '')) > 40:
@@ -3295,9 +3292,8 @@ class NGS:
         # Define: Figure title
         if self.releasedCounts:
             title = self.titleReleased
-        elif combinedMotifs or len(self.motifIndexExtracted) > 1:
-            title = self.titleWeblogoCombined
-
+        elif combinedMotifs:
+            title = self.titleCombined
         else:
             title = self.titleWeblogo
 
@@ -5897,12 +5893,11 @@ class NGS:
         # Define: Figure title
         if predActivity:
             title = f'{self.enzymeName}\n{predModel}'
+        elif combinedMotifs:
+            title = self.titleCombined
         else:
             title = self.titleWords
             title += f'\nTop {totalWords} Substrates'
-        if combinedMotifs:
-            title = title.replace(self.datasetTag,
-                                  f'Combined Filter {self.datasetTag}')
 
 
         # Create word cloud
