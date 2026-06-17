@@ -12,20 +12,20 @@ import sys
 
 # ===================================== User Inputs ======================================
 # Input 1: Select Dataset
-inEnzymeName = 'Mpro2'
+inEnzymeName = 'MMP7'
 inPathFolder = os.path.join('Enzymes', inEnzymeName)
 inSaveFigures = True
 inSetFigureTimer = False
 
 # Input 2: Experimental Parameters
-inMotifPositions = ['P4','P3','P2','P1','P1\'','P2\''] # ,'P3\'','P4\''
+inMotifPositions = ['P3','P2','P1','P1\'','P2\'','P3\'']
 # inMotifPositions = ['-4', '-3', '-2', '-1', '0', '1', '2', '3', '4']
 # inMotifPositions = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8']
 inIndexNTerminus = 1 # Define the index if the first AA in the motif
 
 # Input 3: Computational Parameters
-inFixedResidue = ['Q']
-inFixedPosition = [5,6]
+inFixedResidue = [['L','M'], 'L']
+inFixedPosition = [[3,4],[5,6]]
 inExcludeResidues = False
 inExcludedResidue = ['A','A']
 inExcludedPosition = [9,10]
@@ -36,7 +36,6 @@ inAvgInitialProb = True
 
 # Input 4: Figures
 # inPlotPCA = False # PCA plot of an individual fixed frame
-# inPlotPCACombined = True
 inBlockFigures = True
 inPlotEntropy = True
 inPlotEnrichmentMap = True
@@ -76,13 +75,13 @@ if inBlockFigures:
     inPlotFilteredSubs = False
 
 # Input 5: CSV
-inSaveCSV = True # Save substrates in a csv file
-inMinSubsCSV = 4000 # Minimum counts for saved substrates
-inSubLengthCSV = 6 # If: False, use full seq, If: 6, use 6 AA seq
+inSaveCSV = False # Save substrates in a csv file
+inMinSubsCSV = 1000 # Minimum counts for saved substrates
+inSubLengthCSV = 6 # If: False, use full seq. If: 6, use 6 AA seq
 inUseBgSubs = True
 inExcludeSeq = 'LQ'
-inMaxBgSubstrateCount = 50
-inModulo = 30000 # Increase to select fewer Bg substrates
+inMaxBgSubstrateCount = 30
+inModulo = 40000 # Increase to select fewer Bg substrates
 inScaleModulo = True # Continually increase modulus value to keep fewer low count bg subs
 
 # Input 6: Printing The Data
@@ -97,7 +96,7 @@ inPrintNumber = 10
 
 # Input 7: Find Protein Sequences
 inFindSequences = False
-inFindSeq = ['LA', 'LF', 'LW']
+inFindSeq = ['AVLQSG', 'VILQSG','VILQTG','VILQSP','VILHSG','VIMQSG','VPLQSG','NILQSG']
 inFindAAInSequence = False
 inFindAA = ['A', 'F', 'W']
 inAAPos = 4
@@ -128,40 +127,70 @@ inIncludeSubCountsESM = True
 inPlotEntropyPCAPopulations = False
 
 # Input 13: Predict Activity
-inPredictActivity = False
+inPredictActivity = True
+inPredictSubstrates = []
 inUseNaturalSubs = False
 if inUseNaturalSubs:
     inPredictionTag = 'pp1a/b Substrates'
     inPredictSubstrates = ['AVLQSGFR', 'VTFQSAVK', 'ATVQSKMS', 'ATLQAIAS',
                            'VKLQNNEL', 'VRLQAGNA', 'PMLQSADA', 'TVLQAVGA',
                            'ATLQAENV', 'TRLQSLEN', 'PKLQSSQA']
-    inSubstrateActivity = {
-        'AVLQSGFR': 50.0,
-        'VTFQSAVK': 50.0,
-        'ATVQSKMS': 50.0,
-        'ATLQAIAS': 50.0,
-        'VKLQNNEL': 50.0,
-        'VRLQAGNA': 50.0,
-        'PMLQSADA': 50.0,
-        'TVLQAVGA': 50.0,
-        'ATLQAENV': 50.0,
-        'TRLQSLEN': 50.0,
-        'PKLQSSQA': 50.0
-    }
+    inSubstrateActivity = {}
+    for substrate in inPredictSubstrates:
+        inSubstrateActivity[substrate] = 50.0
     inErrorBars = []
 else:
     inPredictionTag = '30 Min'
     inSubstrateActivity = {
-        'AVLQSG': 54.9, # 60,
-        'VILQSG': 72.1, # 70,
-        'VILQTG': 7.9, # 6,
-        'VILQSP': 0, # 0,
-        'VILHSG': 16.0, # 15,
-        'VIMQSG': 59.2, # 50,
-        'VPLQSG': 0, # 0,
-        'NILQSG': 12.6, # 6,
+        'AVLQSG': 55,  # 60,
+        'VILQSG': 66,  # 70,
+        'VILQTG': 34,  # 6,
+        'VILQSP': 0,  # 0,
+        'VILHSG': 26,  # 15,
+        'VIMQSG': 61,  # 50,
+        'VPLQSG': 0,  # 0,
+        'NILQSG': 22,  # 6,
     }
-    inErrorBars = [0.1,0.09,0.02,0,0.06,0.09,0,0.05] # Avg stdev
+    inSubstrateActivity = {
+        'PLALWR': 0,
+        'PMALVV': 0,
+        'PLALVV': 0,
+        'PMELVV': 0,
+        'PMVLVV': 0,
+        'TMALVV': 0,
+        'FMALVV': 0,
+        'PMTLVV': 0,
+        'PMALPV': 0,
+        'PMALVP': 0,
+        'PAALVV': 0,
+        'PTALVV': 0,
+        'PMAMVV': 0,
+        'PMATVV': 0,
+        'VMALVV': 0,
+        'PMAIVV': 0,
+        'PMLLVV': 0,
+        'PMMLVV': 0,
+        'MMALVV': 1
+    }
+    # inSubstrateActivity = {
+    #     'PMCMELVV': 4.06 * 10 ** -8,
+    #     'PMCMALVV': 3.91 * 10 ** -8,
+    #     'PMVMELVV': 3.95 * 10 ** -8,
+    #     'PMVMALVV': 3.80 * 10 ** -8,
+    #     'PVLALMLM': 5.39 * 10 ** -9,
+    #     'ASQGLLDR': 2.83 * 10 ** -11,
+    #     'RDDTTWPP': 1.21 * 10 ** -16
+    # }
+    inSubstrateActivity = {
+        'CMELVV': 1,
+        'CMALVV': 0,
+        'VMELVV': 0,
+        'VMALVV': 0,
+        'PVLALM': 0,
+        'QGLLDR': 0,
+        'DTTWPP': 0
+    }
+    inErrorBars = [0.01, 0.058, 0.025, 0.0, 0.027, 0.044, 0.0, 0.033], # Avg stdev
 inEMapStartIndex = 0  # Sub: ACDEFGHI, if idx = 0 start at A
 inRankScores = False
 inScalePredMatrix = False  # Scale EM by ΔS
@@ -258,538 +287,15 @@ ngs = NGS(
     xAxisLabelsMotif=inMotifPositions, printNumber=inPrintNumber,
     showNValues=inShowSampleSize, bigAAonTop=inBigLettersOnTop,
     findMotif=False, folderPath=inPathFolder, filesInit=filesInitial,
-    filesFinal=filesFinal, plotPosS=inPlotEntropy, plotFigEM=inPlotEnrichmentMap,
-    plotFigEMScaled=inPlotEnrichmentMapScaled, plotFigLogo=inPlotLogo,
-    plotFigWebLogo=inPlotWeblogo, plotFigMotifEnrich=inPlotMotifEnrichment,
-    plotFigWords=inPlotWordCloud, wordLimit=inLimitWords, wordsTotal=inTotalWords,
-    plotFigBars=inPlotBarGraphs, NSubBars=inPlotNBars, plotFigPCA=inPlotPCA,
-    numPCs=inNumberOfPCs, NSubsPCA=inTotalSubsPCA, plotSuffixTree=inPlotSuffixTree,
+    filesFinal=filesFinal, releasedCounts=True, plotPosS=inPlotEntropy,
+    plotFigEM=inPlotEnrichmentMap, plotFigEMScaled=inPlotEnrichmentMapScaled,
+    plotFigLogo=inPlotLogo, plotFigWebLogo=inPlotWeblogo,
+    plotFigMotifEnrich=inPlotMotifEnrichment, plotFigWords=inPlotWordCloud,
+    wordLimit=inLimitWords, wordsTotal=inTotalWords, plotFigBars=inPlotBarGraphs,
+    NSubBars=inPlotNBars, plotFigPCA=inPlotPCA, numPCs=inNumberOfPCs,
+    NSubsPCA=inTotalSubsPCA, plotSuffixTree=inPlotSuffixTree,
     saveFigures=inSaveFigures, setFigureTimer=inSetFigureTimer
 )
-
-
-
-# =================================== Define Functions ===================================
-def fixInitialSubs(substrates):
-    print('============================ Fix: Initial Substrates '
-          '============================')
-    print(f'Substrate Frames:{purple} Initial Sort{resetColor}')
-
-    subMotifInitial = {}
-    numberOfSubs = 0
-
-    for substrate in substrates:
-        for indexFrame in range(len(inFixedPosition)):
-            subMotif = substrate[motifFramePos[0] + indexFrame:
-                                 motifFramePos[-1] + indexFrame]
-            if subMotif in subMotifInitial:
-                subMotifInitial[subMotif] += 1
-            else:
-                subMotifInitial[subMotif] = 1
-            numberOfSubs += 1
-
-    # Sort the substrate frames
-    subMotifInitial = dict(sorted(subMotifInitial.items(),
-                                  key=lambda x: x[1], reverse=True))
-
-    # Print the substrate frames
-    iteration = 0
-    for substrate, counts in subMotifInitial.items():
-        print(f'{green} {substrate}{resetColor}, {pink}{counts}')
-        if iteration == inPrintNumber:
-            print(f'{resetColor}\n')
-            break
-        else:
-            iteration += 1
-
-    return subMotifInitial, numberOfSubs
-
-
-
-def substrateProbability(substrates, N, sortType):
-    print('=========================== Calculate: Substrate Probability '
-          '============================')
-    print(f'Substrate Frames:{purple} {sortType}')
-
-    subMotifProb = {}
-    for substrate, count in substrates.items():
-        subMotifProb[substrate] = count / N
-
-    iteration = 0
-
-    for substrate, count in subMotifProb.items():
-        print(f'{green}{substrate}{resetColor}, {pink}{count}')
-        if iteration == inPrintNumber:
-            print(f'{resetColor}\n')
-            break
-        else:
-            iteration += 1
-
-    return subMotifProb
-
-
-
-def subMotifEnrichment(substratesInitial, initialN, substratesFinal):
-    print('============================ Calculate: Substrate Enrichment '
-          '============================')
-    decimals = 3
-    enrichedSubs = {}
-    minInitialProb = 1 / initialN
-    print(f'Min Initial Prob:{pink} {minInitialProb}{resetColor}\n')
-    for substrate, probability in substratesFinal.items():
-        if substrate in substratesInitial:
-            enrichedSubs[substrate] = np.log2(substratesFinal[substrate] /
-                                              substratesInitial[substrate])
-        else:
-            enrichedSubs[substrate] = np.log2(substratesFinal[substrate] / minInitialProb)
-
-
-    # Rank enriched substrates
-    enrichedSubs = dict(sorted(enrichedSubs.items(), key=lambda x: x[1], reverse=True))
-
-    # Print: Enriched subs
-    iteration = 0
-    print(f'Enriched Substrates:')
-    for substrate, ES in enrichedSubs.items():
-        if iteration == inPrintNumber:
-            print('\n')
-            break
-        iteration += 1
-        print(f'Substrate:{green} {substrate}{resetColor}\n'
-              f'     ES: {white}{np.round(ES, decimals)}{resetColor}')
-        if substrate in substratesInitial:
-            print(f'     Prob Final:{pink} {substratesFinal[substrate]}'
-                  f'{resetColor}\n'
-                  f'     Prob Initial:{pink} {substratesInitial[substrate]}'
-                  f'{resetColor}\n')
-        else:
-            print(f'     Prob Final:{pink} {substratesFinal[substrate]}'
-                  f'{resetColor}\n'
-                  f'     Prob Initial:{pink} {minInitialProb}'
-                  f'{resetColor}\n')
-
-    return enrichedSubs
-
-
-
-def generateKinetics(predictions):
-    print('========================= Evaluate Prediction Accuracy '
-          '==========================')
-    # Create random kinetics data
-    kinetics = {}
-    maxScore = 0
-    minScore = 0
-    for substrate, score in predictions.items():
-        maxRandomValue = 0.2
-        mod = random.randint(0, 9)
-        if mod % 2 == 0:
-            newScore = score + random.uniform(0, maxRandomValue)
-            kinetics[substrate] = newScore
-            if newScore > maxScore:
-                maxScore = newScore
-        else:
-            newScore = score - random.uniform(0, maxRandomValue)
-            kinetics[substrate] = newScore
-            if newScore < minScore:
-                minScore = newScore
-
-    # Print simulated data
-    for substrate, score in kinetics.items():
-        newScore = score / maxScore
-        kinetics[substrate] = newScore
-        print(f'Substrate:{green} {substrate}{resetColor}\n'
-              f'     Predicted:{purple} {predictions[substrate]}{resetColor}\n'
-              f'     Kinetics:{green} {newScore}{resetColor}\n')
-
-    # Evaluate the predictions
-    xValues = list(predictions.values())
-    yValues = list(kinetics.values())
-    avg = []
-    stDev = []
-    for index in range(len(xValues)):
-        avg.append(np.mean([xValues[index], yValues[index]]))
-        stDev.append(np.std([xValues[index], yValues[index]]))
-    r2 = r2_score(yValues, xValues)
-
-    return [predictions.keys(), xValues, yValues, avg, stDev, r2]
-
-
-
-def plotPredictionStats(data, predictionType):
-    substrates, avgScores, stDev, accuracy = data[0], data[3], data[4], data[5]
-
-    # Create scatter plot
-    fig, ax = plt.subplots(figsize=inFigureSize)
-    bars = ax.bar(substrates, avgScores, yerr=stDev, color='white', width=inBarWidth)
-    ax.errorbar(substrates, avgScores, yerr=stDev, fmt='none',
-                ecolor='black', elinewidth=inLineThickness, 
-                capsize=5, capthick=inLineThickness)
-    plt.axhline(y=0, color='black', linewidth=inLineThickness)
-    plt.ylabel('Average Activity Score', fontsize=inFigureLabelSize)
-    plt.title(f'{inEnzymeName}\n'
-              f'{predictionType}\n'
-              f'Prediction Precision',
-              fontsize=inFigureTitleSize, fontweight='bold')
-    plt.xticks(rotation=90, ha='center')
-    if min(avgScores) >= 0:
-        plt.subplots_adjust(top=0.873, bottom=inBottomParam, left=0.088, right=0.979)
-    else:
-        plt.subplots_adjust(top=0.873, bottom=inBottomParam, left=0.104, right=0.979)
-
-    # Set edge color
-    for index, bar in enumerate(bars):
-        bar.set_edgecolor(inDatapointColor[index])
-        bar.set_linewidth(inLineThickness)
-
-    # Set tick parameters
-    ax.tick_params(axis='both', which='major', length=inTickLength,
-                   labelsize=inFigureTickSize, width=inLineThickness)
-
-    # Set the thickness of the figure border
-    for _, spine in ax.spines.items():
-        spine.set_visible(True)
-        spine.set_linewidth(inLineThickness)
-
-    fig.canvas.mpl_connect('key_press_event', pressKey)
-    plt.show()
-
-
-
-def predictSubstrateEnrichment(substratesEnriched, matrix, matrixType):
-    print('=========================== Predict Enrichment Scores '
-          '===========================')
-    print(f'Number of Unique Enriched Subs:'
-          f'{white} {len(substratesEnriched):,}{resetColor}\n\n'
-          f'Matrix:{pink} {matrixType}{green}\n{matrix}{resetColor}\n\n')
-
-    # Predict enrichment scores
-    iteration = 0
-    substrates = {}
-    for substrate, score in substratesEnriched.items():
-        substrateScorePredicted = 0
-        for index, AA, in enumerate(substrate):
-            valueAA = matrix.loc[AA, inMotifPositions[index]]
-
-            # # Increase weight:
-            # if 1 >= abs(valueAA):
-            #     # print(f'Initial Value: {valueAA}')
-            #     valueAA = valueAA + (valueAA * 1 / 4)
-            #     # print(f'New Value 1: {valueAA}\n')
-            #     # sys.exit()
-            # elif 2 >= abs(valueAA) > 1:
-            #     # print(f'Initial Value: {valueAA}')
-            #     valueAA = valueAA + (valueAA * 1 / 2)
-            #     # print(f'New Value 2: {valueAA}\n')
-            #     # sys.exit()
-            # elif 3 >= abs(valueAA) > 2:
-            #     # print(f'Initial Value: {valueAA}')
-            #     valueAA = valueAA + (valueAA * 2 / 3)
-            #     # print(f'New Value 3: {valueAA}\n')
-            #     # sys.exit()
-            # elif 4 >= abs(valueAA) > 3:
-            #     # print(f'Initial Value: {valueAA}')
-            #     valueAA = valueAA + (valueAA * 3 / 2)
-            #     # print(f'New Value 4: {valueAA}\n')
-            #     # sys.exit()
-            # else:
-            #     # print(f'Initial Value: {valueAA}')
-            #     valueAA = valueAA + (valueAA * 5 / 3)
-            #     # print(f'New Value 5: {valueAA}\n')
-            #     # sys.exit()
-
-            if valueAA >= 0:
-                # Increase weight: Enriched residues
-                if 1 <= valueAA:
-                    # print(f'Initial Value: {valueAA}')
-                    valueAA += valueAA * 1 / 4
-                    # print(f'New Value 1: {valueAA}\n')
-                    # sys.exit()
-                elif 2 <= valueAA > 1:
-                    # print(f'Initial Value: {valueAA}')
-                    valueAA += valueAA * 1 / 2
-                    # print(f'New Value 2: {valueAA}\n')
-                    # sys.exit()
-                elif 3 <= valueAA > 2:
-                    # print(f'Initial Value: {valueAA}')
-                    valueAA += valueAA * 2 / 3
-                    # print(f'New Value 3: {valueAA}\n')
-                    # sys.exit()
-                elif 4 <= valueAA > 3:
-                    # print(f'Initial Value: {valueAA}')
-                    valueAA += valueAA * 3 / 2
-                    # print(f'New Value 4: {valueAA}\n')
-                    # sys.exit()
-                else:
-                    # print(f'Initial Value: {valueAA}')
-                    valueAA += valueAA * 1 / 3
-                    # print(f'New Value 5: {valueAA}\n')
-                    # sys.exit()
-            else:
-                # Increase weight: Deenriched residues
-                if valueAA > -1:
-                    # print(f'Initial Value: {valueAA}')
-                    valueAA = valueAA + valueAA
-                    # print(f'New Value A: {valueAA}\n')
-                elif -1 >= valueAA > -2:
-                    # print(f'Initial Value: {valueAA}')
-                    valueAA += valueAA * 1 / 4
-                    # print(f'New Value B: {valueAA}\n')
-                    # sys.exit()
-                elif -2 >= valueAA > -3:
-                    # print(f'Initial Value: {valueAA}')
-                    valueAA += valueAA * 2 / 4
-                    # print(f'New Value C: {valueAA}\n')
-                    # sys.exit()
-                elif -3 >= valueAA > -4:
-                    # print(f'Initial Value: {valueAA}')
-                    valueAA += valueAA * 3 / 4
-                    # print(f'New Value D: {valueAA}\n')
-                    # sys.exit()
-                else:
-                    # print(f'Initial Value: {valueAA}')
-                    valueAA += valueAA * 5 / 3
-                    # print(f'New Value E: {valueAA}\n')
-                    # sys.exit()
-
-            # Update: Prediction score
-            substrateScorePredicted += valueAA
-        iteration += 1
-        substrates[substrate] = (score, substrateScorePredicted)
-    
-    # Print: Predictions
-    iteration = 0
-    iterationPrint = 0
-    for substrate, score in substrates.items():
-        expES, predES = score
-        if iteration % 10 == 0:
-            print(f'Substrate:{green} {substrate}{resetColor}\n'
-                  f'    Experimental:{pink} {expES}{resetColor}\n'
-                  f'    Predicted:{purple} {predES}{resetColor}\n')
-            iterationPrint += 1
-        else:
-            iteration += 1
-        if iterationPrint == inPrintNumber:
-            print('')
-            break
-
-    
-    # Extract x and y values for the scatter plot
-    xValues, yValues = [], []
-    if inPlotSubsetOfSubstrates:
-        iteration = 0
-        selectedSubstrates = {}
-        for substrate, scores in substrates.items():
-            if iteration % 10 == 0:
-                selectedSubstrates[substrate] = scores
-            iteration += 1
-
-        # Unpack the datapoints
-        substrates = selectedSubstrates.copy()
-        xValues = [scores[0] for scores in substrates.values()]
-        yValues = [scores[1] for scores in substrates.values()]
-    else:
-        for substrate, scores in substrates.items():
-            xValues.append(scores[0])
-            yValues.append(scores[1])
-
-    # Normalize the values
-    if inNormalizeValues:
-        if inPrintNormalizedValues:
-            print('Adjust all values to range from 0 to 1')
-
-            # Normalize x-values
-            x_max = max(xValues)
-            x_min = min(xValues)
-            xValues_normalized = []
-            print(f'Normalize the x-values:\n'
-                  f'     Initial Boundaries:\n'
-                  f'          X Max: {round(x_max, ngs.roundVal)}\n'
-                  f'          X Min: {resetColor(x_min, ngs.roundVal)}\n')
-
-            # Make sure that there are no negative values
-            if x_min < 0:
-                xValues = xValues + abs(x_min)
-                x_max = max(xValues)
-
-            for x in xValues:
-                xValues_normalized.append(x / x_max)
-            xValues = xValues_normalized
-            print(f'     Adjusted Boundaries:\n'
-                  f'          X Max: {max(xValues)}\n'
-                  f'          X Min: {min(xValues)}\n\n')
-
-            # Normalize y-values
-            y_max = max(yValues)
-            y_min = min(yValues)
-            yValues_normalized = []
-            print(f'Normalize the y-values:\n'
-                  f'     Initial Boundaries:\n'
-                  f'          Y Max: {y_max}\n'
-                  f'          Y Min: {y_min}\n')
-
-            # Make sure that there are no negative values
-            if y_min < 0:
-                yValues = yValues + abs(y_min)
-                y_max = max(yValues)
-                print(f'     Y Min was less than 0\n'
-                      f'          Y Max Adjusted: {y_max}\n'
-                      f'          Y Min Adjusted: {min(yValues)}\n')
-
-            # Normalize y-values
-            for y in yValues:
-                yValues_normalized.append(y / y_max)
-            yValues = yValues_normalized
-            print(f'     Adjusted Boundaries:\n'
-                  f'          Y Max: {max(yValues)}\n'
-                  f'          Y Min: {min(yValues)}\n\n')
-        else:
-            x_max = max(xValues)
-            x_min = min(xValues)
-            xValues_normalized = []
-
-            # Make sure that there are no negative values
-            if x_min < 0:
-                xValues = xValues + abs(x_min)
-                x_max = max(xValues)
-
-            # Normalize x-values
-            for x in xValues:
-                xValues_normalized.append(x / x_max)
-            xValues = xValues_normalized
-
-            y_max = max(yValues)
-            y_min = min(yValues)
-            yValues_normalized = []
-
-            # Make sure that there are no negative values
-            if y_min < 0:
-                yValues = yValues + abs(y_min)
-                y_max = max(yValues)
-
-            # Normalize y-values
-            for y in yValues:
-                yValues_normalized.append(y / y_max)
-            yValues = yValues_normalized
-
-    # Inspect pillar
-    if inPrintPredictionAccuracy:
-        iteration = 0
-        iterationPrint = 0
-        avgEnrichment = 0
-        avgComputational = 0
-        print(f'{green}Inspect x-axis:{pink} {inInspectDataUpperValue}{resetColor} '
-              f'>= ES: Experimentally Enriched Substrate >='
-              f'{pink} {inInspectDataLowerValue}{resetColor}')
-        for substrate in substrates.keys():
-            valueEnrichment = xValues[iteration]
-            if inInspectDataUpperValue >= valueEnrichment >= inInspectDataLowerValue:
-                if iterationPrint >= inPrintNumber:
-                    avgEnrichment /= iterationPrint
-                    avgComputational /= iterationPrint
-                    print(f'Average Displayed Enrichment Score:'
-                          f' {pink}{avgEnrichment}{resetColor}\n'
-                          f'Average Displayed Predicted Score:'
-                          f'{pink} {avgComputational}{resetColor}\n\n')
-                    break
-
-                # Update datapoints
-                valuePredicted = yValues[iteration]
-
-                difference = abs(valueEnrichment - valuePredicted)
-                if difference >= inDifferenceThreshold:
-                    avgEnrichment += valueEnrichment
-                    avgComputational += valuePredicted
-
-                    print(f'{pink}{substrate}{resetColor}\n'
-                          f'     Enrichment:{white} {valueEnrichment}{resetColor}\n'
-                          f'     Predicted:{white} {valuePredicted}{resetColor}\n'
-                          f'     Difference:{green} {difference}{resetColor}\n')
-                    iterationPrint += 1
-            iteration += 1
-    
-    decimals = 3
-    if inInspectExperimentalES:
-        print(f'Inspect x-axis:{purple} {inExperimentalESUpperLimit}{resetColor} '
-              f'>= Substrate Enrichment >= '
-              f'{purple} {inExperimentalESLowerLimit}{resetColor}')
-        iteration = 0
-        for substrate, scores in substrates.items():
-            iteration += 1
-            valueEnrichment, valuePredicted = scores[0], scores[1]
-            if (inExperimentalESUpperLimit >= valueEnrichment >= 
-                    inExperimentalESLowerLimit):
-                if iteration % 10 == 0:
-                    difference = valueEnrichment - valuePredicted
-                    print(f'{green}{substrate}{resetColor}\n'
-                          f'     Enrichment:{pink} {np.round(valueEnrichment, decimals)}'
-                          f'{resetColor}\n'
-                          f'     Predicted:{purple} {np.round(valuePredicted, decimals)}'
-                          f'{resetColor}\n'
-                          f'     Difference:{white} {np.round(difference, decimals)}'
-                          f'{resetColor}\n')
-    
-    if inInspectPredictedES:
-        print(f'\nInspect y-axis:{purple} {inPredictedESUpperLimit}{resetColor} '
-              f'>= Predicted Substrate Enrichment >= '
-              f'{purple} {inPredictedESLowerLimit}{resetColor}')
-        iteration = 0
-        for substrate, scores in substrates.items():
-            iteration += 1
-            valueEnrichment, valuePredicted = scores[0], scores[1]
-            if inPredictedESUpperLimit >= valuePredicted >= inPredictedESLowerLimit:
-                if iteration % 10 == 0:
-                    difference = valueEnrichment - valuePredicted
-                    print(f'{green}{substrate}{resetColor}\n'
-                          f'     Enrichment:{pink} {np.round(valueEnrichment, decimals)}'
-                          f'{resetColor}\n'
-                          f'     Predicted:{purple} {np.round(valuePredicted, decimals)}'
-                          f'{resetColor}\n'
-                          f'     Difference:{white} {np.round(difference, decimals)}'
-                          f'{resetColor}\n')
-
-    # Scatter plot
-    fig, ax = plt.subplots(figsize=(10, 8))
-    ax.scatter(xValues, yValues, color=inPredictionDatapointColor, alpha=0.5)
-    ax.set_title(f'Substrate Enrichment Scores\n'
-                 f'Matrix Type: {matrixType}',
-                 fontsize=inFigureTitleSize, fontweight='bold')
-    ax.set_xlabel('Experimental Substrate Scores', fontsize=inFigureLabelSize,
-                  fontweight='bold')
-    ax.set_ylabel('Predicted Substrate Scores', fontsize=inFigureLabelSize,
-                  fontweight='bold')
-    ax.grid(True, color='black')
-    plt.subplots_adjust(top=0.908, bottom=0.083, left=0.094, right=0.958)
-
-    if inSetAxisLimits:
-        plt.xlim(inMinX, inMaxX)
-        plt.ylim(inMinY, inMaxY)
-    else:
-        if inNormalizeValues:
-            plt.xlim(-0.05, 1.05)
-            # plt.ylim(-0.05, 1.05)
-        else:
-            if inMiniumSubstrateScoreLimit:
-                plt.xlim(inMiniumSubstrateScore - 0.5, 10.5)
-            # else:
-            # plt.xlim(-7, 10.5)
-
-    if inPlotSubstrateText:
-        # Annotate the points with the substrate names (optional)
-        for substrate, (x, y) in substrates.items():
-            ax.annotate(substrate, (x, y), textcoords="offset points", 
-                        xytext=(0, 10), ha='center')
-
-    # Set tick parameters
-    ax.tick_params(axis='both', which='major', length=inTickLength,
-                   labelsize=inFigureTickSize, width=inLineThickness)
-
-    # Set the thickness of the figure border
-    for _, spine in ax.spines.items():
-        spine.set_visible(True)
-        spine.set_linewidth(inLineThickness)
-
-    fig.canvas.mpl_connect('key_press_event', pressKey)
-    plt.show()
 
 
 
@@ -818,7 +324,8 @@ else:
 ngs.getDatasetTag(combinedMotifs=True, useCodonProb=inUseCodonProb, codon=inCodonSequence)
 
 # Load: Substrates
-# substratesInitial, totalSubsInitial = ngs.loadUnfilteredSubs(loadInitial=True)
+if inSaveCSV and inUseBgSubs or inFindSequences:
+    substratesInitial, totalSubsInitial = ngs.loadUnfilteredSubs(loadInitial=True)
 
 # Load: Substrate motifs
 motifs, motifsCountsTotal, substratesFiltered = ngs.loadMotifSeqs(
@@ -836,8 +343,6 @@ combinedMotifs = False
 if len(ngs.motifIndexExtracted) > 1:
     combinedMotifs = True
 
-
-# # Evaluate: Count Matrices
 # Load: Motif counts
 countsMotifs, countsRelCombined, countsRelCombinedTotal = ngs.loadMotifCounts(
         motifLabel=inMotifPositions, motifIndex=motifFramePos, returnList=True
@@ -849,9 +354,7 @@ rfCombinedReleasedMotif = ngs.calculateRFCombinedMotif(
 )
 
 # Calculate: Positional entropy
-ngs.calculateEntropy(
-    rf=rfCombinedReleasedMotif, combinedMotifs=combinedMotifs, releasedCounts=True
-)
+ngs.calculateEntropy(rf=rfCombinedReleasedMotif, combinedMotifs=combinedMotifs)
 
 # Evaluate statistics
 if inPlotStats and len(countsMotifs) > 1:
@@ -862,8 +365,7 @@ if inPlotStats and len(countsMotifs) > 1:
 
 # Calculate enrichment scores
 ngs.calculateEnrichment(
-    rfInitial=rfInitial, rfFinal=rfCombinedReleasedMotif,
-    combinedMotifs=combinedMotifs, releasedCounts=True
+    rfInitial=rfInitial, rfFinal=rfCombinedReleasedMotif, combinedMotifs=combinedMotifs
 )
 
 # Create csv
@@ -873,7 +375,6 @@ if inSaveCSV:
     else:
         substrates = substratesFiltered
     if inUseBgSubs:
-        substratesInitial, totalSubsInitial = ngs.loadUnfilteredSubs(loadInitial=True)
         ngs.saveSubstrateCSV(
             seqs=substrates, initialRF=rfInitial, finalRF=rfCombinedReleasedMotif,
             minCounts=inMinSubsCSV, seqsBg=substratesInitial, excludeAA=inExcludeSeq,
@@ -885,20 +386,6 @@ if inSaveCSV:
             seqs=substrates, initialRF=rfInitial, finalRF=rfCombinedReleasedMotif,
             minCounts=inMinSubsCSV, chopSeq=inSubLengthCSV
         )
-# if inSaveCSV:
-#     # Save full length substrates
-#     ngs.saveSubstrateCSV(
-#         seqs=substratesFiltered, initialRF=rfInitial,
-#         finalRF=rfCombinedReleasedMotif, minCounts=inMinSubsCSV,
-#         combinedMotifs=combinedMotifs
-#     )
-#
-#     # Save motif sequences
-#     ngs.saveSubstrateCSV(
-#         seqs=motifs, initialRF=rfInitial,
-#         finalRF=rfCombinedReleasedMotif, minCounts=inMinSubsCSV,
-#         combinedMotifs=combinedMotifs
-#     )
 
 
 # Find sequences
@@ -920,7 +407,6 @@ if inFindAAInSequence:
                          sortType='Motifs', combinedMotifs=combinedMotifs)
 
 
-
 # Predict substrate activity
 if inPredictActivity:
     ngs.predictActivity(
@@ -938,11 +424,8 @@ if inPredictActivity:
     if not inPredictActivity:
         ngs.predictActivityHeatmap(predSubstrates=inPredictSubstrates,
                                    predModel=ngs.datasetTag, predLabel=inPredictionTag,
-                                   RF=rfCombinedReleasedMotif,
-                                   releasedCounts=True, rankScores=inRankScores,
+                                   RF=rfCombinedReleasedMotif, rankScores=inRankScores,
                                    scaleEMap=inScalePredMatrix)
-
-# sys.exit()
 
 if inPlotFilteredSubs or inPlotWordCloud or inPlotBarGraphs:
     # Plot count related figures
@@ -968,228 +451,9 @@ if inPlotFilteredSubs or inPlotWordCloud or inPlotBarGraphs:
                             combinedMotifs=combinedMotifs)
 
 
-
-
 if inPredictCodonsEnrichment:
 # Evaluate codon
     rfInitial = ngs.calculateRF(counts=countsInitial, N=countsInitialTotal,
                                      fileType='Initial Sort', calcAvg=True)
     probCodon = ngs.calculateProbCodon(codonSeq=inCodonSequence)
     ngs.codonPredictions(codon=inCodonSequence, codonProb=probCodon, substrates=motifs)
-
-
-sys.exit()
-
-# Set flag
-subsPredict = None
-if inPredictSubstrateActivityPCA:
-    inPlotBarGraphs = True
-
-# Predict activity towards substrates
-if inPredictSubstrateActivity:
-    # Extract substrate frames
-    if subsPredict is None:
-        subsPredict = trimSubstrates()
-
-    # Predict: Enrichment
-    subsPredict, yMax, yMin = predictActivity(substrates=subsPredict.copy(),
-                                              predictionMatrix=fixedMotifES,
-                                              normalizeValues=inNormalizePredictions,
-                                              matrixType='Enrichment Scores')
-    plotSubstratePrediction(substrates=subsPredict, predictValues=True, 
-                            scaledMatrix=False, plotDataPCA=False, popPCA=None)
-
-    # Predict: Scaled Enrichment
-    subsPredictScaled, yMax, yMin = predictActivity(
-        substrates=subsPredict.copy(), predictionMatrix=fixedMotifESScaled,
-        normalizeValues=inNormalizePredictions, matrixType='Scaled Enrichment Scores')
-    plotSubstratePrediction(substrates=subsPredictScaled, predictValues=True, 
-                            scaledMatrix=True, plotDataPCA=False, popPCA=None)
-
-    # Predict: AI
-    subsPredictAI = {
-        'VVLQSGFR': 6.168589689,
-        'VVMQSGFR': 5.012006811,
-        'VVVQSGFR': 0.01899718477,
-        'VVGQSGFR': -0.4574221781,
-        'VVLHSGFR': 2.41369248,
-        'VVLMSGFR': 1.682469002,
-        'VVLYSGFR': -1.546786043,
-        'IVLQSGFR': 5.711949158,
-        'KVLQSGFR': 4.342788918,
-        'VYLQSGFR': 5.619216201,
-        'VGLQSGFR': 3.36114118,
-        'VVLQAGFR': 6.478588254,
-        'VVLQNGFR': 3.759282483,
-        'VVLQIGFR': 3.277549563,
-        'VVLQSPFR': 3.933666618,
-        'AVLQSGFR': 5.55764466,
-        'VTFQSAVK': 2.7657616,
-        'ATVQSKMS': 0.8655595173,
-        'ATLQAIAS': 5.974816893,
-        'VKLQNNEL': 2.965594448,
-        'VRLQAGNA': 6.732328298,
-        'PMLQSADA': 6.745837998,
-        'TVLQAVGA': 5.644710202,
-        'ATLQAENV': 6.915391686,
-        'TRLQSLEN': 5.03887008,
-        'PKLQSSQA': 5.167261885,
-        'VTFQGKFK': 4.626522297,
-        'PLMQSADA': 4.541013113,
-        'PKLQASQA': 5.259179405
-        }
-    maxValue = max(subsPredictAI.values())
-    for substrate, score in subsPredictAI.items():
-        subsPredictAI[substrate] = score / maxValue
-    subLimit = len(inSubsPredict)
-    if subLimit != len(subsPredictAI):
-        iteration = 0
-        subSubSet = {}
-        for substrate, score in subsPredictAI.items():
-            subSubSet[substrate] = score
-            iteration += 1
-            if iteration == subLimit:
-                break
-        subsPredictAI = subSubSet
-    # plotSubstratePrediction(substrates=subsPredictAI, predictValues=False, 
-    #                         scaledMatrix=True, plotDataPCA=False, popPCA=None)
-
-
-    # Evaluate predictions
-    if inEvaluatePredictions:
-        simKinetics = generateKinetics(predictions=subsPredict)
-        plotPredictionAccuracy(data=simKinetics, predictionType='Enrichment')
-        plotPredictionStats(data=simKinetics, predictionType='Enrichment')
-
-        simKineticsScaled = generateKinetics(predictions=subsPredictScaled)
-        plotPredictionAccuracy(data=simKineticsScaled, 
-                               predictionType='Scaled Enrichment')
-        plotPredictionStats(data=simKineticsScaled, predictionType='Scaled Enrichment')
-
-        simKineticsAI = generateKinetics(predictions=subsPredictAI)
-        plotPredictionAccuracy(data=simKineticsAI, predictionType='SArKS - ESM')
-        plotPredictionStats(data=simKineticsAI, predictionType='SArKS - ESM')
-
-
-
-# Evaluate substrates
-if (inPlotBarGraphs or inPlotBinnedSubstrateES
-        or inPlotBinnedSubstratePrediction or inPlotBarGraphs
-        or inPlotEnrichmentMap or inPlotLogo
-        or inPredictSubstrateActivityPCA or inPlotWordCloud):
-
-    
-    # Plot: Motifs
-    if inPlotBarGraphs:
-        print(f'{orange}Warning: This part of the script has not been written\n'
-              f'# Plot: Motifs\nif inPlotBarGraphs:{resetColor}\n\n')
-
-    if (inPlotBarGraphs or inPlotEnrichmentMap or inPlotLogo
-            or inPredictSubstrateActivityPCA or inPlotWordCloud):
-        subPopulations = []
-
-        # Convert substrate data to numerical
-        tokensESM, subsESM, subCountsESM = ngs.ESM(substrates=motifs,
-                                                   collectionNumber=inTotalSubsPCA,
-                                                   useSubCounts=inIncludeSubCountsESM,
-                                                   subPositions=inMotifPositions,
-                                                   datasetTag=ngs.labelCombinedMotifs)
-
-        # Cluster substrates
-        subPopulations = ngs.plotPCA(
-            substrates=motifs, data=tokensESM, indices=subsESM, numberOfPCs=inNumberOfPCs,
-            fixedTag=ngs.labelCombinedMotifs, N=subCountsESM, fixedSubs=True,
-            saveTag=ngs.labelCombinedMotifs)
-
-        # Plot: Substrate clusters
-        if (inPlotEnrichmentMap or inPlotLogo
-                or inPredictSubstrateActivityPCA or inPlotWordCloud):
-            clusterCount = len(subPopulations)
-            for index, subCluster in enumerate(subPopulations):
-                # Plot data
-                plotSubstratePopulations(clusterSubs=subCluster, clusterIndex=index,
-                                         numClusters=clusterCount)
-
-
-
-    if inPlotBinnedSubstrateES or inPlotBinnedSubstratePrediction:
-        # Verify that the file exists
-        if os.path.exists(filePathBinnedSubsES):
-            # Load the data
-            with open(filePathBinnedSubsES, 'rb') as file:
-                enrichedMotif = pk.load(file)
-        else:
-            # Obtain data: Initial sort
-            if os.path.exists(filePathFixedMotifInitial):
-                # Load the data
-                with open(filePathFixedMotifInitial, 'rb') as file:
-                    framerfInitial = pk.load(file)
-
-                # Calculate: Sample size
-                frameTotalCountsInitial = pd.read_csv(
-                    filePathFixedMotifInitialTotalCounts, header=None)
-                frameTotalCountsInitial = int(frameTotalCountsInitial.iloc[0, 0])
-            else:
-                # Fix frame
-                frameCountsInitial, frameTotalCountsInitial = fixInitialSubs(
-                    substrates=substratesInitial)
-
-                # Evaluate: Probability
-                framerfInitial = substrateProbability(substrates=frameCountsInitial,
-                                                        N=frameTotalCountsInitial,
-                                                        sortType='Initial Sort')
-
-                # Save the data
-                with open(filePathFixedMotifInitial, 'wb') as file:
-                    pk.dump(framerfInitial, file)
-                frameTotalCountsInitial = pd.DataFrame([frameTotalCountsInitial])
-                frameTotalCountsInitial.to_csv(filePathFixedMotifInitialTotalCounts,
-                                               index=False, header=False)
-                frameTotalCountsInitial = int(frameTotalCountsInitial.iloc[0, 0])
-
-            # Obtain data: Final sort
-            if os.path.exists(filePathFixedMotifFinal):
-                # Load the data
-                with open(filePathFixedMotifFinal, 'rb') as file:
-                    framerfFinal = pk.load(file)
-            else:
-                # Evaluate: Probability
-                framerfFinal = substrateProbability(substrates=motifs,
-                                                      N=frameTotalCountsInitial,
-                                                      sortType='Final Sort')
-                with open(filePathFixedMotifFinal, 'wb') as file:
-                    pk.dump(framerfFinal, file)
-
-
-            # Calculate: ES
-            enrichedMotif = subMotifEnrichment(substratesInitial=framerfInitial,
-                                                initialN=frameTotalCountsInitial,
-                                                substratesFinal=framerfFinal)
-
-            # Save the fixed substrate dataset
-            if inSaveBinnedSubES:
-                with open(filePathBinnedSubsES, 'wb') as file:
-                    pk.dump(enrichedMotif, file)
-                print('================================= Save The Data '
-                      '=================================')
-                print(f'Binned substrate ES saved at:\n'
-                      f'     {filePathBinnedSubsES}\n\n')
-
-    # Plot: Binned enrichment bar graph
-    if inPlotBinnedSubstrateES:
-        ngs.plotBinnedSubstrates(substrates=motifs,
-                                 countsTotal=frameTotalCountsFinal,
-                                 datasetTag=ngs.labelCombinedMotifs,
-                                 dataType='ES',
-                                 title=f'{inEnzymeName}\n{ngs.labelCombinedMotifs}\n'
-                                       f'Top {inPlotBinnedSubNumber} Substrates',
-                                 numDatapoints=inPlotBinnedSubNumber,
-                                 barColor=inBarColor,
-                                 barWidth=inBarWidth)
-
-    # Predict: Binned enrichment
-    if inPlotBinnedSubstratePrediction:
-        matrixTypeEnrichment = 'Enrichment Scores Test' # 'log2(RF Final / RF Initial)'
-        predictSubstrateEnrichment(substratesEnriched=enrichedMotif,
-                                   matrix=fixedMotifES,
-                                   matrixType=matrixTypeEnrichment)
