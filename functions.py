@@ -859,33 +859,33 @@ class NGS:
         # Define: File path
         if motifPath:
             if customTag is None:
-                file = (f'{self.enzymeName} - {self.datasetTagMotif} - '
-                        f'FinalSort - MinCounts {self.minSubCount}').replace(
+                file = (f'{self.enzymeName}-{self.datasetTagMotif}-'
+                        f'FinalSort-MinCounts {self.minSubCount}').replace(
                     '/', '_')
                 pathSubs = (
-                    os.path.join(self.pathData, f'fixedMotifSubs - {file}.pkl'))
+                    os.path.join(self.pathData, f'fixedMotifSubs-{file}.pkl'))
                 pathCounts = (
-                    os.path.join(self.pathData, f'fixedMotifCounts - {file}.csv'))
+                    os.path.join(self.pathData, f'fixedMotifCounts-{file}.csv'))
                 pathCountsReleased = (
-                    os.path.join(self.pathData, f'fixedMotifCountsRel - {file}.csv'))
+                    os.path.join(self.pathData, f'fixedMotifCountsRel-{file}.csv'))
                 paths = [pathSubs, pathCounts, pathCountsReleased]
             else:
-                file = (f'{self.enzymeName} - {customTag} - FinalSort - '
+                file = (f'{self.enzymeName}-{customTag}-FinalSort-'
                         f'MinCounts {self.minSubCount}').replace('/', '_')
                 pathSubs = (
-                    os.path.join(self.pathData, f'fixedMotifSubs - {file}.pkl'))
+                    os.path.join(self.pathData, f'fixedMotifSubs-{file}.pkl'))
                 pathCounts = (
-                    os.path.join(self.pathData, f'fixedMotifCounts - {file}.csv'))
+                    os.path.join(self.pathData, f'fixedMotifCounts-{file}.csv'))
                 pathCountsReleased = (
-                    os.path.join(self.pathData, f'fixedMotifCountsRel - {file}.csv'))
+                    os.path.join(self.pathData, f'fixedMotifCountsRel-{file}.csv'))
                 paths = [pathSubs, pathCounts, pathCountsReleased]
         else:
-            file = (f'{self.enzymeName} - {datasetTag} - FinalSort - '
+            file = (f'{self.enzymeName}-{datasetTag}-FinalSort-'
                     f'MinCounts {self.minSubCount}').replace('/', '_')
             pathSubs = os.path.join(
-                self.pathData, f'fixedSubs - {file}.pkl')
+                self.pathData, f'fixedSubs-{file}.pkl')
             pathCounts = os.path.join(
-                self.pathData, f'counts - {file}.csv')
+                self.pathData, f'counts-{file}.csv')
             self.pathFilteredSubs = pathSubs
             self.pathFilteredCounts = pathCounts
             paths = [pathSubs, pathCounts]
@@ -974,13 +974,13 @@ class NGS:
         # Define: File path
         for motifTag in self.motifTags:
             if self.excludeAAs:
-                file = (f'{self.enzymeName} - {excludeTag} Fixed {motifTag} - '
-                        f'FinalSort - MinCounts {self.minSubCount}'
+                file = (f'{self.enzymeName}-{excludeTag} Fixed {motifTag}-'
+                        f'FinalSort-MinCounts_{self.minSubCount}'
                         ).replace('/', '_')
             else:
-                file = (f'{self.enzymeName} - {motifTag} - FinalSort - MinCounts '
+                file = (f'{self.enzymeName}-{motifTag}-FinalSort-MinCounts_'
                         f'{self.minSubCount}').replace('/', '_')
-            paths.append(os.path.join(self.pathData, f'{dataset} - {file}'))
+            paths.append(os.path.join(self.pathData, f'{dataset}-{file}'))
         if loadSubs :
             paths = [f'{p}.pkl' for p in paths]
         else:
@@ -1020,7 +1020,7 @@ class NGS:
                 fileNames = self.filesFinal
 
             for fileName in fileNames:
-                files.append(os.path.join(self.pathData, f'counts_{fileName}'))
+                files.append(os.path.join(self.pathData, f'counts_{fileName}.csv'))
 
         print(f'Loading data:')
         for filePath in files:
@@ -1142,7 +1142,7 @@ class NGS:
             if iteration >= self.printNumber:
                 break
         print(f'\nTotal substrates: {purple}{fileType}\n'
-              f'     {red} {substrateTotal:,}{resetColor}\n\n')
+              f'     {red} {substrateTotal:,}{resetColor}\n')
 
         return substrates, substrateTotal
 
@@ -1609,38 +1609,28 @@ class NGS:
             )
 
         # Define: Save location
-        figLabel = (f'{self.enzyme} - Bars - Counts - '
-                    f'{self.datasetTag} - {subLen} AA - N {N} - '
-                    f'Min Counts {minCounts}.png')
+        figLabel = (f'{self.enzyme}-Bars-Counts-{self.datasetTag}-{subLen}AA-'
+                    f'N_{N}-MinCounts_{minCounts}.png')
         if excValid:
-            figLabel = figLabel.replace('Counts','Counts ExtValid')
+            figLabel = figLabel.replace('Counts','CountsExtValid')
         if combinedMotifs:
             figLabel = figLabel.replace(self.datasetTag,
-                                        f'Substrate Profile {self.datasetTag}.png')
+                                        f'SubstrateProfile_{self.datasetTag}.png')
         if seqsBg:
             if tagMod:
                 figLabel = figLabel.replace(
-                    '.png',
-                    f' MinBgCounts {maxCountsBg} - scaledMod {tagMod}.png'
+                    '.png', f'-MinBgCounts_{maxCountsBg}-scaledMod_{tagMod}.png'
                 )
             else:
                 figLabel = figLabel.replace(
-                    '.png', f' MinBgCounts {maxCountsBg} - mod {mod}.png'
+                    '.png', f'-MinBgCounts_{maxCountsBg}-mod_{mod}.png'
                 )
         pathFigs = [
             os.path.join(pathCSVFig, figLabel),
-            os.path.join(pathCSVFig, figLabel.replace(
-                '- Counts', '- Counts Norm')
-                         ),
-            os.path.join(pathCSVFig, figLabel.replace(
-                '- Counts', '- Z Counts')
-                         ),
-            os.path.join(pathCSVFig, figLabel.replace(
-                '- Counts', '- Pred')
-                         ),
-            os.path.join(pathCSVFig, figLabel.replace(
-                '- Counts', '- Z Pred')
-                         )
+            os.path.join(pathCSVFig, figLabel.replace('-Counts', '-CountsNorm')),
+            os.path.join(pathCSVFig, figLabel.replace('-Counts', '-ZCounts')),
+            os.path.join(pathCSVFig, figLabel.replace('-Counts', '-Pred')),
+            os.path.join(pathCSVFig, figLabel.replace('-Counts', '-ZPred'))
         ]
 
 
@@ -2114,26 +2104,26 @@ class NGS:
         # Define: Save location
         figLabel = ''
         if self.motifFilter and not self.releasedCounts:
-            figLabel = (f'{self.enzymeName} - {figType} '
-                        f'{self.saveFigureIteration} - {self.datasetTagMotif} - '
-                        f'{seqLen} AA - MinCounts {self.minSubCount}.png')
+            figLabel = (f'{self.enzymeName}-{figType} '
+                        f'{self.saveFigureIteration}-{self.datasetTagMotif}-'
+                        f'{seqLen} AA-MinCounts_{self.minSubCount}.png')
         elif self.releasedCounts:
-            figLabel = (f'{self.enzymeName} - {figType} - Substrate Profile '
-                        f'{self.datasetTagMotif} - '
-                        f'{seqLen} AA - MinCounts {self.minSubCount}.png')
+            figLabel = (f'{self.enzymeName}-{figType}-SubstrateProfile '
+                        f'{self.datasetTagMotif}-'
+                        f'{seqLen} AA-MinCounts_{self.minSubCount}.png')
         elif combinedMotifs:
-            figLabel = (f'{self.enzymeName} - {figType} - Combined '
-                        f'{self.datasetTag} - {seqLen} AA - '
+            figLabel = (f'{self.enzymeName}-{figType}-Combined '
+                        f'{self.datasetTag}-{seqLen} AA-'
                         f'MinCounts {self.minSubCount}.png')
         else:
-            figLabel = (f'{self.enzymeName} - {figType} - '
-                        f'{self.datasetTag} - '
-                        f'N {self.nSubsFinal} - {seqLen} AA - '
+            figLabel = (f'{self.enzymeName}-{figType}-'
+                        f'{self.datasetTag}-'
+                        f'N_{self.nSubsFinal}-{seqLen} AA-'
                         f'MinCounts {self.minSubCount}.png')
         if '/' in figLabel:
             figLabel = figLabel.replace('/', '_')
         if N:
-            figLabel = figLabel.replace(f'N {self.nSubsFinal}', f'N {N}')
+            figLabel = figLabel.replace(f'N_{self.nSubsFinal}', f'N_{N}')
 
         saveLocation = os.path.join(self.pathSaveFigs, figLabel)
 
@@ -2169,6 +2159,19 @@ class NGS:
                   f'     N Final: {pink}{type(NFinal)}{resetColor}')
         print(f'Unique Final Seqs: '
               f'{red}{self.nSubsFinalUniqueSeqs:,}{resetColor}\n\n')
+        if NInitial == 0 and NFinal == 0:
+            print(f'{orange}ERROR: No substrates were loaded in the '
+                  f'{cyan}Background{orange} and the {cyan}Experimental{orange} sets\n')
+            sys.exit(1)
+        elif NInitial == 0:
+            print(f'{orange}ERROR: No substrates were loaded in the '
+                  f'{cyan}Background{orange} set\n')
+            sys.exit(1)
+        elif NFinal == 0:
+            print(f'{orange}ERROR: No substrates were loaded in the '
+                  f'{cyan}Experimental{orange} set\n')
+            sys.exit(1)
+        print()
 
         # Set figure titles
         self.titleCombined = (f'{self.enzymeName}\n'
@@ -2978,8 +2981,8 @@ class NGS:
             title = self.titleCombined
         else:
             title = self.title
-        # if ' - ' in title:
-        #     title = title.replace(' - ', '\n')
+        # if '-' in title:
+        #     title = title.replace('-', '\n')
         if len(self.datasetTag.replace('[', '').replace(']', '').replace('-', '')) > 40:
             title = title.replace('Register ', 'Register\n')
 
@@ -3115,7 +3118,7 @@ class NGS:
         if combinedMotifs or len(self.motifIndexExtracted) > 1 and not self.releasedCounts:
             title = title.replace(
                 self.enzymeName,
-                f'{self.enzymeName}\nCombined Filter {self.datasetTag}'
+                f'{self.enzymeName}\nCombinedFilter_{self.datasetTag}'
             )
 
         # Print: data
@@ -3491,7 +3494,7 @@ class NGS:
                 title = f'\n{self.enzymeName}\n{self.datasetTag}\n{dataType}'
         if combinedMotifs:
             title = title.replace(self.datasetTag,
-                                  f'Combined Filter {self.datasetTag}')
+                                  f'CombinedFilter_{self.datasetTag}')
 
         # Create heatmap
         cMapCustom = self.createCustomColorMap(colorType=dataType)
@@ -3838,41 +3841,41 @@ class NGS:
             # Define: Save location
             if predActivity:
                 if predType.lower() == 'chosen':
-                    figLabel = (f'{self.enzymeName} - Predicted Activity - '
-                                f'{self.datasetTag} - {predType} Subs - {predModel} - '
-                                f'{motifLen} AA - Plot N {plotNSubs} - '
-                                f'MinCounts {self.minSubCount}.png')
+                    figLabel = (f'{self.enzymeName}-PredictedActivity-'
+                                f'{self.datasetTag}-{predType}-Subs_{predModel}-'
+                                f'{motifLen}AA-PlotN_{plotNSubs}-'
+                                f'MinCounts_{self.minSubCount}.png')
                 else:
                     if predModel is None:
                         predType = predType.replace('/', '_')
-                        figLabel = (f'{self.enzymeName} - Predicted Activity - '
-                                    f'{self.datasetTag} - {predType} - '
-                                    f'{motifLen} AA - N {plotNSubs} - '
-                                    f'MinCounts {self.minSubCount}.png')
+                        figLabel = (f'{self.enzymeName}-PredictedActivity-'
+                                    f'{self.datasetTag}-{predType}-'
+                                    f'{motifLen}AA-N_{plotNSubs}-'
+                                    f'MinCounts_{self.minSubCount}.png')
                     else:
-                        figLabel = (f'{self.enzymeName} - Predicted Activity - '
-                                    f'{self.datasetTag} - {predType} Subs - '
-                                    f'{predModel} - {motifLen} AA - '
-                                    f'Select N {self.NSubBars} Plot N {plotNSubs} - '
-                                    f'MinCounts {self.minSubCount}.png')
+                        figLabel = (f'{self.enzymeName}-PredictedActivity-'
+                                    f'{self.datasetTag}-{predType} Subs-'
+                                    f'{predModel}-{motifLen}AA-'
+                                    f'Select N_{self.NSubBars}-PlotN_{plotNSubs}-'
+                                    f'MinCounts_{self.minSubCount}.png')
             else:
                 if limitNBars:
-                    figLabel = (f'{self.enzymeName} - Motif Enrichment - '
-                                f'{self.datasetTag} - {motifLen} AA - '
-                                f'Select N {self.NSubBars} Plot N {plotNSubs} - '
-                                f'MinCounts {self.minSubCount}.png')
+                    figLabel = (f'{self.enzymeName}-MotifEnrichment-'
+                                f'{self.datasetTag}-{motifLen}AA-'
+                                f'Select N_{self.NSubBars}-PlotN_{plotNSubs}-'
+                                f'MinCounts_{self.minSubCount}.png')
                 else:
-                    figLabel = (f'{self.enzymeName} - Motif Enrichment - '
-                                f'{self.datasetTag} - {motifLen} AA - '
-                                f'N {plotNSubs} - MinCounts {self.minSubCount}.png')
+                    figLabel = (f'{self.enzymeName}-MotifEnrichment-'
+                                f'{self.datasetTag}-{motifLen}AA-'
+                                f'N_{plotNSubs}-MinCounts_{self.minSubCount}.png')
                 if clusterNumPCA is not None:
-                    figLabel = figLabel.replace('Motif Enrichment',
-                        f'Motif Enrichment - PCA {clusterNumPCA}')
+                    figLabel = figLabel.replace('MotifEnrichment',
+                        f'MotifEnrichment-PCA_{clusterNumPCA}')
             figLabel = figLabel.replace('MinCounts',
-                                        f'{scoreType} - MinCounts')
+                                        f'{scoreType}-MinCounts')
             if scaleEMap:
                 figLabel = figLabel.replace(self.datasetTag,
-                                            f'Scaled {self.datasetTag}')
+                                            f'Scaled_{self.datasetTag}')
             saveLocation = os.path.join(self.pathSaveFigs, figLabel)
 
             # Save figure
@@ -4365,12 +4368,12 @@ class NGS:
                 seqLength = self.motifLen
 
             # Define: Save location
-            figLabel = (f'{self.enzymeName} - Bars - {dataType} - '
-                        f'{self.datasetTag} - {seqLength} AA - '
-                        f'N {NSubs} - MinCounts {self.minSubCount}.png')
+            figLabel = (f'{self.enzymeName}-Bars-{dataType}-'
+                        f'{self.datasetTag}-{seqLength}AA-'
+                        f'N_{NSubs}-MinCounts_{self.minSubCount}.png')
             if combinedMotifs:
                 figLabel = figLabel.replace(self.datasetTag,
-                                            f'Substrate Profile {self.datasetTag}')
+                                            f'SubstrateProfile_{self.datasetTag}')
             if 'relative frequency' in dataType.lower():
                 figLabel = figLabel.replace(dataType, 'RF')
             saveLocation = os.path.join(self.pathSaveFigs, figLabel)
@@ -4614,14 +4617,14 @@ class NGS:
         # Save the Figure
         if self.saveFigures:
             # Define: Save location
-            figLabel = (f'{self.enzymeName} - PCA - {self.datasetTag} - '
-                        f'{N} - MinCounts {self.minSubCount}.png')
+            figLabel = (f'{self.enzymeName}-PCA-{self.datasetTag}-'
+                        f'{N}-MinCounts_{self.minSubCount}.png')
             if combinedMotifs :
                 figLabel = figLabel.replace(self.datasetTag,
                                             f'Combined {self.datasetTag}')
             elif not combinedMotifs and len(self.motifIndexExtracted) > 1:
                 figLabel = figLabel.replace(self.datasetTag,
-                                            f'Substrate Profile {self.datasetTag}')
+                                            f'SubstrateProfile_{self.datasetTag}')
             saveLocation = os.path.join(self.pathSaveFigs, figLabel)
 
             # Save figure
@@ -5035,8 +5038,8 @@ class NGS:
             # Define file path
             filePathCSV = os.path.join(
                 self.pathData,
-                f'{self.enzymeName} - Enriched Subs - {self.datasetTag} - '
-                f'MinCounts {self.minSubCount}.csv')
+                f'{self.enzymeName}-EnrichedSubs-{self.datasetTag}-'
+                f'MinCounts_{self.minSubCount}.csv')
 
             # Convert dictionaries to a data frame and save as an Excel file
             clipDataset = False
@@ -5143,7 +5146,7 @@ class NGS:
                                 f'{self.datasetTag}')
             figureTitleWordCloud = (f'{inTitleEnrichmentMap}: '
                                     f'PCA Population\n{self.datasetTag}')
-            datasetTag = f'PCA Pop - {self.datasetTag}'
+            datasetTag = f'PCA_Pop-{self.datasetTag}'
         else:
             figureTitleEM = (
                 f'\n{inTitleEnrichmentMap}: PCA Population {clusterIndex + 1}\n'
@@ -5152,7 +5155,7 @@ class NGS:
                                 f'{self.datasetTag}')
             figureTitleWordCloud = (f'{inTitleEnrichmentMap}: '
                                     f'PCA Population {clusterIndex + 1}\n{self.datasetTag}')
-            datasetTag = f'PCA Pop {clusterIndex + 1} - {self.datasetTag}'
+            datasetTag = f'PCA_Pop_{clusterIndex + 1}-{self.datasetTag}'
 
         # Count fixed substrates
         countFullSubstrate = False
@@ -5227,103 +5230,6 @@ class NGS:
 
         # Plot: Word cloud
         self.plotWordCloud(substrates=substrates)
-
-
-    # ====================================================================================
-
-
-    def suffixTree(self, substrates, N, entropySubFrame, indexSubFrame, entropyMin,
-                   datasetTag, dataType):
-        print('================================== Suffix Tree '
-              '==================================')
-        if datasetTag is None:
-            print(f'Dataset: {purple}{self.enzymeName} - Unfixed{resetColor}\n')
-        else:
-            print(f'Dataset: {purple}{self.enzymeName} {dataType} {datasetTag}'
-                  f'{resetColor}\n')
-
-
-        from Trie import Trie
-
-
-        trie = Trie() # Initialize Trie
-        motifs = {}
-        indexStart = min(indexSubFrame)
-        indexEnd = max(indexSubFrame)
-
-        # Print: Substrates
-        iteration = 0
-        substrates = dict(sorted(substrates.items(), key=lambda item: item[1],
-                                 reverse=True))
-        for substrate, count in substrates.items():
-            iteration += 1
-            print(f'     {pink}{substrate}{resetColor}, '
-                  f'Counts: {red}{count:,}{resetColor}')
-            if iteration >= self.printNumber:
-                break
-        print('\n')
-
-        # Find motif positions based on the entropy threshold
-        indexPos = []
-        for index in entropySubFrame.index:
-            posEntropy = entropySubFrame.loc[index, 'ΔS']
-            if posEntropy >= entropyMin:
-                indexPos.append(int(index.replace('R', '')) - 1)
-        print(f'Index Pos: {indexPos}')
-
-        motifTrie = {}
-        countsMotif = 0
-        def addMotif(motif, count):
-            # Extract important AAs from the motif
-            motif = ''.join(motif[index] for index in indexPos)
-
-            # Add motif to the trie
-            if motif in motifTrie.keys():
-                motifTrie[motif] += count
-            else:
-                motifTrie[motif] = count
-                trie.insert(motif)
-
-
-        # Extract the motifs
-        motifCount = 0
-        for substrate, count in substrates.items():
-            motif = substrate[indexStart:indexEnd + 1]
-            if motif in motifs:
-                motifs[motif] += count
-            else:
-                motifs[motif] = count
-                motifCount += 1
-
-            # Add the motif to the tree
-            addMotif(motif, count)
-            countsMotif = len(motifTrie.keys())
-            if countsMotif >= N:
-                break
-        motifs = dict(sorted(motifs.items(), key=lambda item: item[1], reverse=True))
-        motifTrie = dict(sorted(motifTrie.items(), key=lambda item: item[1],
-                                reverse=True))
-
-        # Print: Motifs
-        print(f'Extracted Motifs:')
-        for index, (motif, count) in enumerate(motifs.items()):
-            print(f'{index+1}:{blue} {motif}{resetColor} '
-                  f'Count:{red} {count:,}{resetColor}')
-        print('\n')
-
-        # Print: Trie
-        print(f'Extracted Trie:')
-        for index, (seq, count) in enumerate(motifTrie.items()):
-            print(f'{index + 1}:{pink} {seq}{resetColor} '
-                  f'Count:{red} {count:,}{resetColor}')
-        print('\n')
-
-        # Calculate: RF
-        motifTable = self.evaluateSubtrees(trie=trie, motifTrie=motifTrie)
-
-        # Plot the Trie
-        self.plotTrie(trie=trie, motifTable=motifTable, countsMotif=countsMotif,
-                      datasetTag=datasetTag)
 
 
 
@@ -5407,16 +5313,15 @@ class NGS:
         if self.saveFigures:
             # Define: Save location
             if totalCounts:
-                figLabel = (f'{self.enzymeName} - Counts - '
-                            f'{self.datasetTag} - '
-                            f'MinCounts {self.minSubCount}.png')
+                figLabel = (f'{self.enzymeName}-Counts-{self.datasetTag}'
+                            f'MinCounts_{self.minSubCount}.png')
             else:
-                figLabel = (f'{self.enzymeName} - Prediction Matrix - '
-                            f'{self.datasetTag} - {len(xTicks)} AA - '
-                            f'MinCounts {self.minSubCount}.png')
+                figLabel = (f'{self.enzymeName}Prediction Matrix'
+                            f'{self.datasetTag}{len(xTicks)}AA-'
+                            f'MinCounts_{self.minSubCount}.png')
             if self.releasedCounts:
                 figLabel = figLabel.replace(self.datasetTag,
-                                            f'Substrate Profile {self.datasetTag}')
+                                            f'SubstrateProfile_{self.datasetTag}')
             if '/' in figLabel:
                 figLabel = figLabel.replace('/', '_')
             saveLocation = os.path.join(self.pathSaveFigs, figLabel)
@@ -5480,10 +5385,10 @@ class NGS:
             title = f'\n\n\n{self.enzymeName}'
         if self.releasedCounts:
             title = title.replace(self.datasetTag,
-                                  f'Substrate Profile {self.datasetTag}')
+                                  f'SubstrateProfile_{self.datasetTag}')
         if combinedMotifs and not self.releasedCounts:
             title = title.replace(self.datasetTag,
-                                  f'Combined Filter {self.datasetTag}')
+                                  f'CombinedFilter_{self.datasetTag}')
 
         # Figure parameters
         yMax = self.entropyMax + 0.2
@@ -5568,19 +5473,17 @@ class NGS:
         if self.saveFigures:
             # Define: Save location
             if self.filterSubs:
-                figLabel = (f'{self.enzymeName} - Entropy - '
-                            f'{self.datasetTag} - '
-                            f'MinCounts {self.minSubCount}.png')
+                figLabel = (f'{self.enzymeName}-Entropy-{self.datasetTag}-'
+                            f'MinCounts_{self.minSubCount}.png')
             else:
-                figLabel = (f'{self.enzymeName} - Entropy - '
-                            f'Unfiltered - {len(xTicks)} AA - '
-                            f'MinCounts {self.minSubCount}.png')
+                figLabel = (f'{self.enzymeName}-Entropy-Unfiltered-{len(xTicks)}AA-'
+                            f'MinCounts_{self.minSubCount}.png')
             if self.releasedCounts:
                 figLabel = figLabel.replace(self.datasetTag,
-                                            f'Substrate Profile {self.datasetTag}')
+                                            f'SubstrateProfile_{self.datasetTag}')
             elif combinedMotifs:
                 figLabel = figLabel.replace(self.datasetTag,
-                                            f'Combined {self.datasetTag}')
+                                            f'CombinedFilter_{self.datasetTag}')
             if '/' in figLabel:
                 figLabel = figLabel.replace('/', '_')
             saveLocation = os.path.join(self.pathSaveFigs, figLabel)
@@ -5663,7 +5566,7 @@ class NGS:
                 elif codonType == datasetTag:
                     title = f'{codonType} Codon'
                 else:
-                    title = f'Sorted {self.enzymeName} Library - {datasetTag}'
+                    title = f'Sorted_{self.enzymeName}-Library-{datasetTag}'
 
             fig, ax = plt.subplots(figsize=self.figSize)
             plt.ylabel('Relative Frequency', fontsize=self.labelSizeAxis)
@@ -5720,17 +5623,17 @@ class NGS:
             if self.saveFigures:
                 # Define: Save location
                 if datasetTag is None:
-                    figLabel = (f'AA Distribution - {self.enzymeName} - '
-                                f'{sortType} - Y Max {yMax} - {codonType} - '
-                                f'MinCounts {self.minSubCount}.png')
+                    figLabel = (f'AA Distribution-{self.enzymeName}-'
+                                f'{sortType}-YMax_{yMax}-{codonType}-'
+                                f'MinCounts_{self.minSubCount}.png')
                 else:
                     if codonType == datasetTag:
-                        figLabel = (f'AA Distribution - {codonType} Codon - '
-                                    f'Y Max {yMax}.png')
+                        figLabel = (f'AA Distribution-{codonType}_Codon-'
+                                    f'YMax_{yMax}.png')
                     else:
-                        figLabel = (f'AA Distribution - {self.enzymeName} - {datasetTag} - '
-                                    f'{sortType} - Y Max {yMax} - {codonType} - '
-                                    f'MinCounts {self.minSubCount}.png')
+                        figLabel = (f'AA_Distribution-{self.enzymeName}-{datasetTag}-'
+                                    f'{sortType}-YMax_{yMax}-{codonType}-'
+                                    f'MinCounts_{self.minSubCount}.png')
                 saveLocation = os.path.join(self.pathSaveFigs, figLabel)
 
                 # Save figure
@@ -5837,13 +5740,13 @@ class NGS:
             if self.saveFigures:
                 # Define: Save location
                 if datasetTag is None:
-                    figLabel = (f'AA Distribution - {position} - {self.enzymeName} - '
-                                f'{sortType} - Unfiltered - '
-                                f'MinCounts {self.minSubCount}.png')
+                    figLabel = (f'AA_Distribution-{position}-{self.enzymeName}-'
+                                f'{sortType}-Unfiltered-'
+                                f'MinCounts_{self.minSubCount}.png')
                 else:
-                    figLabel = (f'AA Distribution - {position} - {self.enzymeName} - '
-                                f'{sortType} - {datasetTag} - '
-                                f'MinCounts {self.minSubCount}.png')
+                    figLabel = (f'AA_Distribution-{position}-{self.enzymeName}-'
+                                f'{sortType}-{datasetTag}-'
+                                f'MinCounts_{self.minSubCount}.png')
                 saveLocation = os.path.join(self.pathSaveFigs, figLabel)
 
                 # Save figure
@@ -5939,13 +5842,13 @@ class NGS:
 
             # Define: Save location
             if self.releasedCounts:
-                figLabel = (f'{self.enzymeName} - Words - Substrate Profile '
-                            f'{self.datasetTagMotif} - {seqLength} AA - '
-                            f'Plot {totalWords} - MinCounts {self.minSubCount}.png')
+                figLabel = (f'{self.enzymeName}-Words-SubstrateProfile '
+                            f'{self.datasetTagMotif}-{seqLength}AA-'
+                            f'Plot_{totalWords}-MinCounts_{self.minSubCount}.png')
             else:
-                figLabel = (f'{self.enzymeName} - Words - '
-                            f'{self.datasetTag} - {seqLength} AA - '
-                            f'Plot {totalWords} - MinCounts {self.minSubCount}.png')
+                figLabel = (f'{self.enzymeName}-Words-'
+                            f'{self.datasetTag}-{seqLength} AA-'
+                            f'Plot_{totalWords}-MinCounts_{self.minSubCount}.png')
             if combinedMotifs:
                 figLabel = figLabel.replace(self.datasetTag,
                                             f'Combined {self.datasetTag}')
@@ -5955,21 +5858,21 @@ class NGS:
                 f'Select {self.wordsTotal} Plot {totalWords}')
             if clusterNumPCA is not None:
                 figLabel = figLabel.replace('Words',
-                                            f'Words - PCA {clusterNumPCA}')
+                                            f'Words-PCA_{clusterNumPCA}')
             if predActivity:
                 if combinedMotifs:
                     figLabel = figLabel.replace(
                         self.datasetTagMotif,
-                        f'{self.datasetTagMotif} - Predictions - {predModel}')
+                        f'{self.datasetTagMotif}-Predictions-{predModel}')
                 else:
                     figLabel = figLabel.replace(
                         self.datasetTag,
-                        f'{self.datasetTag} - Predictions - {predModel}')
+                        f'{self.datasetTag}-Predictions-{predModel}')
             saveLocation = os.path.join(self.pathSaveFigs, figLabel)
             if self.useEF:
-                saveLocation = saveLocation.replace('Words', 'Words - EF')
+                saveLocation = saveLocation.replace('Words', 'Words_EF')
             else:
-                saveLocation = saveLocation.replace('Words', 'Words - Counts')
+                saveLocation = saveLocation.replace('Words', 'Words_Counts')
 
             # Save figure
             if os.path.exists(saveLocation):
@@ -6129,7 +6032,8 @@ class NGS:
 
 
 
-    def extractMotif(self, substrates, motifFrame, frameIndicies, datasetTag):
+    def extractMotif(self, substrates, motifFrame,
+                     frameIndicies, datasetTag):
         print('================================= Extract Motif '
               '=================================')
         print(f'Binning Substrates: {purple}{datasetTag}{resetColor}\n'
@@ -6208,226 +6112,6 @@ class NGS:
               f'Unique Substrates:{red} {countUniqueSubstrates:,}{resetColor}\n\n')
 
         return motifs, countTotalSubstrates
-
-
-
-    def evaluateSubtrees(self, trie, motifTrie):
-        print('============================= Evaluate Suffix Tree '
-              '==============================')
-        print(f'Datapoints: {len(motifTrie.keys())}')
-
-        def subtreeTable(subtreeFreq):
-            # Sort motifs by length
-            sortedMotifs = sorted(subtreeFreq.keys(), key=len)
-
-            # Organize motifs by their length and sort by frequency (highest first)
-            motifGroups = {}
-            for motif in sortedMotifs:
-                length = len(motif)
-                if length not in motifGroups:
-                    motifGroups[length] = []
-                motifGroups[length].append((motif, subtreeFreq[motif]))
-
-            # Sort motifs in each length group by frequency (descending)
-            for length in motifGroups:
-                motifGroups[length].sort(key=lambda x: x[1], reverse=True)
-
-            # Convert motifs back to formatted strings
-            for length in motifGroups:
-                motifGroups[length] = [f"{motif}: {round(freq, 5)}"
-                                       for motif, freq in motifGroups[length]]
-
-            # Find the max number of motifs in any length group
-            maxRows = max(len(motifs) for motifs in motifGroups.values())
-
-            # Construct the table row by row
-            tableData = []
-            for i in range(maxRows):
-                row = []
-                for length in sorted(motifGroups.keys()):
-                    motifs = motifGroups[length]
-                    row.append(motifs[i] if i < len(
-                        motifs) else "") # Fill missing values with empty strings
-                tableData.append(row)
-
-            # Convert to DataFrame
-            motifTable = pd.DataFrame(tableData,
-                                      index=range(1, len(motifTrie.keys()) + 1),
-                                      columns=[str(length)
-                                               for length in sorted(motifGroups.keys())])
-            print(f'{motifTable}\n\n')
-
-            return motifTable
-
-
-        def printTrie(node, level=0, path=""):
-            # Recursively print the Trie structure
-            if node is None:
-                return
-
-            # Print: Current node's path and level
-            print("  " * level + f"Level {level}: {path}")
-
-            # Recursively print all children of the current node
-            for char, nodeChild in node.children.items():
-                printTrie(nodeChild, level + 1, path + char)
-
-
-        motifsTotal = 0
-        for motif, count in motifTrie.items():
-            motifsTotal += count
-        print(f'Total Motifs: {motifsTotal:,}\n')
-
-        # Evaluate: Partial sequence counts
-        subtreeCount = {}
-        motifLength = len(next(iter(motifTrie)))
-        for index in range(motifLength):
-            for motif, count in motifTrie.items():
-                subSeq = motif[0:index+1]
-                if subSeq in subtreeCount.keys():
-                    subtreeCount[subSeq] += count
-                else:
-                    subtreeCount[subSeq] = count
-
-        # Evaluate: Partial sequence frequency
-        subtreeFreq = {}
-        for subSeq, count in subtreeCount.items():
-            subtreeFreq[subSeq] = count / motifsTotal
-        prevSeqLen = 1
-        for subSeq, count in subtreeFreq.items():
-            if len(subSeq) != prevSeqLen:
-                prevSeqLen = len(subSeq)
-        motifTable = subtreeTable(subtreeFreq)
-
-
-        # Plot the trie
-        printTrie(trie.root)
-        print('\n')
-
-        return motifTable
-
-
-
-    def plotTrie(self, trie, motifTable, countsMotif, datasetTag):
-        print('=============================== Plot: Suffix Tree '
-              '===============================')
-        import networkx as nx
-
-        inOffset = 2000
-        inNodeSizeMax = 800
-        inNodeSizeMin = 100
-        inFontSize = 10
-        inScaleX = 2
-        inScaleY = 1
-
-        # Calculate: Node size
-        nodeSizes = pd.DataFrame('',
-                                 index=motifTable.index,
-                                 columns=motifTable.columns)
-        for col in motifTable.columns:
-            for index, entry in enumerate(motifTable[col].dropna()):
-                if ": " in entry:
-                    motif, rf = entry.split(": ")
-                    nodeSize = inNodeSizeMax - (inNodeSizeMax * (1 - float(rf)))
-                    if nodeSize < 100:
-                        nodeSize = inNodeSizeMin
-                    if len(motif) > 2:
-                        motif = motif[-2:]
-                    nodeSizes.loc[index+1, col] = f'{motif}: {nodeSize:.2f}'
-        print(f'Node Size:\n{nodeSizes}\n')
-
-
-        def addNodesToGraph(node, graph, scaleX, scaleY, offset=inOffset,
-                            nodeSizesDF=None):
-            pos = {}
-            nodeSizes = {}
-            nodeCountLevel = {}
-
-            # Track node index separately
-            queue = [(node, None, '', '', 0,
-                      1)]  # (currentNode, parentID, char, fullMotif, level, index)
-
-            while queue:
-                nodeCurrent, parent, char, motifSoFar, level, index = queue.pop(0)
-                nodeID = f"{char}-{level}-{id(nodeCurrent)}"
-
-                if level not in nodeCountLevel:
-                    nodeCountLevel[level] = []
-                nodeCountLevel[level].append(
-                    (nodeCurrent, parent, char, nodeID, motifSoFar, index))
-
-                fullMotif = motifSoFar + char  # Build full motif sequence
-
-                # Assign node size from nodeSizesDF if available
-                nodeSize = inNodeSizeMin  # Default size
-                if nodeSizesDF is not None and level in nodeSizesDF.columns:
-                    entry = nodeSizesDF.iloc[index - 1, level]  # Use the tracked index
-                    if isinstance(entry, str) and ": " in entry:
-                        _, size = entry.split(": ")
-                        nodeSize = float(size)
-
-                graph.add_node(nodeID, label=char, size=nodeSize)
-                nodeSizes[nodeID] = nodeSize
-
-                if parent is not None:
-                    graph.add_edge(parent, nodeID, arrowstyle='->')
-
-                # Track child nodes with incremented index
-                childIndex = 1
-                for child_char, nodeChild in nodeCurrent.children.items():
-                    queue.append(
-                        (nodeChild, nodeID, child_char, fullMotif, level + 1, childIndex))
-                    childIndex += 1  # Ensure a unique index for each child
-
-            return pos, nodeSizes
-
-
-        # Build the graph
-        graph = nx.DiGraph()
-        pos, nodeSizes = addNodesToGraph(trie.root, graph, scaleX=inScaleX,
-                                         scaleY=inScaleY, offset=inOffset,
-                                         nodeSizesDF=nodeSizes)
-        finalNodeSizes = [graph.nodes[node]["size"] for node in graph.nodes]
-
-        # Get node labels
-        labels = {node: data['label'] for node, data in graph.nodes(data=True)}
-
-        # Print: Dataset tag
-        if datasetTag is None:
-            figLabel = f'Suffix Tree - {self.enzymeName} - {countsMotif} - Unfixed'
-
-        else:
-            figLabel = f'Suffix Tree - {self.enzymeName} - {countsMotif} - {datasetTag}'
-
-
-        # Plot the data
-        fig, ax = plt.subplots(figsize=self.figSize)
-        fig.canvas.mpl_connect('key_press_event', pressKey)
-
-        # Draw graph
-        nx.draw(graph, pos, with_labels=True, labels=labels, node_size=finalNodeSizes,
-                node_color="#F18837", font_size=inFontSize, font_weight="bold",
-                edge_color="#101010", ax=ax, arrows=False)
-        plt.title(f'{self.enzymeName}: {datasetTag}\nTop {countsMotif:,} Motifs',
-                  fontsize=16, fontweight='bold')
-        plt.tight_layout()
-        plt.show()
-
-        # Save the figure
-        if self.saveFigures:
-            # Define: Save location
-            figLabel += '.png'
-            saveLocation = os.path.join(self.pathSaveFigs, figLabel)
-
-            # Save figure
-            if os.path.exists(saveLocation):
-                print(f'{yellow}The figure was not saved\n\n'
-                      f'File was already found at path:\n'
-                      f'     {saveLocation}{resetColor}\n\n')
-            else:
-                print(f'Saving figure at path:\n'
-                      f'     {greenDark}{saveLocation}{resetColor}\n\n')
-                fig.savefig(saveLocation, dpi=self.figureResolution)
 
 
 
@@ -6774,11 +6458,11 @@ class NGS:
                 title += f'\n{predModel}'
             if self.releasedCounts:
                 title = title.replace(self.datasetTag,
-                                      f'Substrate Profile {self.datasetTag}')
+                                      f'SubstrateProfile_{self.datasetTag}')
             elif combinedMotifs:
                 if combinedMotifs:
                     title = title.replace(self.datasetTag,
-                                          f'Combined Filter {self.datasetTag}')
+                                          f'CombinedFilter_{self.datasetTag}')
 
             if plotBars:
                 # Plot bar graph
@@ -6812,8 +6496,8 @@ class NGS:
                 # Save the Figure
                 if self.saveFigures:
                     # Define: Save location
-                    figTag = (f'Pred Activity - {tag} - '
-                              f'Bar Graph - {predLabel} - {predModel}')
+                    figTag = (f'PredActivity-{tag}-'
+                              f'BarGraph-{predLabel}-{predModel}')
 
                     # Save figure
                     self.saveFigure(fig=fig, figType=figTag, seqLen=subLen, N=N,
@@ -6861,8 +6545,8 @@ class NGS:
             # Save the Figure
             if self.saveFigures:
                 # Define: Save location
-                figTag = (f'Pred Activity - {tag} - '
-                          f'Scatter Plot - {predLabel} - {predModel}')
+                figTag = (f'PredActivity-{tag}-'
+                          f'ScatterPlot-{predLabel}-{predModel}')
 
                 # Save figure
                 self.saveFigure(fig=fig, figType=figTag, seqLen=subLen, N=N,
