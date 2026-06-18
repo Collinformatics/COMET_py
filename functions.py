@@ -2509,11 +2509,12 @@ class NGS:
 
         # Define: Figure tag
         tag = self.datasetTag
-        if 'exclude' in self.datasetTag and 'fixed' in self.datasetTag.lower():
-            tag = tag.replace('Fixed', '-Fixed')
-        tag = tag.replace(' - ', '-')
+        if 'exclude' in tag.lower() and 'fixed' in tag.lower():
+            tag = tag.replace(' Fixed', '-Fixed')
+        tag = tag.replace(' ', '_')
         self.datasetTagSave = tag.replace(' ', '_')
-        # print(f'Dataset Tag: {purple}{self.datasetTag}{resetColor}\n\n')
+        # print(f'Dataset Tag: {purple}{self.datasetTag}{resetColor}')
+        # print(f'Save Tag: {purple}{self.datasetTagSave}{resetColor}\n\n')
 
         return self.datasetTag
 
