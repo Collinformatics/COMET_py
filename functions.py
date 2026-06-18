@@ -224,6 +224,7 @@ class NGS:
         self.NSubsPCA = NSubsPCA
         self.plotSuffixTree = plotSuffixTree
         self.datasetTag = None
+        self.datasetTagSave = None
         self.datasetTagMotif = None
         self.title = ''
         self.titleCombined = ''
@@ -860,7 +861,7 @@ class NGS:
         if motifPath:
             if customTag is None:
                 file = (f'{self.enzymeName}-{self.datasetTagMotif}-'
-                        f'FinalSort-MinCounts {self.minSubCount}').replace(
+                        f'FinalSort-MinCounts_{self.minSubCount}').replace(
                     '/', '_')
                 pathSubs = (
                     os.path.join(self.pathData, f'fixedMotifSubs-{file}.pkl'))
@@ -870,8 +871,11 @@ class NGS:
                     os.path.join(self.pathData, f'fixedMotifCountsRel-{file}.csv'))
                 paths = [pathSubs, pathCounts, pathCountsReleased]
             else:
+                print(f'Tag: {self.enzymeName}-{customTag}-FinalSort-'
+                        f'MinCounts_{self.minSubCount}')
                 file = (f'{self.enzymeName}-{customTag}-FinalSort-'
-                        f'MinCounts {self.minSubCount}').replace('/', '_')
+                        f'MinCounts_{self.minSubCount}').replace('/', '_')
+                print(f'File: {file}')
                 pathSubs = (
                     os.path.join(self.pathData, f'fixedMotifSubs-{file}.pkl'))
                 pathCounts = (
@@ -881,7 +885,7 @@ class NGS:
                 paths = [pathSubs, pathCounts, pathCountsReleased]
         else:
             file = (f'{self.enzymeName}-{datasetTag}-FinalSort-'
-                    f'MinCounts {self.minSubCount}').replace('/', '_')
+                    f'MinCounts_{self.minSubCount}').replace('/', '_')
             pathSubs = os.path.join(
                 self.pathData, f'fixedSubs-{file}.pkl')
             pathCounts = os.path.join(
@@ -972,15 +976,20 @@ class NGS:
             excludeTag = f'Exclude {' '.join(fixResidueList)}'
 
         # Define: File path
+        x = 'fixedMotifSubs-Matrix_Metalloproteinase-7-[L,M]@R3_L@R5-8AA-MinCounts_1'
+        y = 'fixedMotifSubs-Matrix_Metalloproteinase-7-[L,M]@R4_L@R6-8AA-MinCounts_1.pkl'
         for motifTag in self.motifTags:
             if self.excludeAAs:
-                file = (f'{self.enzymeName}-{excludeTag} Fixed {motifTag}-'
-                        f'FinalSort-MinCounts_{self.minSubCount}'
-                        ).replace('/', '_')
+                file = (
+                    f'{self.enzymeName.replace(' ','_')}-{excludeTag}-Fixed_{motifTag}-'
+                    f'{self.substrateLength}AA-MinCounts_{self.minSubCount}'
+                ).replace('/', '_')
             else:
-                file = (f'{self.enzymeName}-{motifTag}-FinalSort-MinCounts_'
-                        f'{self.minSubCount}').replace('/', '_')
-            paths.append(os.path.join(self.pathData, f'{dataset}-{file}'))
+                file = (
+                    f'{self.enzymeName.replace(' ','_')}-{motifTag}-'
+                    f'{self.substrateLength}AA-MinCounts_{self.minSubCount}'
+                ).replace('/', '_')
+            paths.append(os.path.join(self.pathData, f'{dataset}-{file.replace(' ','_')}'))
         if loadSubs :
             paths = [f'{p}.pkl' for p in paths]
         else:
@@ -2007,15 +2016,7 @@ class NGS:
 
         # Save the figure
         if self.saveFigures:
-            # Save figure
-            if os.path.exists(saveLocation):
-                print(f'{yellow}The figure was not saved\n\n'
-                      f'File was already found at path:\n'
-                      f'     {saveLocation}{resetColor}\n\n')
-            else:
-                print(f'Saving figure at path:\n'
-                      f'     {greenDark}{saveLocation}{resetColor}\n\n')
-                fig.savefig(saveLocation, dpi=self.figureResolution)
+            self.saveFig(fig=fig, path=saveLocation)
         else:
             print()
 
@@ -2048,14 +2049,14 @@ class NGS:
                 return
 
             if countsReleased is None:
-                (filePathSubs,
-                 filePathCounts) = self.getFilePath(datasetTag=self.datasetTag)
+                filePathSubs, filePathCounts = (
+                    self.getFilePath(datasetTag=self.datasetTagSave)
+                )
             else:
                 # Define: File paths
-                (filePathSubs,
-                 filePathCounts,
-                 filePathCountsReleased) = self.getFilePath(datasetTag=self.datasetTag,
-                                                            motifPath=True)
+                filePathSubs, filePathCounts, filePathCountsReleased = (
+                    self.getFilePath(datasetTag=self.datasetTagSave, motifPath=True)
+                )
 
         if not os.path.exists(filePathSubs) or not os.path.exists(filePathCounts):
             print('================================= Save The data '
@@ -2105,19 +2106,19 @@ class NGS:
         figLabel = ''
         if self.motifFilter and not self.releasedCounts:
             figLabel = (f'{self.enzymeName}-{figType} '
-                        f'{self.saveFigureIteration}-{self.datasetTagMotif}-'
+                        f'{self.saveFigureIteration}-{self.datasetTagSave}-'
                         f'{seqLen} AA-MinCounts_{self.minSubCount}.png')
         elif self.releasedCounts:
             figLabel = (f'{self.enzymeName}-{figType}-SubstrateProfile '
-                        f'{self.datasetTagMotif}-'
+                        f'{self.datasetTagSave}-'
                         f'{seqLen} AA-MinCounts_{self.minSubCount}.png')
         elif combinedMotifs:
             figLabel = (f'{self.enzymeName}-{figType}-Combined '
-                        f'{self.datasetTag}-{seqLen} AA-'
+                        f'{self.datasetTagSave}-{seqLen} AA-'
                         f'MinCounts {self.minSubCount}.png')
         else:
             figLabel = (f'{self.enzymeName}-{figType}-'
-                        f'{self.datasetTag}-'
+                        f'{self.datasetTagSave}-'
                         f'N_{self.nSubsFinal}-{seqLen} AA-'
                         f'MinCounts {self.minSubCount}.png')
         if '/' in figLabel:
@@ -2126,18 +2127,10 @@ class NGS:
             figLabel = figLabel.replace(f'N_{self.nSubsFinal}', f'N_{N}')
 
         saveLocation = os.path.join(self.pathSaveFigs, figLabel)
-
+        saveLocation = saveLocation.replace(' ', '')
 
         # Save figure
-        if os.path.exists(saveLocation):
-            print(f'{yellow}WARNING{resetColor}: '
-                  f'{yellow}The figure already exists at the path\n'
-                  f'     {saveLocation}\n\n'
-                  f'We will not overwrite the figure{resetColor}\n\n')
-        else:
-            print(f'Saving figure at path:\n'
-                  f'     {greenDark}{saveLocation}{resetColor}\n\n')
-            fig.savefig(saveLocation, dpi=self.figureResolution)
+        self.saveFig(fig=fig, path=saveLocation)
 
 
 
@@ -2421,7 +2414,8 @@ class NGS:
                 for index, removedAA in enumerate(self.excludeAA):
                     fixResidueList.append(
                         f'{removedAA}@R'
-                        f'{self.excludePosition[index]}'.replace(' ', ''))
+                        f'{self.excludePosition[index]}'.replace(' ', '')
+                    )
                 excludeTag = f'Exclude {' '.join(fixResidueList)}'
                 self.datasetTag = f'{excludeTag} Fixed {self.datasetTag}'
         else:
@@ -2434,11 +2428,13 @@ class NGS:
                             fixResidueList.append(
                                 f'Exclude_{removedAA}@R'
                                 f'{self.excludePosition[index]}'.replace(
-                                    ' ', ''))
+                                    ' ', '')
+                            )
                         else:
                             fixResidueList.append(
                                 f'{removedAA}@R{self.excludePosition[index]}'.replace(
-                                    ' ', ''))
+                                    ' ', '')
+                            )
     
                     # Fix residues
                     for index in range(len(self.fixedAA)):
@@ -2449,11 +2445,13 @@ class NGS:
                         if index == 0:
                             fixResidueList.append(
                                 f'Fixed_{tagFixedAA}@R{self.fixedPos[index]}'.replace(
-                                    ' ', ''))
+                                    ' ', '')
+                            )
                         else:
                             fixResidueList.append(
                                 f' {tagFixedAA}@R{self.fixedPos[index]}'.replace(
-                                    ' ', ''))
+                                    ' ', '')
+                            )
                     self.datasetTag = '_'.join(fixResidueList)
                 else:
                     # Fix residues
@@ -2481,11 +2479,13 @@ class NGS:
                             fixResidueList.append(
                                 f'Exclude_{removedAA}@R'
                                 f'{self.excludePosition[index]}'.replace(
-                                    ' ', ''))
+                                    ' ', '')
+                            )
                         else:
                             fixResidueList.append(
                                 f'{removedAA}@R{self.excludePosition[index]}'.replace(
-                                    ' ', ''))
+                                    ' ', '')
+                            )
                     self.datasetTag = ' '.join(fixResidueList)
                 else:
                     self.datasetTag = 'Unfiltered'
@@ -2510,6 +2510,13 @@ class NGS:
         if self.initialize:
             self.datasetTagMotif = self.datasetTag
             self.initialize = False
+
+        # Define: Figure tag
+        tag = self.datasetTag
+        if 'exclude' in self.datasetTag and 'fixed' in self.datasetTag.lower():
+            tag = tag.replace('Fixed', '-Fixed')
+        tag = tag.replace(' - ', '-')
+        self.datasetTagSave = tag.replace(' ', '_')
         # print(f'Dataset Tag: {purple}{self.datasetTag}{resetColor}\n\n')
 
         return self.datasetTag
@@ -2975,7 +2982,7 @@ class NGS:
                 scores = self.eMap
 
         # Define: Figure title
-        if self.releasedCounts:
+        if self.releasedCounts: # and len(self.motifIndexExtracted) > 1:
             title = self.titleReleased
         elif combinedMotifs:
             title = self.titleCombined
@@ -3107,7 +3114,7 @@ class NGS:
         print('============================= Plot: Enrichment Logo '
               '=============================')
         # Define: Figure title
-        if self.releasedCounts:
+        if self.releasedCounts: # and len(self.motifIndexExtracted) > 1:
             title = self.titleReleased
         elif combinedMotifs:
             title = self.titleCombined
@@ -3115,11 +3122,6 @@ class NGS:
             title = self.title
         if len(self.datasetTag.replace('[', '').replace(']', '').replace('-', '')) > 40:
             title = title.replace('Register ', 'Register\n')
-        if combinedMotifs or len(self.motifIndexExtracted) > 1 and not self.releasedCounts:
-            title = title.replace(
-                self.enzymeName,
-                f'{self.enzymeName}\nCombinedFilter_{self.datasetTag}'
-            )
 
         # Print: data
         print(f'Dataset: {purple}{self.datasetTag}{resetColor}\n'
@@ -3490,11 +3492,11 @@ class NGS:
                 if len(self.datasetTag.replace('[', '').replace(
                         ']', '').replace('-', '')) > 40:
                     title = title.replace('Register ', 'Register\n')
+            elif combinedMotifs:
+                title = f'{self.titleCombined}\n{dataType}'
             else:
                 title = f'\n{self.enzymeName}\n{self.datasetTag}\n{dataType}'
-        if combinedMotifs:
-            title = title.replace(self.datasetTag,
-                                  f'CombinedFilter_{self.datasetTag}')
+
 
         # Create heatmap
         cMapCustom = self.createCustomColorMap(colorType=dataType)
@@ -3877,16 +3879,10 @@ class NGS:
                 figLabel = figLabel.replace(self.datasetTag,
                                             f'Scaled_{self.datasetTag}')
             saveLocation = os.path.join(self.pathSaveFigs, figLabel)
+            saveLocation = saveLocation.replace(' ', '')
 
             # Save figure
-            if os.path.exists(saveLocation):
-                print(f'{yellow}The figure was not saved\n\n'
-                      f'File was already found at path:\n'
-                      f'     {saveLocation}{resetColor}\n\n')
-            else:
-                print(f'Saving figure at path:\n'
-                      f'     {greenDark}{saveLocation}{resetColor}\n\n')
-                fig.savefig(saveLocation, dpi=self.figureResolution)
+            self.saveFig(fig=fig, path=saveLocation)
 
 
 
@@ -4377,16 +4373,10 @@ class NGS:
             if 'relative frequency' in dataType.lower():
                 figLabel = figLabel.replace(dataType, 'RF')
             saveLocation = os.path.join(self.pathSaveFigs, figLabel)
+            saveLocation = saveLocation.replace(' ', '')
 
             # Save figure
-            if os.path.exists(saveLocation):
-                print(f'{yellow}The figure was not saved\n\n'
-                      f'File was already found at path:\n'
-                      f'     {saveLocation}{resetColor}\n\n')
-            else:
-                print(f'Saving figure at path:\n'
-                      f'     {greenDark}{saveLocation}{resetColor}\n\n')
-                fig.savefig(saveLocation, dpi=self.figureResolution)
+            self.saveFig(fig=fig, path=saveLocation)
 
 
 
@@ -4626,16 +4616,10 @@ class NGS:
                 figLabel = figLabel.replace(self.datasetTag,
                                             f'SubstrateProfile_{self.datasetTag}')
             saveLocation = os.path.join(self.pathSaveFigs, figLabel)
+            saveLocation = saveLocation.replace(' ', '')
 
             # Save figure
-            if os.path.exists(saveLocation):
-                print(f'{yellow}The figure was not saved\n\n'
-                      f'File was already found at path:\n'
-                      f'     {saveLocation}{resetColor}\n\n')
-            else:
-                print(f'Saving figure at path:\n'
-                      f'     {greenDark}{saveLocation}{resetColor}\n\n')
-                fig.savefig(saveLocation, dpi=self.figureResolution)
+            self.saveFig(fig=fig, path=saveLocation)
 
 
         # Create a list of collected substrate dictionaries
@@ -5126,8 +5110,6 @@ class NGS:
         return enrichedSubs
 
 
-    # ====================================================================================
-
 
     def plotSubstratePopulations(self, substrates, clusterIndex, numClusters,
                                  datasetTag, saveTag):
@@ -5190,9 +5172,9 @@ class NGS:
 
         # Calculate: Enrichment scores
         fixedFramePopES = self.enrichmentMatrix(initialSortRF=probInitialAvg,
-                                                  finalSortRF=probFinal)
+                                                finalSortRF=probFinal)
         fixedFramePopESAdjusted = self.enrichmentMatrix(initialSortRF=probInitialAvg,
-                                                          finalSortRF=probFinalAdjusted)
+                                                        finalSortRF=probFinalAdjusted)
 
         # Calculate: Enrichment scores scaled
         fixedFramePCAESScaled = pd.DataFrame(0.0, index=fixedFramePopES.index,
@@ -5325,16 +5307,10 @@ class NGS:
             if '/' in figLabel:
                 figLabel = figLabel.replace('/', '_')
             saveLocation = os.path.join(self.pathSaveFigs, figLabel)
+            saveLocation = saveLocation.replace(' ', '')
 
             # Save figure
-            if os.path.exists(saveLocation):
-                print(f'{yellow}The figure was not saved\n\n'
-                      f'File was already found at path:\n'
-                      f'     {saveLocation}{resetColor}\n\n')
-            else:
-                print(f'Saving figure at path:\n'
-                      f'     {greenDark}{saveLocation}{resetColor}\n\n')
-                fig.savefig(saveLocation, dpi=self.figureResolution)
+            self.saveFig(fig=fig, path=saveLocation)
 
 
 
@@ -5385,10 +5361,10 @@ class NGS:
             title = f'\n\n\n{self.enzymeName}'
         if self.releasedCounts:
             title = title.replace(self.datasetTag,
-                                  f'SubstrateProfile_{self.datasetTag}')
+                                  f'Substrate Profile {self.datasetTag}')
         if combinedMotifs and not self.releasedCounts:
             title = title.replace(self.datasetTag,
-                                  f'CombinedFilter_{self.datasetTag}')
+                                  f'Combined Filter {self.datasetTag}')
 
         # Figure parameters
         yMax = self.entropyMax + 0.2
@@ -5487,16 +5463,10 @@ class NGS:
             if '/' in figLabel:
                 figLabel = figLabel.replace('/', '_')
             saveLocation = os.path.join(self.pathSaveFigs, figLabel)
+            saveLocation = saveLocation.replace(' ', '')
 
             # Save figure
-            if os.path.exists(saveLocation):
-                print(f'{yellow}The figure was not saved\n\n'
-                      f'File was already found at path:\n'
-                      f'     {saveLocation}{resetColor}\n\n')
-            else:
-                print(f'Saving figure at path:\n'
-                      f'     {greenDark}{saveLocation}{resetColor}\n\n')
-                fig.savefig(saveLocation, dpi=self.figureResolution)
+            self.saveFig(fig=fig, path=saveLocation)
 
 
 
@@ -5637,14 +5607,7 @@ class NGS:
                 saveLocation = os.path.join(self.pathSaveFigs, figLabel)
 
                 # Save figure
-                if os.path.exists(saveLocation):
-                    print(f'{yellow}The figure was not saved\n\n'
-                          f'File was already found at path:\n'
-                          f'     {saveLocation}{resetColor}\n\n')
-                else:
-                    print(f'Saving figure at path:\n'
-                          f'     {greenDark}{saveLocation}{resetColor}\n\n')
-                    fig.savefig(saveLocation, dpi=self.figureResolution)
+                self.saveFig(fig=fig, path=saveLocation)
 
         # Plot the data
         if plotInitial and not skipInitial:
@@ -5750,14 +5713,7 @@ class NGS:
                 saveLocation = os.path.join(self.pathSaveFigs, figLabel)
 
                 # Save figure
-                if os.path.exists(saveLocation):
-                    print(f'{yellow}The figure was not saved\n\n'
-                          f'File was already found at path:\n'
-                          f'     {saveLocation}{resetColor}\n\n')
-                else:
-                    print(f'Saving figure at path:\n'
-                          f'     {greenDark}{saveLocation}{resetColor}\n\n')
-                    fig.savefig(saveLocation, dpi=self.figureResolution)
+                self.saveFig(fig=fig, path=saveLocation)
 
 
 
@@ -5875,14 +5831,7 @@ class NGS:
                 saveLocation = saveLocation.replace('Words', 'Words_Counts')
 
             # Save figure
-            if os.path.exists(saveLocation):
-                print(f'{yellow}The figure was not saved\n\n'
-                      f'File was already found at path:\n'
-                      f'     {saveLocation}{resetColor}\n\n')
-            else:
-                print(f'Saving figure at path:\n'
-                      f'     {greenDark}{saveLocation}{resetColor}\n\n')
-                fig.savefig(saveLocation, dpi=self.figureResolution)
+            self.saveFig(fig=fig, path=saveLocation)
 
 
 
@@ -6388,7 +6337,6 @@ class NGS:
                 # print(f'Sub: {purple}{substrate}{resetColor}\n'
                 #       f'Score: {score:.3e}\n'
                 #       f'    X: {x:.3e}\n')
-
                 activityPred[substrate] = x
             ranked = pd.Series(activityPred.values()).rank(
                 ascending=False, method='min').astype(int)
@@ -6458,11 +6406,10 @@ class NGS:
                 title += f'\n{predModel}'
             if self.releasedCounts:
                 title = title.replace(self.datasetTag,
-                                      f'SubstrateProfile_{self.datasetTag}')
+                                      f'Substrate Profile {self.datasetTag}')
             elif combinedMotifs:
-                if combinedMotifs:
-                    title = title.replace(self.datasetTag,
-                                          f'CombinedFilter_{self.datasetTag}')
+                title = title.replace(self.datasetTag,
+                                      f'Combined Filter {self.datasetTag}')
 
             if plotBars:
                 # Plot bar graph
