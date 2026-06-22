@@ -3090,11 +3090,6 @@ class NGS:
                             length=self.tickLength, width=self.lineThickness)
         cbar.outline.set_linewidth(self.lineThickness)
         cbar.outline.set_edgecolor('black')
-        # cbar = heatmap.collections[0].colorbar
-        # cbar.ax.tick_params(axis='y', which='major', labelsize=self.labelSizeTicks,
-        #                     length=self.tickLength, width=self.lineThickness)
-        # cbar.outline.set_linewidth(self.lineThickness)
-        # cbar.outline.set_edgecolor('black')
 
         fig.canvas.mpl_connect('key_press_event', pressKey)
         plt.tight_layout()
