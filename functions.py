@@ -858,7 +858,7 @@ class NGS:
         print('============================== Define: File Paths '
               '===============================')
         # Define: File path
-        enzName = self.enzymeName.replace(' ', '_')
+        enzName = self.enzymeName.replace(' - ', '-').replace(' ', '_')
         if motifPath:
             if customTag is None:
                 file = (f'{enzName}-{self.datasetTagMotif}-'
@@ -977,18 +977,17 @@ class NGS:
             excludeTag = f'Exclude {' '.join(fixResidueList)}'
 
         # Define: File path
-        x = 'fixedMotifSubs-Matrix_Metalloproteinase-7-[L,M]@R3_L@R5-8AA-MinCounts_1'
-        y = 'fixedMotifSubs-Matrix_Metalloproteinase-7-[L,M]@R4_L@R6-8AA-MinCounts_1.pkl'
+        enzName = self.enzymeName.replace(' - ', '-').replace(' ', '_')
         for motifTag in self.motifTags:
             if self.excludeAAs:
                 file = (
-                    f'{self.enzymeName.replace(' ','_')}-{excludeTag}-Fixed_{motifTag}-'
+                    f'{enzName}-{excludeTag}-Fixed_{motifTag}-'
                     f'{self.substrateLength}AA-MinCounts_{self.minSubCount}'
                 ).replace('/', '_')
             else:
                 file = (
-                    f'{self.enzymeName.replace(' ','_')}-{motifTag}-'
-                    f'{self.substrateLength}AA-MinCounts_{self.minSubCount}'
+                    f'{enzName}-{motifTag}-{self.substrateLength}AA-'
+                    f'MinCounts_{self.minSubCount}'
                 ).replace('/', '_')
             paths.append(os.path.join(self.pathData, f'{dataset}-{file.replace(' ','_')}'))
         if loadSubs :
