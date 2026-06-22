@@ -15,10 +15,10 @@ inSaveFigures = True
 inSetFigureTimer = True
 
 # Input 2: Computational Parameters
-inMinDeltaS = 1
+inMinDeltaS = 0.8
 inRefixMotif = True
 inFixedResidue = ['R', ['A', 'G', 'S']]
-inFixedPosition = [4,5]
+inFixedPosition = [3,4]
 inExcludeResidues = True
 inExcludedResidue = ['A']
 inExcludedPosition = [9, 10]
@@ -149,6 +149,8 @@ ngs = NGS(
     motifFilter=True, saveFigures=inSaveFigures, setFigureTimer=inSetFigureTimer
 )
 
+x = 'fixedMotifSubs-Dengue_Virus-NS2B_NS3-Exclude A@R9 Fixed R@R3 [A,G,S]@R4-FinalSort-MinCounts_1.pkl'
+y = 'fixedMotifSubs-Dengue_Virus-NS2B_NS3-Exclude_A@R9-Fixed_R@R4_[A,G,S]@R5-MinCounts_1.pkl'
 
 
 # ====================================== Load Data =======================================

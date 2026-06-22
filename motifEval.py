@@ -1,18 +1,13 @@
 from functions import getFileNames, NGS
-import matplotlib.pyplot as plt
-import numpy as np
 import os
 import pandas as pd
-import pickle as pk
-import random
-from sklearn.metrics import r2_score
 import sys
 
 
 
 # ===================================== User Inputs ======================================
 # Input 1: Select Dataset
-inEnzymeName = 'MMP7'
+inEnzymeName = 'Den'
 inPathFolder = os.path.join('Enzymes', inEnzymeName)
 inSaveFigures = True
 inSetFigureTimer = False
@@ -24,19 +19,20 @@ inMotifPositions = ['P3','P2','P1','P1\'','P2\'','P3\'']
 inIndexNTerminus = 1 # Define the index if the first AA in the motif
 
 # Input 3: Computational Parameters
-inFixedResidue = [['L','M'], 'L']
-inFixedPosition = [[3,4],[5,6]]
-inExcludeResidues = False
-inExcludedResidue = ['A','A']
+inFixedResidue = ['R', ['A', 'G', 'S']]
+inFixedPosition = [[4,5],[5,6]]
+inExcludeResidues = True
+inExcludedResidue = ['A']
 inExcludedPosition = [9,10]
 inMinimumSubstrateCount = 1
 inCodonSequence = 'NNS' # Baseline probs of degenerate codons (can be N, S, or K)
 inUseCodonProb = False # Use AA prob from inCodonSequence to calculate enrichment
 inAvgInitialProb = True
+inDropResidue = ['R9'] # To drop: inDropResidue = ['R9'], For nothing: inDropResidue = []
 
 # Input 4: Figures
 # inPlotPCA = False # PCA plot of an individual fixed frame
-inBlockFigures = True
+inBlockFigures = False
 inPlotEntropy = True
 inPlotEnrichmentMap = True
 inPlotEnrichmentMapScaled = False
@@ -187,7 +183,7 @@ else:
         'CMALVV': 0,
         'VMELVV': 0,
         'VMALVV': 0,
-        'PVLALM': 0,
+        'VLALML': 0,
         'QGLLDR': 0,
         'DTTWPP': 0
     }
@@ -272,10 +268,10 @@ pd.set_option('display.float_format', '{:,.3f}'.format)
 
 # Load: Dataset labels
 enzymeName, filesInitial, filesFinal, labelAAPos = getFileNames(enzyme=inEnzymeName)
+print(f'Label: {labelAAPos}')
 # inMotifPositions = labelAAPos
 motifLen = len(inMotifPositions)
 motifFramePos = [inIndexNTerminus, inIndexNTerminus + motifLen]
-
 
 
 # =================================== Initialize Class ===================================
@@ -302,7 +298,8 @@ ngs = NGS(
 
 # ====================================== Load Data =======================================
 # Load: Counts
-countsInitial, countsInitialTotal = ngs.loadCounts(filter=False, fileType='Initial Sort')
+countsInitial, countsInitialTotal = ngs.loadCounts(filter=False, fileType='Initial Sort',
+                                                   dropColumn=inDropResidue)
 
 # Calculate: Initial sort probabilities
 if inUseCodonProb:

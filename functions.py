@@ -861,11 +861,12 @@ class NGS:
               '===============================')
         # Define: File path
         enzName = self.enzymeName.replace(' - ', '-').replace(' ', '_')
+        datasetTag = datasetTag.replace(' - ', '-').replace(' ', '_')
         if motifPath:
             if customTag is None:
                 file = (f'{enzName}-{self.datasetTagMotif}-'
                         f'FinalSort-MinCounts_{self.minSubCount}').replace(
-                    '/', '_')
+                    '/', '_').replace(' ', '_')
                 pathSubs = os.path.join(self.pathData,
                                         f'fixedMotifSubs-{file}.pkl')
                 pathCounts = os.path.join(self.pathData,
@@ -878,7 +879,7 @@ class NGS:
                         f'MinCounts_{self.minSubCount}')
                 file = (
                     f'{enzName}-{customTag}-FinalSort-MinCounts_{self.minSubCount}'
-                ).replace('/', '_')
+                ).replace('/', '_').replace(' ', '_')
                 print(f'File: {file}')
                 pathSubs = os.path.join(self.pathData, f'fixedMotifSubs-{file}.pkl')
                 pathCounts = os.path.join(self.pathData, f'fixedMotifCounts-{file}.csv')
@@ -983,25 +984,28 @@ class NGS:
         for motifTag in self.motifTags:
             if self.excludeAAs:
                 file = (
-                    f'{enzName}-{excludeTag}-Fixed_{motifTag}-'
-                    f'{self.substrateLength}AA-MinCounts_{self.minSubCount}'
+                    f'{enzName}-{excludeTag}-Fixed_{motifTag}-FinalSort-'
+                    f'MinCounts_{self.minSubCount}'
                 ).replace('/', '_')
             else:
                 file = (
-                    f'{enzName}-{motifTag}-{self.substrateLength}AA-'
-                    f'MinCounts_{self.minSubCount}'
+                    f'{enzName}-{motifTag}-FinalSort-MinCounts_{self.minSubCount}'
                 ).replace('/', '_')
-            paths.append(os.path.join(self.pathData, f'{dataset}-{file.replace(' ','_')}'))
+            paths.append(
+                os.path.join(
+                    self.pathData, f'{dataset}-{file.replace(' ','_')}'
+                )
+            )
         if loadSubs :
             paths = [f'{p}.pkl' for p in paths]
         else:
             paths = [f'{p}.csv' for p in paths]
 
-        print(f'File paths:{greenDark}')
+        print(f'File paths 1:{greenDark}')
         for path in paths:
             print(f'     {path}')
         print(f'{resetColor}\n')
-
+        sys.exit()
         return paths
 
 
@@ -1239,7 +1243,8 @@ class NGS:
 
 
     def loadMotifCounts(self, motifLabel, motifIndex,
-                        returnList=False, loadCountsRel=True):
+                        returnList=False, loadCountsRel=True,
+                        dropColumn=False):
         print('================================ Combine Motifs '
               '=================================')
         initialMotifFrame = self.xAxisLabels[motifIndex[0]:motifIndex[1]]
@@ -1265,6 +1270,12 @@ class NGS:
 
                 # Load file
                 countsLoaded = pd.read_csv(pathFixedMotifRelCounts, index_col=0)
+
+                if dropColumn and dropColumn in countsLoaded.columns:
+                    countsLoaded = self.dropColumnsFromMatrix(
+                        countMatrix=countsLoaded, datasetType=fileType,
+                        dropColumn=dropColumn
+                    )
 
                 # Define motif positions and extract the sequence
                 startPosition = motifIndex[0]
@@ -1312,7 +1323,7 @@ class NGS:
                 else:
                     totalCountsFixedFrame += countsFixedFrame
             else:
-                print(f'{orange}ERROR: The file was not found\n'
+                print(f'{orange}ERROR 1: The file was not found\n'
                       f'     {pathFixedMotifRelCounts}\n')
                 sys.exit(1)
 
@@ -1439,17 +1450,8 @@ class NGS:
                     else:
                         motifs[motif] = count
                 print(f'\n     Total Counts: {red}{totalCounts:,}{resetColor}\n\n')
-
-                # seq = 'ATLQG'
-                # print(f'Search ({purple}{motifTag}{resetColor}): '
-                #       f'{orange}{seq}{resetColor}')
-                # for substrate, count in loadedSubs.items():
-                #     if seq in substrate:
-                #         print(f'     {pink}{substrate}{resetColor}, '
-                #               f'Count: {red}{count:,}{resetColor}')
-                # print('\n\n')
             else:
-                print(f'{orange}ERROR: The file was not found\n'
+                print(f'{orange}ERROR 2: The file was not found\n'
                       f'     {pathFixedMotifSubs}\n')
                 sys.exit(1)
 
@@ -2989,19 +2991,12 @@ class NGS:
         # Define: Figure title
         if self.releasedCounts or relCounts: # and len(self.motifIndexExtracted) > 1:
             title = self.titleReleased
-            print(f'Title 1: {title}')
         elif combinedMotifs:
             title = self.titleCombined
-            print(f'Title 2: {title}')
         elif self.motifFilter:
             title = self.titleMotif
-            print(f'Title 3: {title}')
         else:
             title = self.title
-            print(f'Title 4: {title}')
-        print(f'Title: {title}\n\n')
-        # if '-' in title:
-        #     title = title.replace('-', '\n')
         if len(self.datasetTag.replace('[', '').replace(']', '').replace('-', '')) > 40:
             title = title.replace('Register ', 'Register\n')
 
@@ -3128,17 +3123,12 @@ class NGS:
         # Define: Figure title
         if self.releasedCounts or relCounts:
             title = self.titleReleased
-            print(f'Title 1: {title}')
         elif combinedMotifs:
             title = self.titleCombined
-            print(f'Title 2: {title}')
         elif self.motifFilter:
             title = self.titleMotif
-            print(f'Title 3: {title}')
         else:
             title = self.title
-            print(f'Title 4: {title}')
-        print(f'Title: {title}\n\n')
         if len(self.datasetTag.replace('[', '').replace(']', '').replace('-', '')) > 40:
             title = title.replace('Register ', 'Register\n')
 
