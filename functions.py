@@ -5313,7 +5313,7 @@ class NGS:
 
     def calculateEntropy(self, rf, fixFullFrame=None,
                          combinedMotifs=False, manualEntropy=False,
-                         manualFrame=None, plotS=False):
+                         manualFrame=None):
         print('============================== Calculate: Entropy '
               '===============================')
         print(f'Dataset: {purple}{self.datasetTag}{resetColor}\n'
@@ -5344,7 +5344,7 @@ class NGS:
             print(f'Ranked Substrate Frame:\n'
                   f'{blue}{self.subFrame}{resetColor}\n\n')
 
-        if self.plotFigEntropy or plotS:
+        if self.plotFigEntropy:
             self.plotEntropy(entropy=self.entropy, combinedMotifs=combinedMotifs)
 
         return self.entropy

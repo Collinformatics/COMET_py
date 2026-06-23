@@ -8,17 +8,17 @@ import sys
 
 # ===================================== User Inputs ======================================
 # Input 1: Select Dataset
-inEnzymeName = 'Mpro2'
+inEnzymeName = 'Mpro1'
 inPathFolder = os.path.join('Enzymes', inEnzymeName)
 inSaveData = True
 inSaveFigures = True
 inSetFigureTimer = True
 
 # Input 2: Computational Parameters
-inMinDeltaS = 0.7
+inMinDeltaS = 0.65
 inRefixMotif = True
 inFixedResidue = 'Q' # ['R', ['A', 'G']]
-inFixedPosition = 4
+inFixedPosition = 7
 inExcludeResidues = False
 inExcludedResidue = ['A', 'A']
 inExcludedPosition = [9, 10]
@@ -702,7 +702,7 @@ def releaseCounts(substrates, countsFiltered, sortType, keepResidues,
                               columns=ngs.eMap.columns)
 
 
-    def populateMatrix(counts, popPosition, idxRel, plotS=False):
+    def populateMatrix(counts, popPosition, idxRel):
         # Record counts at released position
         print('======================== Populate Released Count Matrix '
               '=========================')
@@ -735,9 +735,6 @@ def releaseCounts(substrates, countsFiltered, sortType, keepResidues,
               f'\n{countsTotal}\n\n'
               f'Relative Frequency: {purple}Released counts{resetColor}\n'
               f'{releasedRF}\n\n')
-
-        if plotS:
-            ngs.calculateEntropy(releasedRF, plotS=True)
 
         # Calculate enrichment scores
         ngs.calculateEnrichment(
@@ -895,7 +892,8 @@ else:
     substratesFinal, totalSubsFinal = ngs.loadUnfilteredSubs(loadFinal=True)
 
     # Fix the substrate frame
-    fixFrame(substrates=substratesFinal, fixRes=inFixedResidue,  fixPos=inFixedPosition,
-             exclRes=inExcludedResidue, exclPos=inExcludedPosition,
-             sortType='Final Sort', datasetTag=inDatasetTag
-             )
+    fixFrame(
+        substrates=substratesFinal, fixRes=inFixedResidue, fixPos=inFixedPosition,
+        exclRes=inExcludedResidue, exclPos=inExcludedPosition,
+        sortType='Final Sort', datasetTag=inDatasetTag
+    )
