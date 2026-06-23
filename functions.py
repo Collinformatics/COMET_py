@@ -302,6 +302,7 @@ class NGS:
         pd.options.display.float_format = '{:,.4f}'.format
 
 
+
     @staticmethod
     def alert(soundPath):
         # This function can be used to play .mp3 files
@@ -3232,11 +3233,12 @@ class NGS:
             spacer = spacer[0] / 2
 
             # Use the spacer to set a gray background to fixed residues
-            for index, position in enumerate(self.xAxisLabels):
-                if position in self.fixedPos:
-                    # Plot gray boxes on each side of the xtick
-                    motif.ax.axvspan(index - spacer, index + spacer,
-                                     facecolor='darkgrey', alpha=0.2)
+            if self.filterSubs:
+                for index, position in enumerate(self.xAxisLabels):
+                    if position in self.fixedPos:
+                        # Plot gray boxes on each side of the xtick
+                        motif.ax.axvspan(index - spacer, index + spacer,
+                                         facecolor='darkgrey', alpha=0.2)
 
             fig.canvas.mpl_connect('key_press_event', pressKey)
             plt.tight_layout()
@@ -3382,11 +3384,12 @@ class NGS:
         spacer = spacer[0] / 2
 
         # Use the spacer to set a gray background to fixed residues
-        for index, position in enumerate(self.xAxisLabels):
-            if position in self.fixedPos:
-                # Plot gray boxes on each side of the xtick
-                motif.ax.axvspan(index - spacer, index + spacer,
-                                 facecolor='darkgrey', alpha=0.2)
+        if self.filterSubs:
+            for index, position in enumerate(self.xAxisLabels):
+                if position in self.fixedPos:
+                    # Plot gray boxes on each side of the xtick
+                    motif.ax.axvspan(index - spacer, index + spacer,
+                                     facecolor='darkgrey', alpha=0.2)
 
         fig.canvas.mpl_connect('key_press_event', pressKey)
         plt.tight_layout()
@@ -5339,7 +5342,7 @@ class NGS:
 
     def calculateEntropy(self, rf, fixFullFrame=None,
                          combinedMotifs=False, manualEntropy=False,
-                         manualFrame=None):
+                         manualFrame=None, plotS=False):
         print('============================== Calculate: Entropy '
               '===============================')
         print(f'Dataset: {purple}{self.datasetTag}{resetColor}\n'
@@ -5370,7 +5373,7 @@ class NGS:
             print(f'Ranked Substrate Frame:\n'
                   f'{blue}{self.subFrame}{resetColor}\n\n')
 
-        if self.plotFigEntropy:
+        if self.plotFigEntropy or plotS:
             self.plotEntropy(entropy=self.entropy, combinedMotifs=combinedMotifs)
 
         return self.entropy
@@ -5609,9 +5612,10 @@ class NGS:
                         figLabel = (f'AA Distribution-{codonType}_Codon-'
                                     f'YMax_{yMax}.png')
                     else:
-                        figLabel = (f'AA_Distribution-{self.enzymeName}-{datasetTag}-'
+                        figLabel = (f'AA Distribution-{self.enzymeName}-{datasetTag}-'
                                     f'{sortType}-YMax_{yMax}-{codonType}-'
                                     f'MinCounts_{self.minSubCount}.png')
+                figLabel = figLabel.replace(' ', '_')
                 saveLocation = os.path.join(self.pathSaveFigs, figLabel)
 
                 # Save figure
