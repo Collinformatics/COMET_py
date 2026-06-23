@@ -4037,7 +4037,14 @@ class NGS:
 
         fig.canvas.mpl_connect('key_press_event', pressKey)
         plt.tight_layout()
-        plt.show()
+        if self.setFigureTimer:
+            plt.ion()
+            plt.show()
+            plt.pause(self.figureTimerDuration)
+            plt.close(fig)
+            plt.ioff()
+        else:
+            plt.show()
 
 
 
@@ -5604,7 +5611,14 @@ class NGS:
 
             fig.canvas.mpl_connect('key_press_event', pressKey)
             plt.tight_layout()
-            plt.show()
+            if self.setFigureTimer:
+                plt.ion()
+                plt.show()
+                plt.pause(self.figureTimerDuration)
+                plt.close(fig)
+                plt.ioff()
+            else:
+                plt.show()
 
             if self.saveFigures:
                 # Define: Save location
@@ -5715,7 +5729,14 @@ class NGS:
 
             fig.canvas.mpl_connect('key_press_event', pressKey)
             plt.tight_layout()
-            plt.show()
+            if self.setFigureTimer:
+                plt.ion()
+                plt.show()
+                plt.pause(self.figureTimerDuration)
+                plt.close(fig)
+                plt.ioff()
+            else:
+                plt.show()
 
             # Save the figure
             if self.saveFigures:
@@ -6424,7 +6445,14 @@ class NGS:
 
                 fig.canvas.mpl_connect('key_press_event', pressKey)
                 plt.tight_layout()
-                plt.show()
+                if self.setFigureTimer:
+                    plt.ion()
+                    plt.show()
+                    plt.pause(self.figureTimerDuration)
+                    plt.close(fig)
+                    plt.ioff()
+                else:
+                    plt.show()
 
                 # Save the Figure
                 if self.saveFigures:
@@ -6472,7 +6500,14 @@ class NGS:
 
             fig.canvas.mpl_connect('key_press_event', pressKey)
             plt.tight_layout()
-            plt.show()
+            if self.setFigureTimer:
+                plt.ion()
+                plt.show()
+                plt.pause(self.figureTimerDuration)
+                plt.close(fig)
+                plt.ioff()
+            else:
+                plt.show()
 
 
             # Save the Figure
@@ -6670,4 +6705,11 @@ class NGS:
 
         fig.canvas.mpl_connect('key_press_event', pressKey)
         plt.tight_layout()
-        plt.show()
+        if self.setFigureTimer:
+            plt.ion()
+            plt.show()
+            plt.pause(self.figureTimerDuration)
+            plt.close(fig)
+            plt.ioff()
+        else:
+            plt.show()
