@@ -164,15 +164,16 @@ def includeCommas(x):
 
 
 class NGS:
-    def __init__(self, enzyme, enzymeName, substrateLength, filterSubs, fixedAA, fixedPosition,
-                 excludeAAs, excludeAA, excludePosition, minCounts, minEntropy,
-                 figEMSquares, xAxisLabels, printNumber, showNValues, bigAAonTop,
-                 findMotif, folderPath, filesInit, filesFinal, plotPosS, plotFigEM,
-                 plotFigEMScaled, plotFigLogo, plotFigWebLogo, plotFigWords, wordLimit,
-                 wordsTotal, plotFigBars, NSubBars, plotFigPCA, numPCs, NSubsPCA,
-                 plotSuffixTree, saveFigures, setFigureTimer, expressDNA=False,
-                 useEF=False, xAxisLabelsMotif=None, motifFilter=False,
-                 releasedCounts=False, plotFigMotifEnrich=False):
+    def __init__(self, enzyme, enzymeName, substrateLength, filterSubs, fixedAA,
+                 fixedPosition, excludeAAs, excludeAA, excludePosition, minCounts,
+                 minEntropy, figEMSquares, xAxisLabels, printNumber, showNValues,
+                 bigAAonTop, findMotif, folderPath, filesInit, filesFinal, plotPosS,
+                 plotFigEM, plotFigEMScaled, plotFigLogo, plotFigWebLogo, plotFigWords,
+                 wordLimit, wordsTotal, plotFigBars, NSubBars, plotFigPCA, numPCs,
+                 NSubsPCA, plotSuffixTree, saveFigures, setFigureTimer,
+                 expressDNA=False, useEF=False, xAxisLabelsMotif=None,
+                 motifFilter=False, releasedCounts=False,
+                 plotFigMotifEnrich=False):
         # Parameters: Dataset
         self.enzyme = enzyme
         self.enzymeName = enzymeName
@@ -281,6 +282,10 @@ class NGS:
         np.set_printoptions(suppress=True) # Prevent data from printing in sci notation
         np.seterr(divide='ignore')
 
+        if isinstance(self.fixedPos, int):
+            self.fixedPos = [self.fixedPos]
+        if isinstance(self.excludePosition, int):
+            self.excludePosition = [self.excludePosition]
 
         # Verify directory paths
         if not os.path.exists(self.pathFolder):
