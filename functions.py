@@ -2791,9 +2791,9 @@ class NGS:
 
         # Sort the frame
         self.subFrame = subFrame.sort_values(by='ΔS', ascending=False).copy()
-        print(f'Frame:\n'
+        print(f'Motif:\n'
               f'{blue}{subFrame}{resetColor}\n\n'
-              f'Ranked Motif Frame:\n'
+              f'Ranked Motif:\n'
               f'{blue}{self.subFrame}{resetColor}\n\n')
 
         # Define motif label
