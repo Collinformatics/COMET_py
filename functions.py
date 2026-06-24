@@ -1455,10 +1455,10 @@ class NGS:
                 # Print: Loaded data
                 iteration = 0
                 print(f'Loaded Substrates: {purple}{motifTag}{resetColor}')
-                print(f'     Motif Indices: {blue}{self.xAxisLabels[startSub]}-'
+                print(f'* Motif Indices: {blue}{self.xAxisLabels[startSub]}-'
                       f'{self.xAxisLabels[endSub - 1]}{resetColor}')
                 for substrate, count in loadedSubs.items():
-                    print(f'          {pink}{substrate}{resetColor}, '
+                    print(f'    {pink}{substrate}{resetColor}, '
                           f'{blue}{substrate[startSub:endSub]}{resetColor}, '
                           f'Counts: {red}{count:,}'
                           f'{resetColor}')
@@ -1480,7 +1480,7 @@ class NGS:
                         motifs[motif] += count
                     else:
                         motifs[motif] = count
-                print(f'\n     Total Counts: {red}{totalCounts:,}{resetColor}\n\n')
+                print(f'* Total Counts: {red}{totalCounts:,}{resetColor}\n\n')
             else:
                 print(f'{orange}ERROR: The file was not found\n'
                       f'     {pathFixedMotifSubs}\n')
