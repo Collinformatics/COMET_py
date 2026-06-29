@@ -19,10 +19,6 @@ inMotifPositions = ['P4','P3','P2','P1','P1\'','P2\'']
 inIndexNTerminus = 0 # Define the index if the first AA in the motif
 
 # Input 3: Computational Parameters
-inFixedResidue = [['L','M'],'L'] # ['R', ['A', 'G']]
-inFixedPosition = [[3,4,5],[5,6,7]] # [[4,5,6],[5,6,7]]
-inFixedResidue = ['R',['A','G','S']] # ['R',['A','G']]
-inFixedPosition = [[3,4,5,6],[4,5,6,7]]
 inFixedResidue = 'Q'
 inFixedPosition = [4,5,6]
 inExcludeResidues = False

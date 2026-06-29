@@ -175,8 +175,8 @@ class NGS:
                  releasedCounts=False, plotFigMotifEnrich=False):
         # Parameters: Figures
         self.labelSizeTitle = 20 # Set fontsize
-        self.labelSizeAxis = 18 # Set fontsize
-        self.labelSizeTicks = 16 # Set fontsize
+        self.labelSizeAxis = 17 # Set fontsize
+        self.labelSizeTicks = 15 # Set fontsize
         self.labelSizeEM = 11 # Set fontsize
         self.lineThickness = 1.5
         self.tickLength = 4
@@ -5362,8 +5362,7 @@ class NGS:
         else:
             title = f'{enzName}'
         if self.releasedCounts:
-            title = title.replace(self.datasetTag,
-                                  f'{self.datasetTag}\nSubstrate Profile')
+            title = self.titleReleased
         if combinedMotifs and not self.releasedCounts:
             title = title.replace(self.datasetTag,
                                   f'Combined Filter\n{self.datasetTag}')
