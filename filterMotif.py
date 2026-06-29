@@ -17,17 +17,17 @@ inSetFigureTimer = True
 # Input 2: Computational Parameters
 inMinDeltaS = 0.65
 inRefixMotif = True
-inFixedResidue = 'Q' # ['R', ['A', 'G']]
-inFixedPosition = 4
+inFixedResidue = 'Q' # ['R',['A','G']]
+inFixedPosition = 6
 inExcludeResidues = False
-inExcludedResidue = ['A', 'A']
-inExcludedPosition = [9, 10]
+inExcludedResidue = ['A','A']
+inExcludedPosition = [9,10]
 inManualEntropy = False
 inManualFrame = ['R6','R8','R5','R7']
 inFixFullMotifSeq = False
 inMinimumSubstrateCount = 1
-inSetMinimumESFixAA = 0.5
-inSetMinimumESReleaseAA = 0
+inSetMinimumESFixAA = 0
+inSetMinimumESReleaseAA = -0.5
 inPrintFixedSubs = True
 inCombineFixedMotifs = False
 inPredictSubstrateEnrichmentScores = False
@@ -797,7 +797,7 @@ def releaseCounts(substrates, countsFiltered, sortType, keepResidues,
         populateMatrix(counts=countsFinalFixed, popPosition=position, idxRel=indexRel)
 
     # Populate remaining columns
-    ngs.setFigureTimer = False ##
+    # ngs.setFigureTimer = False ##
     fillPos = []
     for position in countsReleased.columns:
         if position not in populatedPositions:

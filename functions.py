@@ -171,9 +171,72 @@ class NGS:
                  plotFigEM, plotFigEMScaled, plotFigLogo, plotFigWebLogo, plotFigWords,
                  wordLimit, wordsTotal, plotFigBars, NSubBars, plotFigPCA, numPCs,
                  NSubsPCA, plotSuffixTree, saveFigures, setFigureTimer,
-                 expressDNA=False, useEF=False, xAxisLabelsMotif=None,
-                 motifFilter=False, releasedCounts=False,
-                 plotFigMotifEnrich=False):
+                 expressDNA=False, xAxisLabelsMotif=None, motifFilter=False,
+                 releasedCounts=False, plotFigMotifEnrich=False):
+        # Parameters: Figures
+        self.labelSizeTitle = 20 # Set fontsize
+        self.labelSizeAxis = 18 # Set fontsize
+        self.labelSizeTicks = 16 # Set fontsize
+        self.labelSizeEM = 11 # Set fontsize
+        self.lineThickness = 1.5
+        self.tickLength = 4
+        if figEMSquares:
+            self.figSizeEM = (5, 8)  # (width, height)
+        else:
+            self.figSizeEM = (9.5, 8)
+        self.figSize = (9.5, 8)
+        self.figSizeMini = (self.figSize[0], 6)
+        self.entropy, self.entropyMax = None, None
+        self.eMap, self.eMapScaled = None, None
+        self.eMapReleased, self.eMapReleasedScaled = None, None
+        self.heights, self.weblogo = None, None
+        self.plotFigEntropy = plotPosS
+        self.plotFigEM = plotFigEM
+        self.plotFigEMScaled = plotFigEMScaled
+        self.plotFigLogo = plotFigLogo
+        self.plotFigWebLogo = plotFigWebLogo
+        self.plotFigMotifEnrich = plotFigMotifEnrich
+        self.plotFigWords = plotFigWords
+        self.wordsLimit = wordLimit
+        self.wordsTotal = wordsTotal
+        self.plotFigBars = plotFigBars
+        self.NSubBars = NSubBars
+        self.plotFigPCA = plotFigPCA
+        self.numPCs = numPCs
+        self.NSubsPCA = NSubsPCA
+        self.plotSuffixTree = plotSuffixTree
+        self.datasetTag = None
+        self.datasetTagSave = None
+        self.datasetTagMotif = None
+        self.title = ''
+        self.titleCombined = ''
+        self.titleMotif = ''
+        self.titleReleased = ''
+        self.titleWeblogo = ''
+        self.titleWords = ''
+        self.substrateLength = substrateLength
+        self.figEMSquares = figEMSquares
+        self.residueLabelType = 2  # 0 = full AA name, 1 = 3-letter code, 2 = 1 letter
+        self.residues = defaultResidues
+        self.letters = [residue[2] for residue in self.residues]
+        self.colorsAA = NGS.residueColors()
+        self.showSampleSize = showNValues
+        self.nSubsInitial = 0
+        self.nSubsFinal = 0
+        self.bigAAonTop = bigAAonTop
+        self.findMotif = findMotif
+        self.motifFilter = motifFilter
+        self.initialize = True  # filterMotif.py: Set to False after NGS.calculateEntropy()
+        self.motifTag = ''
+        self.subFrame = None
+        self.motifIndex = None
+        self.motifIndexExtracted = []
+        self.saveFigures = saveFigures
+        self.setFigureTimer = setFigureTimer
+        self.figureTimerDuration = 0.5
+        self.saveFigureIteration = 0
+        self.figureResolution = 300
+
         # Parameters: Dataset
         self.enzyme = enzyme
         self.enzymeName = enzymeName
@@ -195,7 +258,6 @@ class NGS:
         self.rectangles = []
         self.initialize = True
         self.maxValue = 0
-        self.useEF = useEF
         self.releasedCounts = releasedCounts
         
         # Parameters: DNA Processing
@@ -204,69 +266,6 @@ class NGS:
         self.fileSize = []
         self.countExtractedSubs = []
         self.percentUnusableDNASeqs = []
-
-        # Parameters: Figures
-        self.entropy, self.entropyMax = None, None
-        self.eMap, self.eMapScaled = None, None
-        self.eMapReleased, self.eMapReleasedScaled = None, None
-        self.heights, self.weblogo = None, None
-        self.plotFigEntropy = plotPosS
-        self.plotFigEM = plotFigEM
-        self.plotFigEMScaled = plotFigEMScaled
-        self.plotFigLogo = plotFigLogo
-        self.plotFigWebLogo = plotFigWebLogo
-        self.plotFigMotifEnrich = plotFigMotifEnrich
-        self.plotFigWords = plotFigWords
-        self.wordsLimit = wordLimit
-        self.wordsTotal = wordsTotal
-        self.plotFigBars = plotFigBars
-        self.NSubBars = NSubBars
-        self.plotFigPCA = plotFigPCA
-        self.numPCs=numPCs
-        self.NSubsPCA = NSubsPCA
-        self.plotSuffixTree = plotSuffixTree
-        self.datasetTag = None
-        self.datasetTagSave = None
-        self.datasetTagMotif = None
-        self.title = ''
-        self.titleCombined = ''
-        self.titleMotif = ''
-        self.titleReleased = ''
-        self.titleWeblogo = ''
-        self.titleWords = ''
-        self.substrateLength = substrateLength
-        self.figEMSquares = figEMSquares
-        if figEMSquares:
-            self.figSizeEM = (5, 8) # (width, height)
-        else:
-            self.figSizeEM = (9.5, 8)
-        self.figSize = (9.5, 8)
-        self.figSizeMini = (self.figSize[0], 6)
-        self.residueLabelType = 2 # 0 = full AA name, 1 = 3-letter code, 2 = 1 letter
-        self.labelSizeTitle = 18
-        self.labelSizeAxis = 16
-        self.labelSizeTicks = 13
-        self.lineThickness = 1.5
-        self.tickLength = 4
-        self.residues = defaultResidues
-        self.letters = [residue[2] for residue in self.residues]
-        self.colorsAA = NGS.residueColors()
-        self.showSampleSize = showNValues
-        self.nSubsInitial = 0
-        self.nSubsFinal = 0
-        self.bigAAonTop = bigAAonTop
-        self.findMotif = findMotif
-        self.motifFilter = motifFilter
-        self.initialize = True # filterMotif.py: Set to False after NGS.calculateEntropy()
-        self.motifTag = ''
-        self.subFrame = None
-        self.motifIndex = None
-        self.motifIndexExtracted = []
-        self.saveFigures = saveFigures
-        self.setFigureTimer = setFigureTimer
-        self.figureTimerDuration = 0.5
-        self.saveFigureIteration = 0
-        self.figureResolution = 300
 
         # Parameters: Files
         self.filesInit = filesInit
@@ -2218,8 +2217,8 @@ class NGS:
                               f'Combined Filter {self.datasetTag}')
         self.titleMotif = f'{enzName}\n{self.datasetTagMotif}'
         self.titleReleased = (f'{enzName}\n'
-                              f'{self.datasetTagMotif}\n'
-                              f'Substrate Profile')
+                              f'Substrate Profile\n'
+                              f'{self.datasetTagMotif}')
         if self.showSampleSize:
             self.title = (f'{enzName}\n'
                           f'N Unsorted = {self.nSubsInitial:,}\n'
@@ -3085,17 +3084,15 @@ class NGS:
 
         # Plot the heatmap
         if self.figEMSquares:
-            heatmap = sns.heatmap(scores, annot=False, cmap=cMapCustom, cbar=False,
-                                  linewidths=self.lineThickness - 1, linecolor='black',
-                                  square=self.figEMSquares, center=None,
-                                  vmax=cBarMax, vmin=cBarMin)
+            sns.heatmap(scores, annot=False, cmap=cMapCustom, cbar=False,
+                        linewidths=self.lineThickness - 1, linecolor='black',
+                        square=self.figEMSquares, center=None, vmax=cBarMax, vmin=cBarMin)
         else:
             # Plot enrichment scores
-            heatmap = sns.heatmap(scores, annot=True, fmt='.3f', cmap=cMapCustom,
-                                  cbar=False, linewidths=self.lineThickness - 1,
-                                  linecolor='black', square=self.figEMSquares,
-                                  center=None, vmax=cBarMax, vmin=cBarMin,
-                                  annot_kws={'fontweight': 'bold'})
+            sns.heatmap(scores, annot=True, fmt='.3f', cmap=cMapCustom, cbar=False,
+                        linewidths=self.lineThickness - 1, linecolor='black',
+                        square=self.figEMSquares, center=None, vmax=cBarMax, vmin=cBarMin,
+                        annot_kws={'fontweight': 'bold', 'size': self.labelSizeEM})
         ax.set_title(title, fontsize=self.labelSizeTitle, fontweight='bold')
         ax.set_xlabel('Substrate Position', fontsize=self.labelSizeAxis)
         ax.set_ylabel('Residue', fontsize=self.labelSizeAxis)
@@ -3516,8 +3513,7 @@ class NGS:
             title = title.replace('N= ', f'{dataType}\n')
         else:
             if self.releasedCounts:
-                title = (f'{enzName}\n{self.datasetTag}\n'
-                         f'Substrate Profile')
+                title = self.titleReleased
                 if len(self.datasetTag.replace('[', '').replace(
                         ']', '').replace('-', '')) > 40:
                     title = title.replace('Register ', 'Register\n')
@@ -3549,10 +3545,10 @@ class NGS:
 
         # Plot the heatmap with numbers centered inside the squares
         fig, ax = plt.subplots(figsize=self.figSizeEM)
-        heatmap = sns.heatmap(data, annot=True, fmt='.3f', cmap=cMapCustom,
-                              cbar=False, linewidths=self.lineThickness-1,
-                              linecolor='black', square=False, center=None,
-                              annot_kws={'fontweight': 'bold'}, vmax=cBarMax, vmin=0)
+        sns.heatmap(data, annot=True, fmt='.3f', cmap=cMapCustom, cbar=False,
+                    linewidths=self.lineThickness-1, linecolor='black', square=False,
+                    center=None, vmax = cBarMax, vmin = 0,
+                    annot_kws={'fontweight': 'bold', 'size': self.labelSizeEM})
         ax.set_xlabel('Substrate Position', fontsize=self.labelSizeAxis)
         ax.set_ylabel('Residue', fontsize=self.labelSizeAxis)
         ax.set_title(title, fontsize=self.labelSizeTitle, fontweight='bold')
@@ -3787,10 +3783,7 @@ class NGS:
 
         # Define: Figure title
         enzName = self.enzymeName.replace(' - ', '\n')
-        if self.useEF:
-            yLabel = 'Enrichment Factor'
-        else:
-            yLabel = 'Counts'
+        yLabel = 'Counts'
         if predActivity:
             datasetTag = self.datasetTag.replace(' - ', '\n')
             if predModel is None:
@@ -3866,10 +3859,7 @@ class NGS:
 
         # Save the figure
         if self.saveFigures:
-            if self.useEF:
-                scoreType = 'EF'
-            else:
-                scoreType = 'Counts'
+            scoreType = 'Counts'
 
             # Define: Save location
             if predActivity:
@@ -4094,41 +4084,9 @@ class NGS:
 
 
             # Evaluate: Motif enrichment
-            print(f'Use EF: {self.useEF}')
-            if self.useEF:
-                for substrate, count in subsFinal.items():
-                    totalCountsFinal += count
-                    if substrate in subsInit.keys():
-                        # Limit subInit length to match frame extraction zones
-                        countInit = subsInit[substrate]
-                    else:
-                        totalMissingSubs += 1
-                        countInit = 1
-                        totalCountsFinal += 1
-                    totalCountsInit += countInit
-                    # if countInit == 1:
-                    #     totalCountsInitAdj += countInit
-                    ratios[substrate] = count / countInit
-
-                # Sort collected substrates and add to the list
-                ratios = dict(sorted(
-                    ratios.items(), key=lambda x: x[1], reverse=True)
-                )
-
-                iteration = 0
-                print('Enrichment Ratios:')
-                for substrate, ratio in ratios.items():
-                    # if int(ratio) != subsFinal[substrate]:
-                    iteration += 1
-                    print(f'     {pink}{substrate}{resetColor}, '
-                          f'ER: {red}{round(ratio, 1):,}{resetColor}')
-                    if iteration >= self.printNumber:
-                        print('')
-                        break
-            else:
-                for substrate in subsFinal.keys():
-                    if substrate not in subsInit.keys():
-                        totalMissingSubs += 1
+            for substrate in subsFinal.keys():
+                if substrate not in subsInit.keys():
+                    totalMissingSubs += 1
             print(f'Dataset Evaluation:\n'
                   f'    Total substrates in the Final Sort: '
                   f'{red}{totalUniqueSubsFinal:,}{resetColor}\n'
@@ -4152,11 +4110,12 @@ class NGS:
             print(f'Unique Motifs: {red}{totalMotifs:,}{resetColor}\n')
 
             # Sort collected substrates and add to the list
-            motifEnrichment = dict(sorted(motifEnrichment.items(),
-                                          key=lambda x: x[1], reverse=True))
+            motifEnrichment = dict(sorted(
+                motifEnrichment.items(), key=lambda x: x[1], reverse=True)
+            )
 
         # Select data
-        if not self.useEF:
+        if not self.useEF: ##$$
             # Use counts, not enrichment factor
             motifEnrichment = motifs
 
@@ -5280,15 +5239,14 @@ class NGS:
         # Plot the heatmap with numbers centered inside the squares
         fig, ax = plt.subplots(figsize=self.figSize)
         if totalCounts:
-            heatmap = sns.heatmap(data, annot=True, fmt=',d', cmap=cMapCustom,
-                                  cbar=False, linewidths=self.lineThickness-1,
-                                  linecolor='black', square=False, center=None,
-                                  annot_kws={'fontweight': 'bold'})
+            sns.heatmap(data, annot=True, fmt=',d', cmap=cMapCustom, cbar=False,
+                        linewidths=self.lineThickness-1, linecolor='black', square=False,
+                        center=None, annot_kws={'fontweight': 'bold'})
         else:
-            heatmap = sns.heatmap(data, annot=True, fmt='.4f', cmap=cMapCustom,
-                                  cbar=False, linewidths=self.lineThickness - 1,
-                                  linecolor='black', square=False, center=None,
-                                  annot_kws={'fontweight': 'bold'})
+            sns.heatmap(data, annot=True, fmt='.4f', cmap=cMapCustom,
+                        cbar=False, linewidths=self.lineThickness - 1,
+                        linecolor='black', square=False, center=None,
+                        annot_kws={'fontweight': 'bold', 'size': self.labelSizeEM})
         ax.set_xlabel('Substrate Position', fontsize=self.labelSizeAxis)
         ax.set_ylabel('Residue', fontsize=self.labelSizeAxis)
         ax.set_title(title, fontsize=self.labelSizeTitle, fontweight='bold')
@@ -5609,16 +5567,16 @@ class NGS:
 
             if self.saveFigures:
                 # Define: Save location
+                enzName = self.enzymeName.replace(' - ', '-').replace('/','_')
                 if datasetTag is None:
-                    figLabel = (f'AA Distribution-{self.enzymeName}-'
-                                f'{sortType}-YMax_{yMax}-{codonType}-'
-                                f'MinCounts_{self.minSubCount}.png')
+                    figLabel = (f'AA Distribution-{enzName}-{sortType}-YMax_{yMax}-'
+                                f'{codonType}-MinCounts_{self.minSubCount}.png')
                 else:
                     if codonType == datasetTag:
                         figLabel = (f'AA Distribution-{codonType}_Codon-'
                                     f'YMax_{yMax}.png')
                     else:
-                        figLabel = (f'AA Distribution-{self.enzymeName}-{datasetTag}-'
+                        figLabel = (f'AA Distribution-{enzName}-{datasetTag}-'
                                     f'{sortType}-YMax_{yMax}-{codonType}-'
                                     f'MinCounts_{self.minSubCount}.png')
                 figLabel = figLabel.replace(' ', '_')
@@ -5770,11 +5728,13 @@ class NGS:
         # Define: Figure title
         if predActivity:
             title = f'{self.enzymeName.replace(' - ', '\n')}\n{predModel}'
+        elif self.releasedCounts:
+            title = self.titleReleased
         elif combinedMotifs:
             title = self.titleCombined
         else:
             title = self.titleWords
-            title += f'\nTop {totalWords} Substrates'
+            title += f'\nTop {totalWords} Subst.rates'
 
 
         # Create word cloud
@@ -5961,89 +5921,6 @@ class NGS:
 
 
 
-    def extractMotif(self, substrates, motifFrame,
-                     frameIndicies, datasetTag):
-        print('================================= Extract Motif '
-              '=================================')
-        print(f'Binning Substrates: {purple}{datasetTag}{resetColor}\n'
-              f'Start Position:{greenLightB} {motifFrame[frameIndicies[0]]}'
-              f'{resetColor}\n'
-              f'   Start Index:{greenLightB} {frameIndicies[0]}{resetColor}\n'
-              f'End Position:{greenLightB} {motifFrame[frameIndicies[-1]]}'
-              f'{resetColor}\n'
-              f'   End Index:{greenLightB} {frameIndicies[-1]}{resetColor}\n\n')
-        frameLength = len(motifFrame)
-        sys.exit(1)
-
-
-        # Bin substrates
-        motifs = {}
-        countTotalSubstrates = 0
-        countUniqueSubstrates = 0
-        for index, subsFixedFrame in enumerate(substrates):
-            # Define fixed frame positions & extract the data
-            startPosition = frameIndicies[0]
-            startSubPrevious = startPosition
-            if index != 0:
-                # Evaluate previous fixed frame index
-                fixedPosDifference = (self.fixedPos[index] -
-                                      self.fixedPos[index - 1])
-                startSubPrevious += fixedPosDifference
-                # print(f'Pos Curr: {purple}{self.fixedPos[index]}{resetColor}\n'
-                #       f'Pos Prev: {purple}{self.fixedPos[index - 1]}{resetColor}')
-                # print(f'     Start Diff:{greenLightB} {fixedPosDifference}{resetColor}\n'
-                #       f'     Start Prev:{greenLightB} {startSubPrevious}{resetColor}')
-                startSub = index + startSubPrevious - 1
-                endSub = startSub + frameLength
-            else:
-                startSub = startPosition
-                endSub = frameIndicies[-1] + 1
-            # print(f'Start:{red} {startSub}{resetColor}\n'
-            #       f'Stop:{red} {endSub}{resetColor}\n\n')
-
-            # Print: Substrates
-            print(f'Fixed Motif: {purple}{self.fixedAA[0]}@{self.fixedPos[index]}'
-                  f'{resetColor}')
-            iteration = 0
-            for substrate, count in subsFixedFrame.items():
-                print(f'Substrate:{pink} {substrate}{resetColor}\n'
-                      f'    Frame:{blue} {substrate[startSub:endSub]}{resetColor}\n'
-                      f'    Count:{red} {count:,}{resetColor}')
-                iteration += 1
-                if iteration == self.printNumber:
-                    print('\n')
-                    break
-
-                # Add substrate frame to the substrate dictionary
-                for substrate, count in subsFixedFrame.items():
-                    countTotalSubstrates += count
-                    sub = substrate[startSub:endSub]
-
-                    if sub in motifs:
-                        motifs[sub] += count
-                    else:
-                        countUniqueSubstrates += 1
-                        motifs[sub] = count
-        # Sort the dictionary
-        motifs = dict(sorted(motifs.items(), key=lambda item: item[1], reverse=True))
-
-        # Print: Binned substrates
-        iteration = 0
-        print(f'Binned Substrates{resetColor}: {purple}{datasetTag}{resetColor}')
-        for substrate, count in motifs.items():
-            print(f'     {pink} {substrate}{resetColor}, '
-                  f'Count:{red} {count:,}{resetColor}')
-            iteration += 1
-            if iteration == self.printNumber:
-                print('\n')
-                break
-        print(f'Total Substrates:{red} {countTotalSubstrates:,}{resetColor}\n'
-              f'Unique Substrates:{red} {countUniqueSubstrates:,}{resetColor}\n\n')
-
-        return motifs, countTotalSubstrates
-
-
-
     def generateSubstrates(self, df, eMap, minES, dataType,
                            subsReq={}, filter={}):
         print('============================== Generate Substrates '
@@ -6147,8 +6024,8 @@ class NGS:
 
 
 
-    def divideDataset(self, substrates, quantileSplit):
-        print('================================ Divide Dataset '
+    def splitDataset(self, substrates, quantileSplit):
+        print('================================= Split Dataset '
               '=================================')
         print(f'Dataset: {purple}{self.datasetTag}{resetColor}\n')
 
@@ -6167,27 +6044,6 @@ class NGS:
               f'{resetColor}{dfHigh}\n\n\n'
               f'Substrates: {pink}Remaining {100 - quantileSplit}% Activity Scores\n'
               f'{resetColor}{dfLow}\n\n')
-
-
-        # seq = 'LVLQ'
-        # seq2 = 'NDL'
-        # print(f'Find Sequence: {greenLight}{seq}_{seq2}{resetColor}')
-        # for substrate, value in substratesNormValues.items():
-        #     if seq in substrate and seq2 in substrate:
-        #     # if 'CSMQLGLT' in substrate:
-        #         print(f'     {pink}{substrate}{resetColor}, {red}{round(value, 5):,}'
-        #               f'{resetColor}')
-        # print('')
-        #
-        # seq = 'TVLQ'
-        # seq2 = 'AML'
-        # print(f'Find Sequence: {greenLight}{seq}_{seq2}{resetColor}')
-        # for substrate, value in substratesNormValues.items():
-        #     if seq in substrate and seq2 in substrate:
-        #         # if 'CSMQLGLT' in substrate:
-        #         print(f'     {pink}{substrate}{resetColor}, {red}{round(value, 5):,}'
-        #               f'{resetColor}')
-        # print('')
 
 
         # Divide low substrate scores
@@ -6270,10 +6126,12 @@ class NGS:
 
 
 
-    def predictActivity(self, activityExp, finalRF, initialRF, predModel,
-                        predLabel, errorBars=False, combinedMotifs=False,
-                        plotBars=True, barWidth=0.35):
+    def predictActivity(self, activityExp, finalRF, initialRF,
+                        predModel, predLabel, errorBars=False,
+                        combinedMotifs=False, barWidth=0.35,
+                        colorExp='#BF5700', colorPred='#F8971F'):
         from scipy.optimize import curve_fit
+
 
         print('============================ Predict Substrate Activity '
               '=============================')
@@ -6312,6 +6170,8 @@ class NGS:
 
 
         def plotPredActivity(values, errorBars, tag):
+            colorP, colorE = red, blue
+
             # Calculate: Activity
             activityPred = {}
             subLen = len(next(iter(activityExp)))
@@ -6324,21 +6184,12 @@ class NGS:
                     pos = values.columns[index]
                     value = values.loc[AA, pos]
                     print(f'* {pink}{AA}@{pos}{resetColor}: {round(value,4)}')
-
                     if score == 0:
                         score = value
                     else:
                         score *= value
-                print(f'Score: {red}{score:.3e}{resetColor}\n')
-                x  = score
-                # for t in ['square root', 'square', 'root', 'sqrt', 'sq rt']:
-                #     if t in predLabel.lower():
-                #         x = np.sqrt(x) ##
-                #         break
-                # print(f'Sub: {purple}{substrate}{resetColor}\n'
-                #       f'Score: {score:.3e}\n'
-                #       f'    X: {x:.3e}\n')
-                activityPred[substrate] = x
+                print(f'Score: {colorP}{score:.3e}{resetColor}\n')
+                activityPred[substrate] = score
             ranked = pd.Series(activityPred.values()).rank(
                 ascending=False, method='min').astype(int)
 
@@ -6347,19 +6198,20 @@ class NGS:
             dec = self.roundVal - 1
             print(f'Matrix Type: {purple}{tag}{resetColor}\n'
                   f'Predicted Activity: '
-                  f'(Max Score: {red}{maxActivity:.{dec}e}{resetColor})')
+                  f'(Max Score: {colorP}{maxActivity:.{dec}e}{resetColor})')
             for index, (substrate, activity) in enumerate(activityPred.items()):
                 print(f'    {pink}{substrate}{resetColor} ({ranked[index]}), '
-                      f'Score: {red}{activity:.{dec}e}{resetColor}')
+                      f'Score: {colorP}{activity:.{dec}e}{resetColor}')
                 if index == self.printNumber - 1:
                     break
             print()
 
             # Normalize values
+            activityExpNorm = {}
             maxExpActivity = max(activityExp.values())
             for index, (substrate, activity) in enumerate(activityPred.items()):
                 activityPred[substrate] = activity / maxActivity
-                activityExp[substrate] = activityExp[substrate] / maxExpActivity
+                activityExpNorm[substrate] = activityExp[substrate] / maxExpActivity
             print(f'Predicted Normalized Activity:')
             scores = []
             for index, (substrate, activity) in enumerate(activityPred.items()):
@@ -6368,8 +6220,8 @@ class NGS:
                 l = f'{l:,.{self.roundVal}f}'
                 scores.append(float(s))
                 print(f'    {pink}{substrate}{resetColor} ({ranked[index]}), '
-                      f'Score: {red}{s}{resetColor}, '
-                      f'Nat Log: {red}{l}{resetColor}')
+                      f'Score: {colorP}{s}{resetColor}, '
+                      f'Nat Log: {colorP}{l}{resetColor}')
                 if index == self.printNumber - 1:
                     break
             if errorBars:
@@ -6381,95 +6233,92 @@ class NGS:
             rankedActivity = dict(sorted(activityPred.items(),
                                        key=lambda x: x[1], reverse=True))
             print(f'Ranked Predicted Activity:')
-            for index, (substrate, activity) in enumerate(rankedActivity.items(), start=1):
+            for index, (substrate, activity) in enumerate(rankedActivity.items(),start=1):
                 print(f'    {pink}{substrate}{resetColor}, '
-                      f'Score: {red}{activity:,.{self.roundVal}f}{resetColor}')
-                if index == self.printNumber:
-                    break
+                      f'Score: {colorP}{activity:,.{self.roundVal}f}{resetColor}')
             print('')
 
             # Compare predictions
             print(f'Predicted Vs Experimental Activity:')
             for index, (substrate, activity) in enumerate(activityPred.items(), start=1):
+                x = activityExpNorm[substrate]
                 print(f'    {pink}{substrate}{resetColor}, '
-                      f'Pred: {red}{activity:,.{self.roundVal}f}{resetColor}\n'
+                      f'Pred: {colorP}{activity:,.{self.roundVal}f}{resetColor}\n'
                       f'{" " * len(substrate)}       Exp: '
-                      f'{red}{activityExp[substrate]:,.{self.roundVal}f}{resetColor}')
+                      f'{colorE}{x:,.{self.roundVal}f}{resetColor}')
                 if index == self.printNumber:
                     break
             print('')
 
             # Compare values
             expScores = [round(a, 3) for a in activityExp.values()]
+            expScoresNorm = [round(a, 3) for a in activityExpNorm.values()]
             print(f'Activity: {purple}{self.enzymeName}{resetColor}')
-            print(f'* Experimental Activity: {expScores}')
-            print(f'* Predicted Activity:    {scores}\n\n')
+            print(f'* Predicted Activity:    {colorP}{scores}{resetColor}')
+            print(f'* Normalized Activity:   {colorE}{expScoresNorm}{resetColor}')
+            print(f'* Experimental Activity: {colorE}{expScores}{resetColor}\n\n')
+
 
             # Set title
             enzName = self.enzymeName.replace(' - ', '\n')
-            title = f'{enzName}\n{self.datasetTag}'
+            title = f'{enzName}\nSubstrate Activity'
             if predLabel:
-                title += f'\n{predModel}'
-            if self.releasedCounts:
-                title = title.replace(self.datasetTag,
-                                      f'{self.datasetTag}\nSubstrate Profile')
-            elif combinedMotifs:
-                title = title.replace(self.datasetTag,
-                                      f'{self.datasetTag}\nCombined Filter')
-
-            if plotBars:
-                # Plot bar graph
-                labels = list(activityPred.keys())
-                predVals = [activityPred[k] for k in labels]
-                expVals = [activityExp[k] for k in labels]
-                xTicks = np.arange(len(labels))
+                title += f'\n{predLabel}'
 
 
-                fig, ax = plt.subplots(figsize=self.figSize)
-                ax.bar(xTicks - barWidth / 2, predVals, barWidth, label='Predicted',
-                       color='#F8971F', edgecolor='black', linewidth=self.lineThickness)
-                ax.bar(xTicks + barWidth / 2, expVals, barWidth, label='Experimental',
-                       color='#BF5700', edgecolor='black', linewidth=self.lineThickness)
-                plt.title(title, fontsize=self.labelSizeTitle, fontweight='bold')
-                ax.set_ylabel('Normalized Activity', fontsize=self.labelSizeAxis)
-                ax.legend(edgecolor='black', fontsize=self.labelSizeTicks)
+            # Plot bar graph
+            labels = list(activityPred.keys())
+            predVals = [activityPred[k] for k in labels]
+            expVals = [activityExpNorm[k] for k in labels]
+            xTicks = np.arange(len(labels))
 
-                # Set xticks
-                ax.set_xticks(xTicks)
-                ax.set_xticklabels(labels, rotation=45)
 
-                # Set tick parameters
-                ax.tick_params(axis='both', which='major', length=self.tickLength,
-                               labelsize=self.labelSizeTicks, width=self.lineThickness)
+            fig, ax = plt.subplots(figsize=self.figSize)
+            ax.bar(xTicks - barWidth / 2, predVals, barWidth, label='Predicted',
+                   color=colorPred, edgecolor='black', linewidth=self.lineThickness)
+            ax.bar(xTicks + barWidth / 2, expVals, barWidth, label='Experimental',
+                   color=colorExp, edgecolor='black', linewidth=self.lineThickness)
+            plt.title(title, fontsize=self.labelSizeTitle, fontweight='bold')
+            ax.set_ylabel('Normalized Activity', fontsize=self.labelSizeAxis)
+            ax.legend(edgecolor='black', fontsize=self.labelSizeTicks)
 
-                # Set the edge thickness
-                for tick in ax.xaxis.get_major_ticks():
-                    tick.tick1line.set_markeredgewidth(
-                        self.lineThickness)  # Set tick width
-                for tick in ax.yaxis.get_major_ticks():
-                    tick.tick1line.set_markeredgewidth(
-                        self.lineThickness)  # Set tick width
-                for spine in ax.spines.values():
-                    spine.set_linewidth(self.lineThickness)
+            # Set xticks
+            ax.set_xticks(xTicks)
+            ax.set_xticklabels(labels, rotation=45)
 
-                self.plotFig(plt=plt, fig=fig)
+            # Set tick parameters
+            ax.tick_params(axis='both', which='major', length=self.tickLength,
+                           labelsize=self.labelSizeTicks, width=self.lineThickness)
 
-                # Save the Figure
-                if self.saveFigures:
-                    # Define: Save location
-                    figTag = f'PredActivity-BarGraph-{predModel}'
-                    if predLabel:
-                        figTag = figTag.replace(
-                            'BarGraph', f'BarGraph-{predLabel}'
-                        )
+            # Set the edge thickness
+            for tick in ax.xaxis.get_major_ticks():
+                tick.tick1line.set_markeredgewidth(
+                    self.lineThickness)  # Set tick width
+            for tick in ax.yaxis.get_major_ticks():
+                tick.tick1line.set_markeredgewidth(
+                    self.lineThickness)  # Set tick width
+            for spine in ax.spines.values():
+                spine.set_linewidth(self.lineThickness)
 
-                    # Save figure
-                    self.saveFigure(fig=fig, figType=figTag, seqLen=subLen, N=N,
-                                    combinedMotifs=combinedMotifs)
+            self.plotFig(plt=plt, fig=fig)
+
+            # Save the Figure
+            if self.saveFigures:
+                # Define: Save location
+                figTag = f'PredActivity-BarGraph-{predModel}'
+                if predLabel:
+                    figTag = figTag.replace(
+                        'BarGraph',
+                        f'BarGraph-{predLabel.replace(' ', '_')}'
+                    )
+
+                # Save figure
+                self.saveFigure(fig=fig, figType=figTag, seqLen=subLen, N=N,
+                                combinedMotifs=combinedMotifs)
 
 
             # Plot normalized activity scores as a scatter plot
-            x = list(activityExp.values())
+            x = list(expVals)
             y = list(activityPred.values())
             ticks = [0, 0.2, 0.4, 0.6, 0.8, 1]
 
@@ -6479,9 +6328,9 @@ class NGS:
             fig, ax = plt.subplots(figsize=self.figSize)
             if errorBars:
                 plt.errorbar(x, y, yerr=errorBars, fmt="o",
-                             color='#BF5700', ecolor='black')
+                             color=colorExp, ecolor='black')
             else:
-                plt.scatter(x, y, color='#BF5700', edgecolor='black')
+                plt.scatter(x, y, color=colorExp, edgecolor='black')
             ax.plot(x_fit, y_fit, color='black', linestyle='-',
                     linewidth=self.lineThickness)
             plt.xlabel('Experimental Activity', fontsize=self.labelSizeAxis)
@@ -6522,195 +6371,11 @@ class NGS:
                 figTag = f'PredActivity-ScatterPlot-{predModel}'
                 if predLabel:
                     figTag = figTag.replace(
-                        'ScatterPlot', f'ScatterPlot-{predLabel}'
+                        'ScatterPlot',
+                        f'ScatterPlot-{predLabel.replace(' ', '_')}'
                     )
 
                 # Save figure
                 self.saveFigure(fig=fig, figType=figTag, seqLen=subLen, N=N,
                                 combinedMotifs=combinedMotifs)
         plotPredActivity(values=matrix, errorBars=errorBars, tag='Probability Ratios')
-
-
-
-    def predictActivityHeatmap(self, predSubstrates, predModel, predLabel,
-                               RF, rankScores=True, scaleEMap=False):
-        print('=========================== Predict Substrate Activity '
-              '==========================')
-        print(f'Dataset: {purple}{predModel}{resetColor}\n'
-              f'Evaluating {red}{len(predSubstrates):,}{resetColor} '
-              f'Substrate Sequences\n')
-        sublen = len(next(iter(predSubstrates)))
-
-        # Record values
-        if self.releasedCounts:
-            eMap = self.eMapReleased
-        else:
-            eMap = self.eMap
-        eMap = RF # ====================================================================
-        if scaleEMap:
-            print(f'Scaling Prediction matrix\nEntropy:\n{self.entropy}\n\n')
-            for column in eMap.columns:
-                eMap.loc[:, column] = eMap.loc[:, column] * self.entropy.loc[column, 'ΔS']
-
-
-        # Make sure the eMap has the correct number of columns to evaluate the substrates
-        for substrate in predSubstrates:
-            if len(eMap.columns) != len(substrate):
-                print(f'{orange}ERROR: The Enrichment Map '
-                      f'({cyan}{len(eMap.columns)}{orange}) is not long enough to '
-                      f'evaluate the substrate ({cyan}{len(substrate)}{orange})\n'
-                      f'     Enrichment Map: {cyan}{eMap.columns}{orange}\n'
-                      f'          Substrate: {cyan}{substrate}\n\n')
-                sys.exit(1)
-        print(f'Prediction Matrix:\n{eMap}\n\n')
-        print(f'Relative Frequency:\n{RF}\n\n')
-
-        # Predict activity
-        activityScores = {}
-        addES = 0
-        for substrate in predSubstrates:
-            print(f'Sub: {pink}{substrate}{resetColor}')
-            score = 0
-            temp = 'VILQSG'
-            for index in range(sublen):
-                AA = substrate[index]
-                pos = eMap.columns[index]
-                v = eMap.loc[AA, pos] # * self.entropy.iloc[index, 0]
-                if temp[index] != AA:
-                    print(f'* AA: {blue}{AA}{resetColor}, '
-                          f'Value: {blue}{v:.{self.roundVal}}{resetColor}')
-                else:
-                    print(f'* AA: {AA}, Value: {v:.{self.roundVal}}')
-                addES += 1
-                if score == 0:
-                    score = v
-                else:
-                    score *= v
-            activityScores[substrate] = np.log(score) # + 2.6
-            print(f'Score: {red}{score:.{self.roundVal}}{resetColor}\n')
-
-        if rankScores:
-            activityScores = dict(sorted(activityScores.items(),
-                                         key=lambda x: x[1], reverse=True))
-
-        maxActivity = max(activityScores.values())
-        print(f'Predicted Activity: '
-              f'(Max Score: {red}{round(maxActivity, self.roundVal)}{resetColor})')
-        for index, (substrate, ES) in enumerate(activityScores.items()):
-            print(f'     {pink} {substrate}{resetColor}, '
-                  f'ES:{red} {ES:.3f}{resetColor}')
-        print()
-
-        # Calculate: Activity levels
-        for substrate, score in activityScores.items():
-            x = 0
-            if x == 1:
-                activityScores[substrate] = 10 ** (score / maxActivity)
-            elif x > 1:
-                R = 8.3145 # J / mol*K
-                T = 298.15 # K
-                activityScores[substrate] = score * -R * T
-                #activityScores[substrate] = math.exp(score / (R * T))
-            else:
-                activityScores[substrate] = score / maxActivity
-        print(f'Predicted Normalized Activity:')
-        for substrate, ES in activityScores.items():
-            print(f'     {pink} {substrate}{resetColor}, '
-                  f'ES:{red} {ES:,.3f}{resetColor}')
-        print()
-
-
-        if not rankScores:
-            rankedScores = dict(sorted(activityScores.items(),
-                                 key=lambda x: x[1], reverse=True))
-            print(f'Ranked Predicted Activity:')
-            for index, (substrate, ES) in enumerate(rankedScores.items()):
-                print(f'     {pink} {substrate}{resetColor}, '
-                      f'ES:{red} {ES:,.3f}{resetColor}')
-            print('')
-        print()
-
-        self.plotMotifEnrichment(motifs=activityScores, limitNBars=True,
-                                 predActivity=True, predType=predLabel,
-                                 scaleEMap=scaleEMap)
-
-
-
-    def codonPredictions(self, codon, codonProb, substrates):
-        print('=============================== Codon Predictions '
-              '===============================')
-        print(f'Dataset: {purple}{self.datasetTag}{resetColor}\n'
-              f'Codon: {purple}{codon}{resetColor}\n{codonProb}\n\n')
-        codonProb = codonProb.copy() * 100
-
-        iteration = 0
-        print(f'Substrates:')
-        for substrate, count in substrates.items():
-            iteration += 1
-            print(f'     {pink}{substrate}{resetColor}, Counts: {red}{count:,}'
-                  f'{resetColor}')
-            if iteration >= self.printNumber:
-                break
-        print('\n')
-
-        # Calculate codon scores
-        N = 10000
-        # colName = 'Average RF'
-        colName = 'Probability'
-        codonEnrichment = {}
-        substratesSelect = {}
-        iteration = 0
-        for substrate, count in substrates.items():
-            substratesSelect[substrate] = count
-            score = 0
-            for AA in substrate:
-                if score == 0:
-                    score = codonProb.loc[AA, colName]
-                else:
-                    score *= codonProb.loc[AA, colName]
-            codonEnrichment[substrate] = score
-            iteration += 1
-            if iteration >= N:
-                break
-
-        # Print codon scores
-        iteration = 0
-        print(f'Codon Scores:')
-        for substrate, score in codonEnrichment.items():
-            iteration += 1
-            print(f'     {pink}{substrate}{resetColor}, '
-                  f'Score: {red}{round(score, self.roundVal):,}'
-                  f'{resetColor}')
-            if iteration >= self.printNumber:
-                break
-        print('\n')
-
-        # Plot codon enrichment scores as a scatter plot
-        x = list(substratesSelect.values())
-        y = list(codonEnrichment.values())
-        xMax, xMin = max(x), min(x)
-        yMax, yMin = max(y), min(y)
-        print(f'Boundaries:\n'
-              f'     X: {red}{round(xMax, self.roundVal):,}{resetColor} - '
-              f'{red}{round(xMin, self.roundVal):,}{resetColor}\n'
-              f'     Y: {red}{round(yMax, self.roundVal):,}{resetColor} - '
-              f'{red}{round(yMin, self.roundVal):,}{resetColor}\n\n')
-        lowerLim = -10000
-
-        fig, ax = plt.subplots(figsize=self.figSize)
-        plt.scatter(x, y, color='#BF5700', edgecolor='black')
-        plt.xlabel('Substrates', fontsize=self.labelSizeAxis)
-        plt.ylabel('Codon Enrichment Score', fontsize=self.labelSizeAxis)
-        plt.title(f'{codon} Codon Enrichment Scores\n{self.datasetTag}',
-                  fontsize=self.labelSizeTitle, fontweight='bold')
-        plt.grid(True, linestyle='-', color='black')
-        plt.xlim(lowerLim, 250000)
-        plt.ylim(lowerLim*10, 2100000)
-
-
-        # Set tick parameters
-        ax.tick_params(axis='both', which='major', length=self.tickLength,
-                       labelsize=self.labelSizeTicks)
-
-        fig.canvas.mpl_connect('key_press_event', pressKey)
-        self.plotFig(plt=plt, fig=fig)
