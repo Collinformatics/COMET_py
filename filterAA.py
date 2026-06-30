@@ -11,24 +11,24 @@ import sys
 
 # ===================================== User Inputs ======================================
 # Input 1: Select Dataset
-inEnzymeName = 'Zk'
+inEnzymeName = 'VEEV'
 inPathFolder = os.path.join('Enzymes', inEnzymeName)
 inSaveFigures = True
 inSetFigureTimer = False
 
 # Input 2: Computational Parameters
-inFixResidues = True
-inFixedResidue = 'R' # ['R',['A','G']] # [['L', 'M'], 'L'] # ['L', 'L'] #
-inFixedPosition = [3]
-inExcludeResidues = False
-inExcludedResidue = ''
-inExcludedPosition = 1
+inFixResidues = False
+inFixedResidue = ['L','L'] # ['R',['A','G']] # [['L', 'M'], 'L'] # ['L', 'L'] #
+inFixedPosition = [3,5]
+inExcludeResidues = True
+inExcludedResidue = 'A'
+inExcludedPosition = 10
 inMinimumSubstrateCount = 1
 inShowSampleSize = True
 inCodonSequence = 'NNS' # Baseline probs of degenerate codons (can be N, S, or K)
 inUseCodonProb = False # Use AA prob from inCodonSequence to calculate enrichment
 inAvgInitialProb = False
-inDropResidue = ['R9'] # To drop: inDropResidue = ['R9'], For nothing: inDropResidue = []
+inDropResidue = ['R10'] # To drop 9th to last AA: ['R9'], For nothing: []
 
 # Input 3: Making Figures
 inBlockFigures = False
@@ -99,11 +99,6 @@ inExtractPopulations = False
 inPlotEntropyPCAPopulations = False
 inAdjustZeroCounts = False # Prevent counts of 0 in PCA EM & Motif
 
-# Input 13: Evaluate Substrate Enrichment
-inEvaluateSubstrateEnrichment = False # ============= Fix: Load Initial Subs =============
-inSaveEnrichedSubstrates = False
-inNumberOfSavedSubstrates = 10**6
-
 # Input 14: Evaluate Positional Preferences
 inPlotPosProb = False # Plot RF distributions of a given AA
 inCompairAA = 'L' # Select AA of interest (different A than inFixedResidue)
@@ -159,11 +154,12 @@ ngs = NGS(
 ngs.getDatasetTag(useCodonProb=inUseCodonProb, codon=inCodonSequence)
 
 # Load: Counts
-countsInitial, countsInitialTotal = ngs.loadCounts(filter=False, fileType='Initial Sort',
-                                                   dropColumn=inDropResidue)
+countsInitial, countsInitialTotal = ngs.loadCounts(
+    filter=False, fileType='Initial Sort', dropColumn=inDropResidue
+)
 
 # Load: Substrates
-if inFindSequences or inEvaluateSubstrateEnrichment or inUseBgSubs:
+if inFindSequences or inUseBgSubs:
     substratesInitial, totalSubsInitial = ngs.loadUnfilteredSubs(loadInitial=True)
 
 # Calculate: Initial sort probabilities
@@ -183,10 +179,10 @@ if inFixResidues or inExcludeResidues:
             os.path.exists(filePathFixedCountsFinal)):
 
         # Load: Counts
-        countsFinal, countsFinalTotal = ngs.loadCounts(filter=True,
-                                                       fileType='Final Sort',
-                                                       datasetTag=ngs.datasetTagSave,
-                                                       dropColumn=inDropResidue)
+        countsFinal, countsFinalTotal = ngs.loadCounts(
+            filter=True, fileType='Final Sort',
+            datasetTag=ngs.datasetTagSave, dropColumn=inDropResidue
+        )
 
         # Load: Substrates
         substratesFinal, totalSubsFinal = ngs.loadSubstratesFiltered()
@@ -212,46 +208,35 @@ else:
 
 
 # ================================== Evaluate The Data ===================================
-if inFixResidues:
-    if loadUnfilteredSubs:
-        # Fix AA
-        substratesFinal, countsFinalTotal = ngs.fixResidue(
-            substrates=substratesFinal, fixedString=ngs.datasetTag,
-            printRankedSubs=True, sortType='Final Sort')
+saveSubs = False
+if inFixResidues and loadUnfilteredSubs:
+    saveSubs = True
+    substratesFinal, countsFinalTotal = ngs.fixResidue(
+        substrates=substratesFinal, fixedString=ngs.datasetTag,
+        printRankedSubs=True, sortType='Final Sort')
+elif inExcludeResidues:
+    saveSubs = True
+    substratesFinal, countsFinalTotal = ngs.exclResidue(
+        substrates=substratesFinal, fixedString=ngs.datasetTag,
+        printRankedSubs=True, sortType='Final Sort')
 
+if saveSubs:
+    # Save the data
+    if inDropResidue:
+        substratesFinal = ngs.dropAA(substrates=substratesFinal, dropColumn=inDropResidue)
+
+    if countsFinal is None:
         # Count fixed substrates
         countsFinal, countsFinalTotal = ngs.countResidues(substrates=substratesFinal,
                                                           datasetType='Final Sort')
+    ngs.saveData(substrates=substratesFinal, counts=countsFinal)
 
-        # Save the data
-        ngs.saveData(substrates=substratesFinal, counts=countsFinal)
 
-        # Filter counts matrix
-        if inDropResidue:
-            countsFinal = ngs.dropColumnsFromMatrix(countMatrix=countsFinal,
-                                                    datasetType='Final Sort',
-                                                    dropColumn=inDropResidue)
-
-    if inEvaluateSubstrateEnrichment:
-        fixedSubsInitial, countsInitialFixedTotal = ngs.fixResidue(
-            substrates=substratesInitial, fixedString=ngs.datasetTag,
-            printRankedSubs=True, sortType='Initial Sort')
-
-if inExcludeResidues and not inFixResidues:
-    if loadUnfilteredSubs:
-        # Exclude AAs
-        # Fix AA
-        substratesFinal, countsFinalTotal = ngs.exclResidue(
-            substrates=substratesFinal, fixedString=ngs.datasetTag,
-            printRankedSubs=True, sortType='Final Sort')
-
-        # Count fixed substrates
-        countsFinal, countsFinalTotal = ngs.countResidues(substrates=substratesFinal,
-                                                          datasetType='Final Sort')
-
-        # Save the data
-        ngs.saveData(substrates=substratesFinal, counts=countsFinal)
-
+# # Filter counts matrix
+# if inDropResidue:
+#     countsFinal = ngs.dropColumnsFromMatrix(countMatrix=countsFinal,
+#                                             datasetType='Final Sort',
+#                                             dropColumn=inDropResidue)
 
 # Display current sample size
 ngs.recordSampleSize(NInitial=countsInitialTotal, NFinal=countsFinalTotal,

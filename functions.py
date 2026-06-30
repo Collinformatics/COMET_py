@@ -389,25 +389,6 @@ class NGS:
 
 
     @staticmethod
-    def dropColumnsFromMatrix(countMatrix, datasetType, dropColumn):
-        printMatrix = False
-        for pos in dropColumn:
-            if pos in countMatrix.columns:
-                printMatrix = True
-                print(f'Dropping column: {blue}{dropColumn}{resetColor}')
-                countMatrix = countMatrix.drop(columns=pos)
-
-        if printMatrix:
-            countsFormatted = countMatrix.to_string(
-                formatters={column: '{:,.0f}'.format for column in
-                            countMatrix.select_dtypes(include='number').columns})
-            print(f'Counts: {purple}{datasetType}{resetColor}\n{countsFormatted}\n\n')
-
-        return countMatrix
-
-
-
-    @staticmethod
     def zScore(dist, AA):
         x = dist.loc[AA]
         dist = np.asarray(dist)
@@ -1128,7 +1109,7 @@ class NGS:
 
 
 
-    def loadSubstrates(self, fileNames, fileType):
+    def loadSubstrates(self, fileNames, fileType, dropColumn=False):
         print('============================= Load: Substrate Files '
               '=============================')
         substrates = {}
@@ -1196,6 +1177,7 @@ class NGS:
             subsLoaded, totalSubs = self.loadSubstrates(fileNames=fileNames,
                                                         fileType=fileType)
             result[fileType] = (subsLoaded, totalSubs)
+
 
         # Initialize result dictionary
         loadedResults = {}
@@ -1518,6 +1500,73 @@ class NGS:
               f'{resetColor}\n\n')
 
         return motifs, totalMotifs, substrates
+
+
+
+    def dropColumnsFromMatrix(self, countMatrix, datasetType, dropColumn):
+        printMatrix = False
+        for pos in dropColumn:
+            if pos in countMatrix.columns:
+                printMatrix = True
+                print(f'Dropping column: {blue}{dropColumn}{resetColor}')
+                countMatrix = countMatrix.drop(columns=pos)
+
+        if isinstance(dropColumn, str):
+            idx = self.xAxisLabels.index(dropColumn)
+        elif isinstance(dropColumn, list) and dropColumn[0]:
+            idx = self.xAxisLabels.index(dropColumn[0])
+        else:
+            return countMatrix
+        print(self.xAxisLabels)
+        print(len(self.xAxisLabels), idx)
+        if len(self.xAxisLabels) > idx:
+            print(self.xAxisLabels)
+            print(self.xAxisLabels[:idx])
+
+        if self.xAxisLabelsMotif is not None and len(self.xAxisLabelsMotif) > idx:
+            print(self.xAxisLabelsMotif[:idx])
+        sys.exit()
+
+        if printMatrix:
+            countsFormatted = countMatrix.to_string(
+                formatters={column: '{:,.0f}'.format for column in
+                            countMatrix.select_dtypes(include='number').columns})
+            print(f'Counts: {purple}{datasetType}{resetColor}\n{countsFormatted}\n\n')
+
+        return countMatrix
+
+
+
+    def dropAA(self, substrates, dropColumn):
+        if isinstance(dropColumn, str):
+            idx = int(dropColumn.replace('R', '')) - 1
+        else:
+            idx = int(dropColumn[0].replace('R', '')) - 1
+        subLen = len(next(iter(substrates)))
+        if subLen <= idx:
+            return substrates
+
+        print(self.xAxisLabels)
+        print(idx)
+        if dropColumn in self.xAxisLabels:
+            print(self.xAxisLabels)
+
+        if self.xAxisLabelsMotif is not None and dropColumn in self.xAxisLabelsMotif:
+            print(self.xAxisLabelsMotif)
+        sys.exit()
+
+        subs = {}
+        print(f'Dropping: {dropColumn[0]}\n'
+              f'Len: {subLen}\n'
+              f'Idx: {idx}\n')
+        for substrate, count in substrates.items():
+            sub = substrate[0:idx]
+            if sub in subs.keys():
+                subs[sub] += count
+            else:
+                subs[sub] = count
+
+        return subs
 
 
 
@@ -2068,8 +2117,8 @@ class NGS:
 
 
 
-    def saveData(self, substrates, counts, sortType='FinalSort',
-                 saveTag=None, countsReleased=None):
+    def saveData(self, substrates: object, counts: object, sortType: object = 'FinalSort',
+                 saveTag: object = None, countsReleased: object = None) -> None:
         if not isinstance(substrates, dict):
             print(f'{orange}ERROR: The substrates need to be stored in a dictionary\n'
                   f'     Current data structure: {type(substrates)}')
@@ -2685,8 +2734,9 @@ class NGS:
 
 
         # Rank fixed substrates
-        rankedFixedSubstrates = dict(sorted(fixedSubs.items(),
-                                            key=lambda x: x[1], reverse=True))
+        rankedFixedSubstrates = dict(sorted(
+            fixedSubs.items(), key=lambda x: x[1], reverse=True)
+        )
 
         # Print: Fixed substrates
         if printRankedSubs:
@@ -2706,7 +2756,6 @@ class NGS:
                     iteration += 1
                     if iteration >= self.printNumber:
                         break
-
 
         print(f'\nNumber of substrates with fixed {purple}{fixedString}{resetColor}: '
               f'{red}{fixedSubsTotal:,}{resetColor}\n\n')
@@ -4126,11 +4175,6 @@ class NGS:
             motifEnrichment = dict(sorted(
                 motifEnrichment.items(), key=lambda x: x[1], reverse=True)
             )
-
-        # Select data
-        if not self.useEF: ##$$
-            # Use counts, not enrichment factor
-            motifEnrichment = motifs
 
         iteration = 0
         if predActivity:
