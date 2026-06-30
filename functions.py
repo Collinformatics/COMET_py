@@ -2384,15 +2384,18 @@ class NGS:
                 else:
                     self.datasetTag = f'{self.fixedAA[0]}@R{self.fixedPos[0]}'
             else:
-                fixedPos = sorted(self.fixedPos)
-                # print(f'Fixed Pos: {fixedPos}')
+                fixedPos, fixedAA = zip(*sorted(zip(self.fixedPos, self.fixedAA)))
+                fixedPos = list(fixedPos)
+                fixedAA = list(fixedAA)
+                # print(f'Fixed Pos: {fixedPos}\n'
+                #       f'Fixed AA:  {fixedAA}\n')
                 multiCombinedFrames = False
                 for index in range(len(fixedPos) - 1):
                     # print(f'Idx: {index}')
                     pos1, pos2 = fixedPos[index], fixedPos[index + 1]
                     # print(f'Pos:\n'
                     #       f'     {pos1}\n'
-                    #       f'     {pos2}\n\n')
+                    #       f'     {pos2}\n')
                     if isinstance(pos1, int) and isinstance(pos2, int):
                         if pos1 == pos2 - 1 or pos1 == pos2 + 1:
                             continue
@@ -2427,22 +2430,24 @@ class NGS:
                         continuous = False
                         break
 
-                # Define subtags
-                fixedAA1 = self.fixedAA[0]
-                if isinstance(fixedAA1, list):
-                    fixedAA1 = f'[{','.join(fixedAA1)}]'
-                fixedPos1 = self.fixedPos[0]
-                if isinstance(fixedPos1, list):
-                    fixedPos1 = f'[{','.join(map(str, fixedPos1))}]'
-                fixedAA2 = self.fixedAA[-1]
-                if isinstance(fixedAA2, list):
-                    fixedAA2 = f'[{','.join(fixedAA2)}]'
-                fixedPos2 = self.fixedPos[-1]
-                if isinstance(fixedPos2, list):
-                    fixedPos2 = f'[{','.join(map(str, fixedPos2))}]'
-
                 # Define the tag
                 if continuous:
+                    # Define subtags
+                    fixedAA1 = self.fixedAA[0]
+                    if isinstance(fixedAA1, list):
+                        fixedAA1 = f'[{','.join(fixedAA1)}]'
+                    fixedPos1 = self.fixedPos[0]
+                    if isinstance(fixedPos1, list):
+                        fixedPos1 = f'[{','.join(map(str, fixedPos1))}]'
+                    fixedAA2 = self.fixedAA[-1]
+                    if isinstance(fixedAA2, list):
+                        fixedAA2 = f'[{','.join(fixedAA2)}]'
+                    fixedPos2 = self.fixedPos[-1]
+                    if isinstance(fixedPos2, list):
+                        fixedPos2 = f'[{','.join(map(str, fixedPos2))}]'
+                    # print(f'Fix: {fixedAA1}@R{fixedPos1}')
+                    # print(f'Fix: {fixedAA2}@R{fixedPos2}\n')
+
                     if multiCombinedFrames:
                         self.datasetTag = (f'{fixedAA1}@R{fixedPos1}-'
                                            f'{fixedAA2}@R{fixedPos2}')
@@ -2450,11 +2455,17 @@ class NGS:
                         self.datasetTag = (f'{fixedAA1}@R'
                                            f'{fixedPos1}-R{fixedPos2}')
                 else:
-                    self.datasetTag = f'{fixedAA1}@'
                     tags = []
                     for idx, pos in enumerate(fixedPos):
-                        tags.append(f'R{pos}')
-                    self.datasetTag += ','.join(tags)
+                        # print(idx, pos)
+                        aa = fixedAA[idx]
+                        tag = f'{','.join(fixedAA[idx])}@R{pos}'
+                        if isinstance(aa, list):
+                            tag = f'[{','.join(fixedAA[idx])}]@R{pos}'
+                        # print(f'Tag: {tag}')
+                        tags.append(tag)
+                    self.datasetTag = ' '.join(tags)
+                    # print(f'Dataset: {self.datasetTag}\n')
 
             # Exclude residues
             if self.excludeAAs:
@@ -2564,7 +2575,9 @@ class NGS:
         tag = tag.replace(' ', '_')
         self.datasetTagSave = tag.replace(' ', '_')
         # print(f'Dataset Tag: {purple}{self.datasetTag}{resetColor}')
+        # print(f'Motif Tag: {purple}{self.datasetTagMotif}{resetColor}')
         # print(f'Save Tag: {purple}{self.datasetTagSave}{resetColor}\n\n')
+        # sys.exit()
 
         return self.datasetTag
 
