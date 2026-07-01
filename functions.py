@@ -3688,8 +3688,8 @@ class NGS:
         # Plot: Bar graphs
         self.plotFigBars = True ##$$
         if self.plotFigBars:
-            # self.plotBarGraph(substrates=motifs, dataType='Counts',
-            #                   combinedMotifs=combinedMotifs)
+            self.plotBarGraph(substrates=motifs, dataType='Counts',
+                              combinedMotifs=combinedMotifs)
             self.plotBarGraph(substrates=motifs, dataType='Counts',
                               combinedMotifs=combinedMotifs, plotAllSubs=True)
             # self.plotBarGraph(substrates=motifs, dataType='Relative Frequency',
@@ -3705,249 +3705,22 @@ class NGS:
             subPopulations = self.plotPCA(substrates=motifs, data=tokensESM,
                                           indices=subsESM, N=subCountsESM,
                                           combinedMotifs=combinedMotifs)
-            for NCluster, motifCluster in enumerate(subPopulations):
-                NClusterAdj = NCluster + 1
+            for NCluster, motifCluster in enumerate(subPopulations, start=1):
 
-                # Plot: Motif enrichment for this selected cluster
-                if self.plotFigMotifEnrich:
-                    self.plotMotifEnrichment(motifs=motifCluster,
-                                             combinedMotifs=combinedMotifs,
-                                             clusterNumPCA=NClusterAdj)
 
-                    # Limit the number of substrates
-                    self.plotMotifEnrichment(motifs=motifCluster,
-                                             combinedMotifs=combinedMotifs,
-                                             clusterNumPCA=NClusterAdj,
-                                             limitNBars=True)
+                # Plot: Bar graphs
+                self.plotBarGraph(
+                    substrates=motifCluster, dataType=f'Counts PCA {NCluster}',
+                    combinedMotifs=combinedMotifs
+                )
+                self.plotBarGraph(
+                    substrates=motifCluster, dataType=f'Counts PCA {NCluster}',
+                    combinedMotifs=combinedMotifs, plotAllSubs=True
+                )
 
                 # Plot: Word cloud
-                self.plotWordCloud(substrates=motifCluster, clusterNumPCA=NClusterAdj,
+                self.plotWordCloud(substrates=motifCluster, clusterNumPCA=NCluster,
                                    combinedMotifs=combinedMotifs)
-
-
-
-    def plotMotifEnrichment(self, motifs, barColor='#BF5700',
-                            barWidth=0.65, clusterNumPCA=None,
-                            combinedMotifs=False, limitNBars=False,
-                            predActivity=False, predModel=None, predType=None,
-                            scaleEMap=False):
-        NSubs = len(motifs.keys())
-        if predActivity:
-            if predType.lower() == 'custom':
-                # Collect all datapoints
-                x, y = [], []
-                for motif, count in motifs.items():
-                    x.append(str(motif))
-                    y.append(count)
-            else:
-                # Collect top datapoints
-                iteration = 0
-                x, y = [], []
-                for motif, count in motifs.items():
-                    x.append(str(motif))
-                    y.append(count)
-                    iteration += 1
-                    if iteration == self.NSubBars:
-                        break
-        else:
-            if limitNBars:
-                # Collect top datapoints
-                iteration = 0
-                x, y = [], []
-                for motif, count in motifs.items():
-                    x.append(str(motif))
-                    y.append(count)
-                    iteration += 1
-                    if iteration == self.NSubBars:
-                        break
-            else:
-                # Collect all datapoints
-                x, y = [], []
-                for motif, count in motifs.items():
-                    x.append(str(motif))
-                    y.append(count)
-        plotNSubs = len(x)
-        motifLen = len(x[0])
-
-        # Evaluate: Y axis
-        maxValue = math.ceil(max(y))
-        magnitude = math.floor(math.log10(abs(maxValue)))
-        unit = 10 ** (magnitude - 1)
-        yMax = math.ceil(maxValue / unit) * unit
-        yMax += 3 * unit # Increase yMax
-        if min(y) < 0:
-            minValue = math.floor(min(y))
-            magnitude = math.floor(math.log10(abs(minValue)))
-            unit = 10 ** (magnitude - 1)
-            yMin = math.floor(minValue / unit) * unit
-            while yMin > min(y):
-                yMin -= unit  # Decrease yMin
-        else:
-            yMin = 0
-        # print(f'\nY Axis:\n'
-        #       f'  Max: {yMax}\n'
-        #       f'  Min: {yMin}\n')
-
-
-        # # Calculate: Decay constant
-        # k = ngs.decayRate(y=y)
-
-        # Plot the data
-        fig, ax = plt.subplots(figsize=self.figSize)
-        if limitNBars:
-            bars = plt.bar(x, y, color=barColor, width=barWidth)
-
-            # Determine x values
-            xTicks = np.arange(0, len(x))
-            ax.set_xticks(xTicks)
-            ax.set_xticklabels(x, rotation=90, ha='center')
-            ax.set_xlim(left=xTicks[0] - barWidth, right=xTicks[-1] + barWidth)
-
-            # Set the edge color
-            for bar in bars:
-                bar.set_edgecolor('black')
-                bar.set_linewidth(self.lineThickness)
-        else:
-            bars = plt.bar(x, y, color=barColor, width=barWidth)
-
-            # Determine x values
-            magnitude = np.floor(np.log10(NSubs))
-            div = 10 ** (magnitude - 1)
-            xMax = int(np.ceil(NSubs))
-            step = int(div * 10)  # int(xMax / 10)
-            xTicks = np.arange(0, xMax + step, step)
-            ax.set_xticks(xTicks)
-            ax.set_xticklabels(xTicks)
-            ax.set_xlim(left=-NSubs/30, right=xTicks[-1])
-
-            # Set the edge color
-            for bar in bars:
-                bar.set_edgecolor(barColor)
-                bar.set_linewidth(self.lineThickness)
-
-        # Define: Figure title
-        enzName = self.enzymeName.replace(' - ', '\n')
-        yLabel = 'Counts'
-        if predActivity:
-            datasetTag = self.datasetTag.replace(' - ', '\n')
-            if predModel is None:
-                if '\n' in datasetTag:
-                    title = f'{enzName}\n{datasetTag}'
-                else:
-                    title = f'{self.enzymeName}\n{datasetTag}'
-            else:
-                title = (f'{enzName}\n{predModel}\n'
-                             f'{NSubs:,} {predType} Sequences')
-            yLabel = 'Predicted Activity'
-        else:
-            if clusterNumPCA is not None:
-                title = (f'{enzName}\n{self.datasetTag}\n'
-                         f'{NSubs:,} Unique Motifs - PCA Cluster #{clusterNumPCA}')
-            else:
-                title = (f'{enzName}\n{self.datasetTag}\n'
-                         f'{NSubs:,} Unique Motifs')
-        if scaleEMap:
-            title = title.replace(self.datasetTag, f'Scaled {self.datasetTag}')
-
-        # print(f'Prediction Type: {predType}\n\n')
-        # if (limitNBars
-        #         and predType is not None
-        #         and predType.lower() != 'chosen'
-        #         and predModel is not None):
-        if limitNBars and predType is not None and predModel is not None:
-            title = title.replace(f'{NSubs:,}', f'Top {plotNSubs:,}')
-        plt.title(title, fontsize=self.labelSizeTitle, fontweight='bold')
-        plt.ylabel(yLabel, fontsize=self.labelSizeAxis)
-        plt.axhline(y=0, color='black', linewidth=self.lineThickness)
-
-
-        # Set: y ticks
-        plotYTicks = True
-        yTicks = []
-        if max(y) == 1.0:
-            yMax = 1.0
-            if yMin == 0:
-                yTicks = np.linspace(yMin, yMax, 6)
-            else:
-                plotYTicks = False
-                dist = yMax - yMin
-                vals = [0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55]
-                for val in vals:
-                    ratio = dist/val
-                    if ratio == int(ratio) and ratio < 10:
-                        plotYTicks = True
-                        yTicks = np.arange(yMin, yMax + val, val)
-                        break
-            yMax += 0.1
-        elif yMax > 0 and yMax < 1:
-            ticks = [0, 0.2, 0.4, 0.6, 0.8, 1]
-        else:
-            step = abs((yMax - yMin) / 10)
-            yTicks = np.arange(yMin, yMax + step, step)
-        plt.ylim(yMin, yMax)
-        plt.xticks(rotation=90, ha='center')
-        if plotYTicks:
-            plt.yticks(yTicks)
-
-
-        # Set tick parameters
-        ax.tick_params(axis='both', which='major', length=self.tickLength,
-                       labelsize=self.labelSizeTicks, width=self.lineThickness)
-
-        # Set the thickness of the figure border
-        for _, spine in ax.spines.items():
-            spine.set_visible(True)
-            spine.set_linewidth(self.lineThickness)
-
-        self.plotFig(plt=plt, fig=fig)
-
-        # Save the figure
-        if self.saveFigures:
-            scoreType = 'Counts'
-
-            # Define: Save location
-            if predActivity:
-                if predType.lower() == 'chosen':
-                    figLabel = (f'{self.enzymeName}-PredictedActivity-'
-                                f'{self.datasetTag}-{predType}-Subs_{predModel}-'
-                                f'{motifLen}AA-PlotN_{plotNSubs}-'
-                                f'MinCounts_{self.minSubCount}.png')
-                else:
-                    if predModel is None:
-                        predType = predType.replace('/', '_')
-                        figLabel = (f'{self.enzymeName}-PredictedActivity-'
-                                    f'{self.datasetTag}-{predType}-'
-                                    f'{motifLen}AA-N_{plotNSubs}-'
-                                    f'MinCounts_{self.minSubCount}.png')
-                    else:
-                        figLabel = (f'{self.enzymeName}-PredictedActivity-'
-                                    f'{self.datasetTag}-{predType} Subs-'
-                                    f'{predModel}-{motifLen}AA-'
-                                    f'Select N_{self.NSubBars}-PlotN_{plotNSubs}-'
-                                    f'MinCounts_{self.minSubCount}.png')
-            else:
-                if limitNBars:
-                    figLabel = (f'{self.enzymeName}-MotifEnrichment-'
-                                f'{self.datasetTag}-{motifLen}AA-'
-                                f'Select N_{self.NSubBars}-PlotN_{plotNSubs}-'
-                                f'MinCounts_{self.minSubCount}.png')
-                else:
-                    figLabel = (f'{self.enzymeName}-MotifEnrichment-'
-                                f'{self.datasetTag}-{motifLen}AA-'
-                                f'N_{plotNSubs}-MinCounts_{self.minSubCount}.png')
-                if clusterNumPCA is not None:
-                    figLabel = figLabel.replace('MotifEnrichment',
-                        f'MotifEnrichment-PCA_{clusterNumPCA}')
-            figLabel = figLabel.replace('MinCounts',
-                                        f'{scoreType}-MinCounts')
-            if scaleEMap:
-                figLabel = figLabel.replace(self.datasetTag,
-                                            f'Scaled_{self.datasetTag}')
-            saveLocation = os.path.join(self.pathSaveFigs, figLabel)
-            saveLocation = saveLocation.replace(' ', '')
-
-            # Save figure
-            self.saveFig(fig=fig, path=saveLocation)
 
 
 
@@ -4070,33 +3843,6 @@ class NGS:
             spine.set_linewidth(self.lineThickness)
 
         self.plotFig(plt=plt, fig=fig)
-
-
-
-    def motifEnrichment(self, motifs, predActivity=False, predModel=False,
-                        predType=False):
-        print('=============================== Motif Enrichment '
-              '================================')
-        print(f'Dataset: {purple}{self.datasetTag}{resetColor}\n\n'
-              f'Normalizing substrate counts in the '
-              f'{purple}Final Sort{resetColor} library:\n'
-              f'     Enrichment Ratio (ER) = {magenta}Counts Final{resetColor} / '
-              f'{magenta}Counts Initial{resetColor}\n')
-        combinedMotifs = False
-        if len(self.motifIndexExtracted) > 1:
-            combinedMotifs = True
-
-        # Plot: Motif enrichment
-        if predActivity and self.plotFigMotifEnrich:
-            self.plotMotifEnrichment(
-                motifs=motifs, combinedMotifs=combinedMotifs,
-                limitNBars=True, predActivity=predActivity, predModel=predModel,
-                predType=predType)
-        else:
-            if self.plotFigMotifEnrich:
-                self.plotMotifEnrichment(
-                    motifs=motifs, combinedMotifs=combinedMotifs,
-                    predActivity=predActivity, predModel=predModel, predType=predType)
 
 
 
@@ -4250,7 +3996,7 @@ class NGS:
 
 
         # Plot the data
-        fig, ax = plt.subplots(figsize=self.figSize) ##$$
+        fig, ax = plt.subplots(figsize=self.figSize)
         bars = plt.bar(x, y, color=barColor, width=barWidth)
         plt.ylabel(dataType, fontsize=self.labelSizeAxis)
         plt.title(title, fontsize=self.labelSizeTitle, fontweight='bold')
@@ -4323,6 +4069,7 @@ class NGS:
 
         # Save the figure
         if self.saveFigures:
+            dataType = dataType.replace(' ', '_')
             if self.motifLen == None:
                 seqLength = len(self.xAxisLabels)
             else:

@@ -13,12 +13,16 @@ inSaveFigures = True
 inSetFigureTimer = False
 
 # Input 2: Experimental Parameters
-inMotifPositions = ['P4','P3','P2','P1','P1\'','P2\'']
+inMotifPositions = ['P4','P3','P2','P1','P1\'']
 # inMotifPositions = ['-4', '-3', '-2', '-1', '0', '1', '2', '3', '4']
 # inMotifPositions = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8']
-inIndexNTerminus = 0 # Define the index if the first AA in the motif
+inIndexNTerminus = 1 # Define the index if the first AA in the motif
 
 # Input 3: Computational Parameters
+inFixedResidue = [['L','M'],'L']
+inFixedPosition = [[4,5], [6,7]]
+# inFixedResidue = ['R',['A','G','S']] # ['R',['A','G']]
+# inFixedPosition = [[3,4,5,6],[4,5,6,7]]
 inFixedResidue = 'Q'
 inFixedPosition = [4,5,6]
 inExcludeResidues = False
@@ -43,11 +47,7 @@ inPlotWordCloud = True
 inPlotStats = True
 inPlotBarGraphs = True
 inPlotPCA = False # PCA plot of the combined set of motifs
-inPlotSuffixTree = False
-inPlotBinnedSubstrateES = False
-inPlotBinnedSubstratePrediction = False
 inPlotCounts = False
-inPlotFilteredSubs = False
 inShowSampleSize = True # Include the sample size in your figures
 if inBlockFigures:
     inPlotEntropy = False
@@ -56,15 +56,12 @@ if inBlockFigures:
     inPlotLogo = False
     inPlotWeblogo = False
     inPlotMotifEnrichment = False
-    # inPlotWordCloud = False
+    inPlotWordCloud = False
     inPlotStats = False
-    inPlotBarGraphs = False
+    # inPlotBarGraphs = False
     inPlotPCA = False
     inPlotSuffixTree = False
-    inPlotBinnedSubstrateES = False
-    inPlotBinnedSubstratePrediction = False
     inPlotCounts = False
-    inPlotFilteredSubs = False
 
 # Input 5: CSV
 inSaveCSV = False # Save substrates in a csv file
@@ -112,7 +109,7 @@ inNumberOfPCs = 2
 inTotalSubsPCA = int(5*10**4)
 
 # Input 13: Predict Activity
-inPredictActivity = True
+inPredictActivity = False
 inPredictSubstrates = []
 inUseNaturalSubs = False
 if inUseNaturalSubs:
@@ -221,7 +218,7 @@ ngs = NGS(
     plotFigMotifEnrich=inPlotMotifEnrichment, plotFigWords=inPlotWordCloud,
     wordLimit=inLimitWords, wordsTotal=inTotalWords, plotFigBars=inPlotBarGraphs,
     NSubBars=inPlotNBars, plotFigPCA=inPlotPCA, numPCs=inNumberOfPCs,
-    NSubsPCA=inTotalSubsPCA, plotSuffixTree=inPlotSuffixTree,
+    NSubsPCA=inTotalSubsPCA, plotSuffixTree=False,
     saveFigures=inSaveFigures, setFigureTimer=inSetFigureTimer
 )
 
@@ -243,7 +240,8 @@ else:
 ngs.getDatasetTag(combinedMotifs=True, useCodonProb=inUseCodonProb, codon=inCodonSequence)
 
 # Load: Substrates
-if inSaveCSV and inUseBgSubs or inFindSequences or inPlotFilteredSubs:
+substratesInitial, totalSubsInitial = None, None
+if inSaveCSV and inUseBgSubs or inFindSequences:
     substratesInitial, totalSubsInitial = ngs.loadUnfilteredSubs(loadInitial=True)
 
 # Load: Substrate motifs
@@ -255,7 +253,6 @@ motifs, motifsCountsTotal, substratesFiltered = ngs.loadMotifSeqs(
 ngs.recordSampleSize(
     NInitial=countsInitialTotal, NFinal=motifsCountsTotal, NFinalUnique=len(motifs.keys())
 )
-
 
 # Evaluate dataset
 combinedMotifs = False
@@ -287,9 +284,9 @@ ngs.calculateEnrichment(
     rfInitial=rfInitial, rfFinal=rfCombinedReleasedMotif, combinedMotifs=combinedMotifs
 )
 
-# Plot: Word Cloud
-if inPlotWordCloud:
-    ngs.plotWordCloud(substrates=motifs)
+# Plot count related figures
+ngs.processSubstrates(motifs=motifs, subLabel=inMotifPositions,
+                      combinedMotifs=combinedMotifs)
 
 # Create csv
 if inSaveCSV:
@@ -328,7 +325,6 @@ if inFindAAInSequence:
         ngs.findAAInSequence(substrates=motifs, AA=inFindAA, idxPos=inAAPos,
                          sortType='Motifs', combinedMotifs=combinedMotifs)
 
-
 # Predict substrate activity
 if inPredictActivity:
     ngs.predictActivity(
@@ -336,26 +332,3 @@ if inPredictActivity:
         finalRF=rfCombinedReleasedMotif, initialRF=rfInitial, predModel=ngs.datasetTag,
         predLabel=inPredictionLabel, combinedMotifs=combinedMotifs
     )
-
-if inPlotFilteredSubs:
-    # Plot count related figures
-    ngs.processSubstrates(subsInit=substratesInitial, subsFinal=substratesFiltered,
-                          motifs=motifs, subLabel=inMotifPositions,
-                          combinedMotifs=combinedMotifs)
-
-
-    # # Evaluate: Motif Sequences
-    # Count fixed substrates
-    motifCountsFinal, motifsCountsTotal = ngs.countResidues(substrates=motifs,
-                                                            datasetType='Final Sort')
-
-    # Calculate: RF
-    rfMotif = ngs.calculateRF(counts=motifCountsFinal, N=motifsCountsTotal,
-                                fileType='Final Sort')
-
-    # Calculate: Positional entropy
-    ngs.calculateEntropy(rf=rfMotif, combinedMotifs=combinedMotifs)
-
-    # Calculate: AA Enrichment
-    ngs.calculateEnrichment(rfInitial=rfInitial, rfFinal=rfMotif,
-                            combinedMotifs=combinedMotifs)
