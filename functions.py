@@ -5528,15 +5528,16 @@ class NGS:
                 # Define: Save location
                 enzName = self.enzymeName.replace(' - ', '-').replace('/','_')
                 if datasetTag is None:
-                    figLabel = (f'AA Distribution-{enzName}-{sortType}-YMax_{yMax}-'
-                                f'{codonType}-MinCounts_{self.minSubCount}.png')
+                    figLabel = (f'AA Distribution-{enzName}-{sortType}-'
+                                f'YMax_{yMax}-{codonType}-{len(rf.columns)}AA-'
+                                f'MinCounts_{self.minSubCount}.png')
                 else:
                     if codonType == datasetTag:
                         figLabel = (f'AA Distribution-{codonType}_Codon-'
                                     f'YMax_{yMax}.png')
                     else:
-                        figLabel = (f'AA Distribution-{enzName}-{datasetTag}-'
-                                    f'{sortType}-YMax_{yMax}-{codonType}-'
+                        figLabel = (f'AA Distribution-{enzName}-{datasetTag}-{sortType}-'
+                                    f'YMax_{yMax}-{codonType}-{len(rf.columns)}AA-'
                                     f'MinCounts_{self.minSubCount}.png')
                 figLabel = figLabel.replace(' ', '_')
                 saveLocation = os.path.join(self.pathSaveFigs, figLabel)
